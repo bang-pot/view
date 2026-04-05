@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { getMe } from "@/shared/auth/client";
 import { resolveProtectedDestination } from "@/shared/auth/guards";
+import { reportOperationalError } from "@/shared/monitoring/operations";
 
 const PROTECTED_PATH = "/protected-demo";
 
@@ -30,7 +31,11 @@ export function ProtectedDemoPageClient() {
 
         setIsLoading(false);
       })
-      .catch(() => {
+      .catch((error) => {
+        reportOperationalError("auth.protected.bootstrap_failed", error, {
+          route: PROTECTED_PATH,
+        });
+
         if (isMounted) {
           router.replace(`/login?redirectTo=${encodeURIComponent(PROTECTED_PATH)}`);
         }
