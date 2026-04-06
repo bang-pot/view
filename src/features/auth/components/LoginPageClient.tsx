@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -104,7 +103,11 @@ export function LoginPageClient() {
       <p>카카오 로그인으로만 BangPot에 들어올 수 있습니다.</p>
       {errorMessage ? <p>{errorMessage}</p> : null}
       {loginSetupMessage ? <p>{loginSetupMessage}</p> : null}
-      {loginUrl ? <Link href={loginUrl}>카카오로 시작하기</Link> : null}
+      {loginUrl ? (
+        <a href={loginUrl} target="_self" rel="external">
+          카카오로 시작하기
+        </a>
+      ) : null}
     </main>
   );
 }

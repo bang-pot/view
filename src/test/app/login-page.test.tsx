@@ -64,7 +64,7 @@ describe("LoginPage", () => {
     });
   });
 
-  it("renders the kakao login entry for guests", async () => {
+  it("renders the kakao login entry for guests as a full document navigation", async () => {
     vi.mocked(getMe).mockResolvedValue({
       authStatus: "GUEST",
       completionRequired: false,
@@ -76,10 +76,14 @@ describe("LoginPage", () => {
 
     render(<LoginPage />);
 
-    expect(await screen.findByRole("link", { name: "카카오로 시작하기" })).toHaveAttribute(
+    const loginLink = await screen.findByRole("link", { name: "카카오로 시작하기" });
+
+    expect(loginLink).toHaveAttribute(
       "href",
       "http://localhost:8080/oauth2/authorization/kakao?redirectTo=%2Fprotected-demo",
     );
+    expect(loginLink).toHaveAttribute("target", "_self");
+    expect(loginLink).toHaveAttribute("rel", "external");
   });
 
   it("shows a retry-friendly error when oauth login fails and returns to login", async () => {

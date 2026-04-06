@@ -9,7 +9,7 @@ describe("auth client", () => {
     process.env = {
       ...ORIGINAL_ENV,
       NEXT_PUBLIC_APP_ENV: "prod",
-      NEXT_PUBLIC_API_BASE_URL: "https://api.bangpot.example.com/",
+      NEXT_PUBLIC_API_BASE_URL: "/backend/",
     };
   });
 
@@ -42,7 +42,7 @@ describe("auth client", () => {
     await getMe();
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://api.bangpot.example.com/api/auth/me",
+      "/backend/api/auth/me",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",
