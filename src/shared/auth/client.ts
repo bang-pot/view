@@ -1,8 +1,9 @@
-import { requestJson } from "@/shared/api/client";
+import { requestJson, requestNoContent } from "@/shared/api/client";
 import { sanitizeRedirectPath } from "@/shared/auth/guards";
 import type {
   AuthCompletionResponse,
   AuthMeResponse,
+  AuthProfileResponse,
   NicknameAvailabilityResponse,
 } from "@/shared/auth/types";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
@@ -31,6 +32,21 @@ export async function getMe(): Promise<AuthMeResponse> {
   );
 }
 
+export async function getProfile(): Promise<AuthProfileResponse> {
+  return requestJson<AuthProfileResponse>(
+    getApiBaseUrl(),
+    "/api/auth/profile",
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "AUTH_PROFILE_REQUEST_FAILED",
+      message: "프로필 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
 export async function checkNicknameAvailability(
   nickname: string,
 ): Promise<NicknameAvailabilityResponse> {
@@ -46,6 +62,27 @@ export async function checkNicknameAvailability(
     {
       code: "AUTH_NICKNAME_CHECK_FAILED",
       message: "닉네임 중복 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function updateProfile(input: {
+  nickname: string;
+}): Promise<AuthProfileResponse> {
+  return requestJson<AuthProfileResponse>(
+    getApiBaseUrl(),
+    "/api/auth/profile",
+    {
+      method: "PATCH",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    },
+    {
+      code: "AUTH_PROFILE_UPDATE_FAILED",
+      message: "프로필 저장에 실패했습니다. 입력값을 다시 확인해 주세요.",
     },
   );
 }
@@ -68,6 +105,21 @@ export async function completeProfile(input: {
     {
       code: "AUTH_COMPLETE_REQUEST_FAILED",
       message: "가입 완료 처리에 실패했습니다. 입력값을 다시 확인해 주세요.",
+    },
+  );
+}
+
+export async function logout(): Promise<void> {
+  return requestNoContent(
+    getApiBaseUrl(),
+    "/api/auth/logout",
+    {
+      method: "POST",
+      credentials: "include",
+    },
+    {
+      code: "AUTH_LOGOUT_FAILED",
+      message: "로그아웃에 실패했습니다. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

@@ -1,14 +1,5 @@
-import Link from "next/link";
+import { HomePageClient } from "@/features/auth/components/HomePageClient";
 
 export default function Home() {
-  return (
-    <main>
-      <h1>BangPot frontend bootstrap</h1>
-      <p>Round 1 auth flow and Common Ops frontend baseline are ready.</p>
-      <ul>
-        <li><Link href="/login">로그인</Link></li>
-        <li><Link href="/protected-demo">Protected demo</Link></li>
-      </ul>
-    </main>
-  );
+  return <HomePageClient />;
 }

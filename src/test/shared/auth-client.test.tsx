@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { completeProfile, getMe } from "@/shared/auth/client";
+import {
+  completeProfile,
+  getMe,
+  getProfile,
+  logout,
+  updateProfile,
+} from "@/shared/auth/client";
 
 const ORIGINAL_ENV = { ...process.env };
 
@@ -43,6 +49,34 @@ describe("auth client", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/backend/api/auth/me",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("requests the current full user profile from the shared auth client", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: 1,
+          nickname: "bangpot",
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getProfile();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/auth/profile",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",
@@ -127,6 +161,51 @@ describe("auth client", () => {
     });
   });
 
+  it("keeps validation fieldErrors when profile nickname updates fail", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            code: "COMMON_VALIDATION_ERROR",
+            message: "?낅젰媛믪씠 ?щ컮瑜댁? ?딆뒿?덈떎.",
+            requestId: "req-profile-1",
+            fieldErrors: [
+              {
+                field: "nickname",
+                message: "?됰꽕?꾩? 鍮꾩뼱 ?덉쓣 ???놁뒿?덈떎.",
+              },
+            ],
+          }),
+          {
+            status: 400,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        ),
+      ),
+    );
+
+    await expect(
+      updateProfile({
+        nickname: "",
+      }),
+    ).rejects.toMatchObject({
+      code: "COMMON_VALIDATION_ERROR",
+      message: "?낅젰媛믪씠 ?щ컮瑜댁? ?딆뒿?덈떎.",
+      requestId: "req-profile-1",
+      status: 400,
+      fieldErrors: [
+        {
+          field: "nickname",
+          message: "?됰꽕?꾩? 鍮꾩뼱 ?덉쓣 ???놁뒿?덈떎.",
+        },
+      ],
+      path: "/api/auth/profile",
+    });
+  });
+
   it("uses fallback code and message only when the backend body is not the common contract", async () => {
     vi.stubGlobal(
       "fetch",
@@ -150,5 +229,24 @@ describe("auth client", () => {
       fieldErrors: [],
       path: "/api/auth/me",
     });
+  });
+
+  it("posts logout without requiring a JSON response body", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(null, {
+        status: 204,
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(logout()).resolves.toBeUndefined();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/auth/logout",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+      }),
+    );
   });
 });
