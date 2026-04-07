@@ -113,6 +113,27 @@ async function toResponseError(
   });
 }
 
+export async function requestNoContent(
+  url: string,
+  path: string,
+  init: RequestInit,
+  errorMeta: RequestErrorMeta,
+): Promise<void> {
+  try {
+    const response = await fetch(`${url}${path}`, init);
+
+    if (!response.ok) {
+      throw await toResponseError(response, path, errorMeta);
+    }
+  } catch (error) {
+    throw toOperationalError(error, {
+      ...errorMeta,
+      path,
+      fieldErrors: [],
+    });
+  }
+}
+
 export async function requestJson<T>(
   url: string,
   path: string,

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { FullUserAuthMenu } from "@/features/auth/components/FullUserAuthMenu";
 import { getMe } from "@/shared/auth/client";
 import { resolveProtectedDestination } from "@/shared/auth/guards";
 import { reportOperationalError } from "@/shared/monitoring/operations";
@@ -54,6 +55,7 @@ export function ProtectedDemoPageClient() {
     <main>
       <h1>Protected Demo</h1>
       <p>이 화면은 full 사용자만 볼 수 있는 auth guard 예시입니다.</p>
+      <FullUserAuthMenu route={PROTECTED_PATH} />
       <Link href="/">메인으로 이동</Link>
     </main>
   );

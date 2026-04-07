@@ -24,3 +24,8 @@ export type NicknameAvailabilityResponse = {
   nickname: string | null;
   available: boolean;
 };
+
+export type AuthProfileResponse = {
+  id: number;
+  nickname: string;
+};

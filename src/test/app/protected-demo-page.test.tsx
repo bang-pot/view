@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import ProtectedDemoPage from "@/app/protected-demo/page";
-import { getMe } from "@/shared/auth/client";
+import { getMe, logout } from "@/shared/auth/client";
 
 const replaceMock = vi.fn();
 
@@ -14,11 +14,14 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/shared/auth/client", () => ({
   getMe: vi.fn(),
+  logout: vi.fn(),
 }));
 
 describe("ProtectedDemoPage", () => {
   beforeEach(() => {
     replaceMock.mockReset();
+    vi.clearAllMocks();
+    vi.mocked(logout).mockResolvedValue(undefined);
   });
 
   it("redirects guests to login with the original destination", async () => {
@@ -51,5 +54,7 @@ describe("ProtectedDemoPage", () => {
     render(<ProtectedDemoPage />);
 
     expect(await screen.findByRole("heading", { name: "Protected Demo" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Profile" })).toHaveAttribute("href", "/profile");
+    expect(screen.getByRole("button", { name: "Logout" })).toBeInTheDocument();
   });
 });
