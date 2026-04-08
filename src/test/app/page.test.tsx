@@ -39,6 +39,10 @@ describe("Home page", () => {
     expect(
       screen.getByRole("heading", { name: "BangPot frontend bootstrap" }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Public crews" })).toHaveAttribute(
+      "href",
+      "/crews/public",
+    );
 
     await waitFor(() => {
       expect(screen.queryByRole("link", { name: "Profile" })).not.toBeInTheDocument();

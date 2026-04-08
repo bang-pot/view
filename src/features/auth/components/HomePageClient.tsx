@@ -39,6 +39,7 @@ export function HomePageClient() {
       <ul>
         <li><Link href="/login">로그인</Link></li>
         <li><Link href="/protected-demo">Protected demo</Link></li>
+        <li><Link href="/crews/public">Public crews</Link></li>
         {me?.authStatus === "FULL" ? (
           <li><FullUserAuthMenu route="/" /></li>
         ) : null}
