@@ -47,12 +47,21 @@ export function FullUserAuthMenu({ route }: FullUserAuthMenuProps) {
   }
 
   return (
-    <div>
-      <Link href="/profile">Profile</Link>
-      <button type="button" onClick={handleLogout} disabled={isLoggingOut}>
-        Logout
-      </button>
+    <nav aria-label="Full user menu">
+      <ul>
+        <li>
+          <Link href="/crews/new">Create crew</Link>
+        </li>
+        <li>
+          <Link href="/profile">Profile</Link>
+        </li>
+        <li>
+          <button type="button" onClick={handleLogout} disabled={isLoggingOut}>
+            Logout
+          </button>
+        </li>
+      </ul>
       {errorMessage ? <p>{errorMessage}</p> : null}
-    </div>
+    </nav>
   );
 }

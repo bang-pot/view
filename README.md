@@ -85,6 +85,29 @@ npm.cmd run dev
 - `/protected-demo`
   - `FULL` 사용자에게 최소 프로필 메뉴를 추가해 보호 경로에서도 `Profile`, `Logout`에 진입할 수 있습니다.
 
+## Crew Round 1 최소 기능 흐름
+
+- `Create crew` 진입
+  - `FULL` 사용자에게만 최소 공통 auth UI 안에서 `Create crew` 링크를 노출합니다.
+  - 현재는 `/`와 `/protected-demo`에서 같은 메뉴를 재사용합니다.
+- `/crews/new`
+  - 진입 시 먼저 `/api/auth/me`로 auth 상태를 확인합니다.
+  - `GUEST`는 `/login?redirectTo=%2Fcrews%2Fnew`로 이동합니다.
+  - `TEMP` 또는 `completionRequired=true`는 `/auth/complete?redirectTo=%2Fcrews%2Fnew`로 이동합니다.
+  - `FULL`만 크루 생성 폼을 볼 수 있습니다.
+- 생성 폼
+  - `크루명`은 필수입니다.
+  - `한줄소개`는 선택입니다.
+  - `공개/비공개 여부`는 기본값이 `PUBLIC`로 동작합니다.
+  - `대표 이미지`는 이번 라운드에서 실제 업로드 UI를 만들지 않고 `imageUrl: null`로 요청합니다.
+- 생성 요청
+  - `POST /api/crews`로 `name`, `description`, `visibility`, `imageUrl`를 전송합니다.
+  - 실패 시 backend Common Error Contract의 `fieldErrors.name`, `fieldErrors.visibility`, `message`를 그대로 사용합니다.
+  - `CREW_DUPLICATE_NAME`은 `name` 필드 에러로 바로 연결합니다.
+- 생성 성공 후 이동
+  - backend가 반환한 `crewId`를 사용해 `/crews/{crewId}`로 이동합니다.
+  - 이번 라운드에서는 새 크루 페이지를 확장하지 않고, 이동 가능한 최소 목적지만 둡니다.
+
 ## 최소 UI를 택한 이유
 
 - 이번 라운드의 목표는 디자이너 시안이 없는 상태에서 기능 검증용 auth 진입과 로그아웃 흐름을 닫는 것이었습니다.
