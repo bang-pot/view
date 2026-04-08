@@ -30,6 +30,13 @@ describe("FullUserAuthMenu", () => {
   it("shows profile and logout entries for a full user menu", () => {
     render(<FullUserAuthMenu route="/" />);
 
+    const items = screen.getAllByRole("listitem");
+
+    expect(items).toHaveLength(3);
+    expect(screen.getByRole("link", { name: "Create crew" })).toHaveAttribute(
+      "href",
+      "/crews/new",
+    );
     expect(screen.getByRole("link", { name: "Profile" })).toHaveAttribute("href", "/profile");
     expect(screen.getByRole("button", { name: "Logout" })).toBeInTheDocument();
   });
