@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createCrew } from "@/shared/crew/client";
+import {
+  createCrew,
+  createCrewJoinRequest,
+  getPublicCrewJoinView,
+  getPublicCrews,
+} from "@/shared/crew/client";
 
 const ORIGINAL_ENV = { ...process.env };
 
@@ -105,6 +110,114 @@ describe("crew client", () => {
         },
       ],
       path: "/api/crews",
+    });
+  });
+
+  it("loads public crews from the backend discovery contract", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify([
+          {
+            crewId: 11,
+            name: "BangPot Runners",
+            description: "Morning runners",
+            visibility: "PUBLIC",
+            imageUrl: null,
+          },
+        ]),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getPublicCrews();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/public",
+      expect.objectContaining({
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("loads the public crew join view with the member status contract", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          crewId: 11,
+          name: "BangPot Runners",
+          description: "Morning runners",
+          visibility: "PUBLIC",
+          imageUrl: null,
+          myStatus: "MEMBER",
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getPublicCrewJoinView(11);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/join",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("posts join request messages and keeps message field errors from the backend contract", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            code: "COMMON_VALIDATION_ERROR",
+            message: "입력값이 올바르지 않습니다.",
+            requestId: "req-join-message-1",
+            fieldErrors: [
+              {
+                field: "message",
+                message: "신청 메시지는 200자 이하여야 합니다.",
+              },
+            ],
+          }),
+          {
+            status: 400,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        ),
+      ),
+    );
+
+    await expect(
+      createCrewJoinRequest(11, {
+        message: "x".repeat(201),
+      }),
+    ).rejects.toMatchObject({
+      code: "COMMON_VALIDATION_ERROR",
+      requestId: "req-join-message-1",
+      status: 400,
+      fieldErrors: [
+        {
+          field: "message",
+          message: "신청 메시지는 200자 이하여야 합니다.",
+        },
+      ],
+      path: "/api/crews/11/join-requests",
     });
   });
 });

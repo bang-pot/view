@@ -1,6 +1,6 @@
 # BangPot Frontend
 
-BangPot frontend 저장소입니다. 현재 저장소에는 Common Ops, Common Error Contract, Production Start, Auth Round 2 최소 기능 UI 기준이 반영되어 있습니다.
+BangPot frontend 저장소입니다. 현재 저장소에는 Common Ops, Common Error Contract, Production Start, Auth Round 1~2, Crew Round 1, Crew Round 3의 최소 기능 UI가 반영되어 있습니다.
 
 ## 기술 스택
 
@@ -13,8 +13,8 @@ BangPot frontend 저장소입니다. 현재 저장소에는 Common Ops, Common E
 ## 디렉터리 구조
 
 - `src/app`: 라우트 진입점
-- `src/features`: 사용자 기능 흐름과 화면 컴포넌트
-- `src/entities`: 도메인 단위 UI와 표현 모델
+- `src/features`: 기능 단위 화면과 흐름
+- `src/entities`: 도메인 단위 UI/표현 모델
 - `src/shared`: 공통 UI, 설정, API client, 에러 처리, 운영 보조 모듈
 
 ## 로컬 실행
@@ -32,88 +32,96 @@ npm.cmd run dev
 | `NEXT_PUBLIC_APP_ENV` | frontend 실행 모드 (`local`, `prod`) | 권장 | 필수 |
 | `NEXT_PUBLIC_API_BASE_URL` | backend base URL 또는 same-origin proxy base path | fallback 허용 | 필수 |
 
-## 비공개 env 키
-
-| Key | 용도 | local | prod |
-| --- | --- | --- | --- |
-| `BANGPOT_BACKEND_PROXY_TARGET` | Next/Vercel server가 backend로 대신 호출할 HTTP target | 선택 | same-origin proxy 사용 시 필수 |
-
 규칙:
 
 - `local`에서는 `NEXT_PUBLIC_API_BASE_URL`이 없을 때만 `http://localhost:8080` fallback을 허용합니다.
 - `prod`에서는 `NEXT_PUBLIC_API_BASE_URL`을 반드시 명시해야 합니다.
 - 운영 배포에는 localhost fallback이 남아 있으면 안 됩니다.
-- frontend가 HTTPS이고 backend가 HTTP이면 browser mixed content를 피하기 위해 `NEXT_PUBLIC_API_BASE_URL=/backend`, `BANGPOT_BACKEND_PROXY_TARGET=http://<backend-host>:<port>` 조합으로 same-origin proxy를 사용합니다.
+
+## 비공개 env 키
+
+| Key | 용도 | local | prod |
+| --- | --- | --- | --- |
+| `BANGPOT_BACKEND_PROXY_TARGET` | Next/Vercel server가 backend로 프록시할 HTTP target | 선택 | same-origin proxy 사용 시 필수 |
+
+규칙:
+
+- frontend가 HTTPS이고 backend가 HTTP일 때는 mixed content를 피하기 위해 `NEXT_PUBLIC_API_BASE_URL=/backend`, `BANGPOT_BACKEND_PROXY_TARGET=http://<backend-host>:<port>` 조합의 same-origin proxy를 사용합니다.
 
 ## Common Error Contract 기준
 
-- 성공 응답은 별도 envelope 없이 resource JSON 그대로 사용합니다.
-- 실패 응답은 backend 공통 JSON 계약을 우선 사용합니다.
-- frontend shared error는 아래 값을 기준으로 정렬합니다.
+성공 응답은 별도 envelope 없이 resource JSON을 그대로 사용합니다. 실패 응답은 backend 공통 JSON 계약을 우선 사용합니다.
 
 | 필드 | 설명 |
 | --- | --- |
-| `code` | backend가 내려준 공통 에러 코드 |
-| `message` | backend가 내려준 실패 메시지 |
+| `code` | backend 공통 에러 코드 |
+| `message` | backend 실패 메시지 |
 | `requestId` | backend 요청 추적 ID |
-| `fieldErrors` | validation 실패일 때만 채워지는 필드 오류 배열 |
-| `status` | transport 수준의 HTTP status |
+| `fieldErrors` | validation 실패 시 필드 에러 배열 |
+| `status` | transport 계층의 HTTP status |
 | `path` | frontend가 호출한 API 경로 |
 
 규칙:
 
 - backend가 `code`, `message`, `requestId`, `fieldErrors`를 내려주면 frontend는 그 값을 그대로 사용합니다.
 - backend가 공통 실패 응답 계약을 지키지 않는 예외 상황에서만 fallback `code/message`를 사용합니다.
-- auth/common 흐름의 실패 분기는 status 추측보다 backend `code`를 우선 사용합니다.
+- auth/common 흐름의 분기는 status 추측보다 backend `code`를 우선 사용합니다.
 
 ## Auth Round 2 최소 기능 흐름
 
 - `/`
   - `FULL` 사용자에게만 최소 프로필 메뉴를 노출합니다.
-  - 메뉴 안에서 `Profile`, `Logout`에 진입할 수 있습니다.
+  - 메뉴 안에는 `Create crew`, `Profile`, `Logout`이 있습니다.
 - `/profile`
-  - 진입 시 먼저 `/api/auth/me` 상태를 확인합니다.
+  - 먼저 `/api/auth/me` 상태를 확인합니다.
   - `GUEST`는 `/login?redirectTo=%2Fprofile`로 이동합니다.
   - `TEMP` 또는 `completionRequired=true`는 `/auth/complete?redirectTo=%2Fprofile`로 이동합니다.
   - `FULL`만 `GET /api/auth/profile`로 현재 프로필(`id`, `nickname`)을 조회합니다.
 - 닉네임 수정
   - `PATCH /api/auth/profile`로 저장합니다.
-  - 실패 시 backend Common Error Contract의 `fieldErrors`와 `message`를 그대로 소비합니다.
+  - 실패 시 `fieldErrors`와 backend `message`를 그대로 사용합니다.
 - 로그아웃
-  - `POST /api/auth/logout` 호출 뒤 `/api/auth/me`를 다시 확인합니다.
-  - `GUEST`로 전환되면 `/login`으로 이동합니다.
-- `/protected-demo`
-  - `FULL` 사용자에게 최소 프로필 메뉴를 추가해 보호 경로에서도 `Profile`, `Logout`에 진입할 수 있습니다.
+  - `POST /api/auth/logout` 호출 후 `/api/auth/me`를 다시 확인합니다.
+  - `GUEST` 전환이 확인되면 `/login`으로 이동합니다.
 
 ## Crew Round 1 최소 기능 흐름
 
-- `Create crew` 진입
-  - `FULL` 사용자에게만 최소 공통 auth UI 안에서 `Create crew` 링크를 노출합니다.
-  - 현재는 `/`와 `/protected-demo`에서 같은 메뉴를 재사용합니다.
+- `Create crew`
+  - `FULL` 사용자에게만 최소 메뉴에서 노출합니다.
 - `/crews/new`
-  - 진입 시 먼저 `/api/auth/me`로 auth 상태를 확인합니다.
+  - 먼저 `/api/auth/me`로 auth 상태를 확인합니다.
   - `GUEST`는 `/login?redirectTo=%2Fcrews%2Fnew`로 이동합니다.
   - `TEMP` 또는 `completionRequired=true`는 `/auth/complete?redirectTo=%2Fcrews%2Fnew`로 이동합니다.
-  - `FULL`만 크루 생성 폼을 볼 수 있습니다.
+  - `FULL`만 생성 폼을 볼 수 있습니다.
 - 생성 폼
-  - `크루명`은 필수입니다.
-  - `한줄소개`는 선택입니다.
-  - `공개/비공개 여부`는 기본값이 `PUBLIC`로 동작합니다.
-  - `대표 이미지`는 이번 라운드에서 실제 업로드 UI를 만들지 않고 `imageUrl: null`로 요청합니다.
-- 생성 요청
-  - `POST /api/crews`로 `name`, `description`, `visibility`, `imageUrl`를 전송합니다.
-  - 실패 시 backend Common Error Contract의 `fieldErrors.name`, `fieldErrors.visibility`, `message`를 그대로 사용합니다.
-  - `CREW_DUPLICATE_NAME`은 `name` 필드 에러로 바로 연결합니다.
-- 생성 성공 후 이동
-  - backend가 반환한 `crewId`를 사용해 `/crews/{crewId}`로 이동합니다.
-  - 이번 라운드에서는 새 크루 페이지를 확장하지 않고, 이동 가능한 최소 목적지만 둡니다.
+  - `Name`: 필수
+  - `Description`: 선택
+  - `Visibility`: 기본값 `PUBLIC`
+  - `imageUrl`: 이번 라운드에서는 `null`로 보냅니다.
+- 생성 성공
+  - `POST /api/crews`
+  - 성공 시 `/crews/{crewId}`로 이동합니다.
 
-## 최소 UI를 택한 이유
+## Crew Round 3 최소 기능 흐름
 
-- 이번 라운드의 목표는 디자이너 시안이 없는 상태에서 기능 검증용 auth 진입과 로그아웃 흐름을 닫는 것이었습니다.
-- 그래서 전역 헤더나 공통 shell을 미리 크게 설계하지 않고, 현재 최소 공통 auth UI 위치에 `Profile + Logout`만 가진 메뉴를 추가했습니다.
-- 이렇게 하면 나중에 디자이너 시안이 들어왔을 때 전체 헤더 구조를 다시 설계해도 현재 auth 계약과 로그아웃 흐름은 그대로 재사용할 수 있습니다.
-- 즉 이번 구조는 임시방편이 아니라, 과한 구조 고정을 피하고 후속 디자인 변경 비용을 줄이기 위한 의도적인 최소 구현입니다.
+- 메인 `/`
+  - `Public crews` 링크를 통해 공개 크루 발견 화면으로 진입합니다.
+- `/crews/public`
+  - `GET /api/crews/public`을 호출해 공개 크루 카드 목록을 보여줍니다.
+- `/crews/public/{crewId}`
+  - `GET /api/crews/{crewId}/join`으로 공개 크루 소개와 현재 사용자 상태를 함께 확인합니다.
+  - 상태별 분기:
+    - `GUEST`: 로그인으로 이동
+    - `COMPLETION_REQUIRED`: completion으로 이동
+    - `CAN_REQUEST`: 선택형 메시지 입력 + 가입 신청
+    - `PENDING`: 승인 대기 중
+    - `MEMBER`: `/crews/{crewId}`로 이동
+    - `PRIVATE_RESTRICTED`: 비활성화 + 안내 문구
+- 가입 신청
+  - `POST /api/crews/{crewId}/join-requests`
+  - 신청 메시지는 선택 입력이며 비워둘 수 있습니다.
+  - 성공 시 결과 모달을 보여주고 이후 상태를 `PENDING`으로 유지합니다.
+  - 200자 초과는 `fieldErrors.message`를 필드 에러로 노출합니다.
 
 ## 검증 명령
 
@@ -125,8 +133,10 @@ npm.cmd run build
 
 ## 작업 문서 위치
 
-관련 계획서와 결과 문서는 모두 `workdocs-repo`에 정리합니다.
+계획과 결과 문서는 모두 `workdocs-repo`에 정리합니다.
 
 - Common Ops frontend 결과: [C:\bangpot\workdocs-repo\docs\plans\results\common-ops\00-common-ops-frontend-round-01-result.md](C:\bangpot\workdocs-repo\docs\plans\results\common-ops\00-common-ops-frontend-round-01-result.md)
 - Common Error Contract frontend 결과: [C:\bangpot\workdocs-repo\docs\plans\results\common-error\00-common-error-contract-frontend-round-01-result.md](C:\bangpot\workdocs-repo\docs\plans\results\common-error\00-common-error-contract-frontend-round-01-result.md)
 - Auth Round 2 결과: [C:\bangpot\workdocs-repo\docs\plans\results\auth\01-auth-builder-round-02-result.md](C:\bangpot\workdocs-repo\docs\plans\results\auth\01-auth-builder-round-02-result.md)
+- Crew Round 1 결과: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-01-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-01-result.md)
+- Crew Round 3 결과: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-03-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-03-result.md)
