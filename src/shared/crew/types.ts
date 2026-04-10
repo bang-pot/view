@@ -8,6 +8,8 @@ export type CrewJoinStatus =
   | "MEMBER"
   | "PRIVATE_RESTRICTED";
 
+export type CrewJoinRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+
 export type CrewCreateInput = {
   name: string;
   description: string | null;
@@ -45,4 +47,30 @@ export type CrewJoinRequestInput = {
 export type CrewJoinRequestResponse = {
   crewId: number;
   myStatus: Extract<CrewJoinStatus, "PENDING">;
+};
+
+export type PendingCrewJoinRequestSummary = {
+  requestId: number;
+  userId: number;
+  nickname: string;
+};
+
+export type CrewJoinRequestRecord = {
+  requestId: number;
+  userId: number;
+  nickname: string;
+  message: string | null;
+  status: CrewJoinRequestStatus;
+};
+
+export type CrewJoinRequestApproveResponse = {
+  crewId: number;
+  requestId: number;
+  userId: number;
+  role: string;
+};
+
+export type CrewJoinRequestRejectResponse = {
+  crewId: number;
+  requestId: number;
 };
