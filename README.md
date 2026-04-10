@@ -1,6 +1,6 @@
 # BangPot Frontend
 
-BangPot frontend 저장소입니다. 현재 저장소에는 Common Ops, Common Error Contract, Production Start, Auth Round 1~2, Crew Round 1, Crew Round 3~4의 최소 기능 UI가 반영되어 있습니다.
+BangPot 프론트엔드 저장소입니다. 현재 저장소에는 Common Ops, Common Error Contract, Production Start, Auth Round 1~2, Crew Round 1, Crew Round 3~5의 최소 기능 UI가 반영되어 있습니다.
 
 ## 기술 스택
 
@@ -14,8 +14,8 @@ BangPot frontend 저장소입니다. 현재 저장소에는 Common Ops, Common E
 
 - `src/app`: 라우트 진입점
 - `src/features`: 기능 단위 화면과 흐름
-- `src/entities`: 도메인 단위 UI/표현 모델
-- `src/shared`: 공통 UI, 설정, API client, 에러 처리, 운영 보조 모듈
+- `src/entities`: 도메인 단위 표현 모델
+- `src/shared`: 공통 설정, API client, 에러 처리, 운영 보조 모듈
 
 ## 로컬 실행
 
@@ -29,7 +29,7 @@ npm.cmd run dev
 
 | Key | 용도 | local | prod |
 | --- | --- | --- | --- |
-| `NEXT_PUBLIC_APP_ENV` | frontend 실행 모드 (`local`, `prod`) | 권장 | 필수 |
+| `NEXT_PUBLIC_APP_ENV` | 프론트 실행 모드 (`local`, `prod`) | 권장 | 필수 |
 | `NEXT_PUBLIC_API_BASE_URL` | backend base URL 또는 same-origin proxy base path | fallback 허용 | 필수 |
 
 규칙:
@@ -42,7 +42,7 @@ npm.cmd run dev
 
 | Key | 용도 | local | prod |
 | --- | --- | --- | --- |
-| `BANGPOT_BACKEND_PROXY_TARGET` | Next/Vercel server가 backend로 프록시할 HTTP target | 선택 | same-origin proxy 사용 시 필수 |
+| `BANGPOT_BACKEND_PROXY_TARGET` | Next/Vercel 서버가 backend로 프록시할 HTTP target | 선택 | same-origin proxy 사용 시 필수 |
 
 규칙:
 
@@ -71,7 +71,7 @@ npm.cmd run dev
 
 - `/`
   - `FULL` 사용자에게만 최소 프로필 메뉴를 노출합니다.
-  - 메뉴 안에는 `Create crew`, `Profile`, `Logout`이 있습니다.
+  - 메뉴 안에는 `Create crew`, `Profile`, `Logout`, `Public crews`가 있습니다.
 - `/profile`
   - 먼저 `/api/auth/me` 상태를 확인합니다.
   - `GUEST`는 `/login?redirectTo=%2Fprofile`로 이동합니다.
@@ -119,27 +119,55 @@ npm.cmd run dev
     - `PRIVATE_RESTRICTED`: 비활성화 + 안내 문구
 - 가입 신청
   - `POST /api/crews/{crewId}/join-requests`
-  - 메시지는 선택 입력이며 비워둘 수 있습니다.
+  - 메시지는 선택 입력이고 비워둘 수 있습니다.
   - 성공 시 결과 모달을 보여주고 이후 상태를 `PENDING`으로 유지합니다.
   - 200자 초과는 `fieldErrors.message`를 필드 에러로 노출합니다.
 
 ## Crew Round 4 최소 기능 흐름
 
 - `/crews/{crewId}`
-  - 기존 내부 크루 페이지에서 리더에게만 `가입 신청 관리` 진입 링크를 보여줍니다.
-  - `GET /api/crews/{crewId}/join-requests/pending`으로 대기 중 요약을 읽습니다.
+  - 리더에게만 `가입 신청 관리` 링크를 보여줍니다.
+  - `GET /api/crews/{crewId}/join-requests/pending`으로 대기 중 요약을 표시합니다.
 - `/crews/{crewId}/join-requests`
   - 먼저 `/api/auth/me`로 guest/temp/full 상태를 확인합니다.
-  - `GUEST`는 `/login?redirectTo=...`로 이동하고, `TEMP` 또는 `completionRequired=true`는 completion으로 이동합니다.
-  - `FULL`만 `GET /api/crews/{crewId}/join-requests`를 호출해 전체 목록을 불러옵니다.
-- 목록 노출 내용
+  - `GUEST`는 `/login?redirectTo=...`로 이동합니다.
+  - `TEMP` 또는 `completionRequired=true`는 completion으로 이동합니다.
+  - `FULL`만 `GET /api/crews/{crewId}/join-requests`로 전체 목록을 조회합니다.
+- 목록 표시
   - `nickname`
   - `message`
   - `status`
 - 상태별 처리
-  - `PENDING`에는 `승인`, `거절` 버튼이 보입니다.
-  - 처리 성공 후에는 별도 새로고침 없이 목록 상태를 즉시 갱신합니다.
-  - `APPROVED`, `REJECTED`는 읽기 전용 상태로 남습니다.
+  - `PENDING`에만 `승인`, `거절` 버튼이 보입니다.
+  - 처리 성공 후 별도 새로고침 없이 목록 상태를 즉시 갱신합니다.
+  - `APPROVED`, `REJECTED`는 읽기 상태로 남습니다.
+
+## Crew Round 5 최소 기능 흐름
+
+- `/crews/{crewId}`
+  - 비공개 크루 리더에게만 `직접 초대` 링크를 보여줍니다.
+  - 진입 링크 노출 여부는 `GET /api/crews/{crewId}/invite-candidates` 성공 여부를 기준으로 판단합니다.
+- `/crews/{crewId}/invites`
+  - 먼저 `/api/auth/me`로 guest/temp/full 상태를 확인합니다.
+  - `GUEST`는 `/login?redirectTo=...`로 이동합니다.
+  - `TEMP` 또는 `completionRequired=true`는 completion으로 이동합니다.
+  - `FULL`만 초대 화면을 볼 수 있습니다.
+- 직접 초대 화면
+  - 검색 input
+  - 결과 목록
+  - 1명 선택
+  - `초대 보내기` 버튼
+- 검색
+  - `GET /api/crews/{crewId}/invite-candidates`
+  - `nickname` query는 선택이며, 비워두면 전체 초대 후보를 조회합니다.
+- 직접 초대 생성
+  - `POST /api/crews/{crewId}/invites`
+  - body: `{ targetUserId }`
+  - 성공 시 `PENDING` 생성 문구를 보여주고 버튼을 비활성화합니다.
+- 예외 처리
+  - `CREW_INVITE_NOT_ALLOWED`: 공개 크루 직접 초대 불가 메시지
+  - `CREW_ALREADY_JOINED`: 이미 가입한 사용자 안내
+  - `CREW_INVITE_ALREADY_PENDING`: 이미 pending 초대가 있는 사용자 안내
 
 ## 검증 명령
 
@@ -153,9 +181,8 @@ npm.cmd run build
 
 계획과 결과 문서는 모두 `workdocs-repo`에 정리합니다.
 
-- Common Ops frontend 결과: [C:\bangpot\workdocs-repo\docs\plans\results\common-ops\00-common-ops-frontend-round-01-result.md](C:\bangpot\workdocs-repo\docs\plans\results\common-ops\00-common-ops-frontend-round-01-result.md)
-- Common Error Contract frontend 결과: [C:\bangpot\workdocs-repo\docs\plans\results\common-error\00-common-error-contract-frontend-round-01-result.md](C:\bangpot\workdocs-repo\docs\plans\results\common-error\00-common-error-contract-frontend-round-01-result.md)
 - Auth Round 2 결과: [C:\bangpot\workdocs-repo\docs\plans\results\auth\01-auth-builder-round-02-result.md](C:\bangpot\workdocs-repo\docs\plans\results\auth\01-auth-builder-round-02-result.md)
 - Crew Round 1 결과: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-01-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-01-result.md)
 - Crew Round 3 결과: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-03-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-03-result.md)
 - Crew Round 4 결과: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-04-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-04-result.md)
+- Crew Round 5 결과: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-05-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-05-result.md)

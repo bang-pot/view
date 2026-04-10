@@ -74,3 +74,14 @@ export type CrewJoinRequestRejectResponse = {
   crewId: number;
   requestId: number;
 };
+
+export type CrewInviteCandidate = {
+  userId: number;
+  nickname: string;
+};
+
+export type CrewInviteResponse = {
+  crewId: number;
+  targetUserId: number;
+  status: "PENDING";
+};

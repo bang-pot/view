@@ -3,8 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   approveCrewJoinRequest,
   createCrew,
+  createCrewInvite,
   createCrewJoinRequest,
   getCrewJoinRequests,
+  getCrewInviteCandidates,
   getPendingCrewJoinRequests,
   getPublicCrewJoinView,
   getPublicCrews,
@@ -343,5 +345,97 @@ describe("crew client", () => {
         credentials: "include",
       }),
     );
+  });
+
+  it("loads invite candidates for a private crew with an optional nickname query", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify([
+          {
+            userId: 12,
+            nickname: "bangpot",
+          },
+        ]),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getCrewInviteCandidates(11, "bang");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/invite-candidates?nickname=bang",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("posts a direct invite and keeps already joined/pending backend errors", async () => {
+    const successFetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          crewId: 11,
+          targetUserId: 12,
+          status: "PENDING",
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", successFetchMock);
+
+    await createCrewInvite(11, 12);
+
+    expect(successFetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/invites",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          targetUserId: 12,
+        }),
+      }),
+    );
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            code: "CREW_INVITE_ALREADY_PENDING",
+            message: "이미 pending 초대가 있는 사용자입니다.",
+            requestId: "req-invite-pending-1",
+            fieldErrors: [],
+          }),
+          {
+            status: 409,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        ),
+      ),
+    );
+
+    await expect(createCrewInvite(11, 12)).rejects.toMatchObject({
+      code: "CREW_INVITE_ALREADY_PENDING",
+      requestId: "req-invite-pending-1",
+      status: 409,
+      path: "/api/crews/11/invites",
+    });
   });
 });
