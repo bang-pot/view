@@ -35,7 +35,7 @@ export async function getMe(): Promise<AuthMeResponse> {
 export async function getProfile(): Promise<AuthProfileResponse> {
   return requestJson<AuthProfileResponse>(
     getApiBaseUrl(),
-    "/api/auth/profile",
+    "/api/users/me",
     {
       credentials: "include",
       cache: "no-store",
@@ -54,7 +54,7 @@ export async function checkNicknameAvailability(
 
   return requestJson<NicknameAvailabilityResponse>(
     getApiBaseUrl(),
-    `/api/auth/nickname-availability?${params.toString()}`,
+    `/api/users/nickname-availability?${params.toString()}`,
     {
       credentials: "include",
       cache: "no-store",
@@ -71,7 +71,7 @@ export async function updateProfile(input: {
 }): Promise<AuthProfileResponse> {
   return requestJson<AuthProfileResponse>(
     getApiBaseUrl(),
-    "/api/auth/profile",
+    "/api/users/me",
     {
       method: "PATCH",
       credentials: "include",

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  checkNicknameAvailability,
   completeProfile,
   getMe,
   getProfile,
@@ -76,7 +77,34 @@ describe("auth client", () => {
     await getProfile();
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "/backend/api/auth/profile",
+      "/backend/api/users/me",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("checks nickname availability through the users API path", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          available: true,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await checkNicknameAvailability("bangpot");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/users/nickname-availability?nickname=bangpot",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",
@@ -202,7 +230,7 @@ describe("auth client", () => {
           message: "?됰꽕?꾩? 鍮꾩뼱 ?덉쓣 ???놁뒿?덈떎.",
         },
       ],
-      path: "/api/auth/profile",
+      path: "/api/users/me",
     });
   });
 
