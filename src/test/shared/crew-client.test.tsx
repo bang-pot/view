@@ -1,10 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  approveCrewJoinRequest,
   createCrew,
   createCrewJoinRequest,
+  getCrewJoinRequests,
+  getPendingCrewJoinRequests,
   getPublicCrewJoinView,
   getPublicCrews,
+  rejectCrewJoinRequest,
 } from "@/shared/crew/client";
 
 const ORIGINAL_ENV = { ...process.env };
@@ -219,5 +223,125 @@ describe("crew client", () => {
       ],
       path: "/api/crews/11/join-requests",
     });
+  });
+
+  it("loads the crew leader pending join request summary for the crew main page", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify([
+          {
+            requestId: 91,
+            userId: 7,
+            nickname: "runner7",
+          },
+        ]),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getPendingCrewJoinRequests(11);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/join-requests/pending",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("loads the crew join request management list with applicant message and status", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify([
+          {
+            requestId: 91,
+            userId: 7,
+            nickname: "runner7",
+            message: "Please let me join.",
+            status: "PENDING",
+          },
+        ]),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getCrewJoinRequests(11);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/join-requests",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("posts approve and reject actions to the crew join request management contract", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            crewId: 11,
+            requestId: 91,
+            userId: 7,
+            role: "MEMBER",
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            crewId: 11,
+            requestId: 91,
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        ),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await approveCrewJoinRequest(11, 91);
+    await rejectCrewJoinRequest(11, 91);
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "/backend/api/crews/11/join-requests/91/approve",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+      }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/backend/api/crews/11/join-requests/91/reject",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+      }),
+    );
   });
 });

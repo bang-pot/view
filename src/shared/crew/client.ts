@@ -1,11 +1,15 @@
 import { requestJson } from "@/shared/api/client";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
 import type {
+  CrewJoinRequestApproveResponse,
   CrewCreateInput,
   CrewCreateResponse,
   CrewJoinRequestInput,
+  CrewJoinRequestRecord,
+  CrewJoinRequestRejectResponse,
   CrewJoinRequestResponse,
   CrewJoinViewResponse,
+  PendingCrewJoinRequestSummary,
   PublicCrewSummary,
 } from "@/shared/crew/types";
 
@@ -79,6 +83,76 @@ export async function createCrewJoinRequest(
     {
       code: "CREW_JOIN_REQUEST_CREATE_FAILED",
       message: "가입 신청에 실패했습니다. 잠시 뒤 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getPendingCrewJoinRequests(
+  crewId: number,
+): Promise<PendingCrewJoinRequestSummary[]> {
+  return requestJson<PendingCrewJoinRequestSummary[]>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/join-requests/pending`,
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "CREW_JOIN_REQUEST_PENDING_SUMMARY_FAILED",
+      message: "가입 신청 요약을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getCrewJoinRequests(
+  crewId: number,
+): Promise<CrewJoinRequestRecord[]> {
+  return requestJson<CrewJoinRequestRecord[]>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/join-requests`,
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "CREW_JOIN_REQUEST_LIST_FAILED",
+      message: "가입 신청 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function approveCrewJoinRequest(
+  crewId: number,
+  requestId: number,
+): Promise<CrewJoinRequestApproveResponse> {
+  return requestJson<CrewJoinRequestApproveResponse>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/join-requests/${requestId}/approve`,
+    {
+      method: "POST",
+      credentials: "include",
+    },
+    {
+      code: "CREW_JOIN_REQUEST_APPROVE_FAILED",
+      message: "가입 신청 승인에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function rejectCrewJoinRequest(
+  crewId: number,
+  requestId: number,
+): Promise<CrewJoinRequestRejectResponse> {
+  return requestJson<CrewJoinRequestRejectResponse>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/join-requests/${requestId}/reject`,
+    {
+      method: "POST",
+      credentials: "include",
+    },
+    {
+      code: "CREW_JOIN_REQUEST_REJECT_FAILED",
+      message: "가입 신청 거절에 실패했습니다. 잠시 후 다시 시도해 주세요.",
     },
   );
 }
