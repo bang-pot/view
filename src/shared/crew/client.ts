@@ -4,6 +4,8 @@ import type {
   CrewJoinRequestApproveResponse,
   CrewCreateInput,
   CrewCreateResponse,
+  CrewInviteCandidate,
+  CrewInviteResponse,
   CrewJoinRequestInput,
   CrewJoinRequestRecord,
   CrewJoinRequestRejectResponse,
@@ -153,6 +155,58 @@ export async function rejectCrewJoinRequest(
     {
       code: "CREW_JOIN_REQUEST_REJECT_FAILED",
       message: "가입 신청 거절에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getCrewInviteCandidates(
+  crewId: number,
+  nickname?: string,
+): Promise<CrewInviteCandidate[]> {
+  const search = new URLSearchParams();
+
+  if (nickname && nickname.trim().length > 0) {
+    search.set("nickname", nickname.trim());
+  }
+
+  const path = search.size > 0
+    ? `/api/crews/${crewId}/invite-candidates?${search.toString()}`
+    : `/api/crews/${crewId}/invite-candidates`;
+
+  return requestJson<CrewInviteCandidate[]>(
+    getApiBaseUrl(),
+    path,
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "CREW_INVITE_CANDIDATES_REQUEST_FAILED",
+      message: "초대 가능한 회원 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function createCrewInvite(
+  crewId: number,
+  targetUserId: number,
+): Promise<CrewInviteResponse> {
+  return requestJson<CrewInviteResponse>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/invites`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        targetUserId,
+      }),
+    },
+    {
+      code: "CREW_INVITE_CREATE_FAILED",
+      message: "직접 초대 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
     },
   );
 }
