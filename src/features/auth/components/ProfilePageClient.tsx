@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 
@@ -184,6 +185,7 @@ export function ProfilePageClient() {
         <>
           <p>User ID: {profile.id}</p>
           <p>Current nickname: {profile.nickname}</p>
+          <Link href="/crew-invites">My invites</Link>
         </>
       ) : null}
 

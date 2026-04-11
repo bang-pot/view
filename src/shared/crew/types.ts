@@ -85,3 +85,25 @@ export type CrewInviteResponse = {
   targetUserId: number;
   status: "PENDING";
 };
+
+export type MyCrewInviteStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export type MyCrewInvite = {
+  inviteId: number;
+  crewId: number;
+  crewName: string;
+  inviterNickname: string;
+  status: MyCrewInviteStatus;
+};
+
+export type CrewInviteAcceptResponse = {
+  inviteId: number;
+  crewId: number;
+  status: "APPROVED";
+};
+
+export type CrewInviteRejectResponse = {
+  inviteId: number;
+  crewId: number;
+  status: "REJECTED";
+};

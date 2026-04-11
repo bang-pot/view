@@ -188,4 +188,24 @@ npm.cmd run build
 - Crew Round 3 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-03-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-03-result.md)
 - Crew Round 4 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-04-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-04-result.md)
 - Crew Round 5 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-05-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-05-result.md)
+- Crew Round 6 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-06-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-06-result.md)
+
+## Crew Round 6 Minimal Invite Flow
+
+- `/profile`
+  - Full users can enter their invite consumer flow through the `My invites` link.
+- `/crew-invites`
+  - Reuses the existing auth gate first.
+  - `GUEST` users are redirected to `/login?redirectTo=%2Fcrew-invites`.
+  - `TEMP` or `completionRequired=true` users are redirected to `/auth/complete?redirectTo=%2Fcrew-invites`.
+  - `FULL` users load `GET /api/crew-invites/me`.
+- Invite list
+  - Shows `crewName`, `inviterNickname`, and `status`.
+  - `PENDING` items expose `Accept` and `Reject`.
+  - `APPROVED` items stay readable and expose a link to `/crews/{crewId}`.
+  - `REJECTED` items stay readable without further actions.
+- Invite actions
+  - Accept: `POST /api/crew-invites/{inviteId}/accept`
+  - Reject: `POST /api/crew-invites/{inviteId}/reject`
+  - Successful actions update local state immediately without a refetch.
 

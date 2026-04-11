@@ -5,12 +5,15 @@ import type {
   CrewCreateInput,
   CrewCreateResponse,
   CrewInviteCandidate,
+  CrewInviteAcceptResponse,
+  CrewInviteRejectResponse,
   CrewInviteResponse,
   CrewJoinRequestInput,
   CrewJoinRequestRecord,
   CrewJoinRequestRejectResponse,
   CrewJoinRequestResponse,
   CrewJoinViewResponse,
+  MyCrewInvite,
   PendingCrewJoinRequestSummary,
   PublicCrewSummary,
 } from "@/shared/crew/types";
@@ -207,6 +210,55 @@ export async function createCrewInvite(
     {
       code: "CREW_INVITE_CREATE_FAILED",
       message: "직접 초대 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getMyCrewInvites(): Promise<MyCrewInvite[]> {
+  return requestJson<MyCrewInvite[]>(
+    getApiBaseUrl(),
+    "/api/crew-invites/me",
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "CREW_INVITE_LIST_FAILED",
+      message: "내 초대 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function acceptCrewInvite(
+  inviteId: number,
+): Promise<CrewInviteAcceptResponse> {
+  return requestJson<CrewInviteAcceptResponse>(
+    getApiBaseUrl(),
+    `/api/crew-invites/${inviteId}/accept`,
+    {
+      method: "POST",
+      credentials: "include",
+    },
+    {
+      code: "CREW_INVITE_ACCEPT_FAILED",
+      message: "초대 수락에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function rejectCrewInvite(
+  inviteId: number,
+): Promise<CrewInviteRejectResponse> {
+  return requestJson<CrewInviteRejectResponse>(
+    getApiBaseUrl(),
+    `/api/crew-invites/${inviteId}/reject`,
+    {
+      method: "POST",
+      credentials: "include",
+    },
+    {
+      code: "CREW_INVITE_REJECT_FAILED",
+      message: "초대 거절에 실패했습니다. 잠시 후 다시 시도해 주세요.",
     },
   );
 }
