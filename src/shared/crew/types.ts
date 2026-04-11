@@ -51,6 +51,19 @@ export type CrewHubResponse = {
   pendingJoinRequestCount: number | null;
 };
 
+export type CrewMemberRole = "LEADER" | "MEMBER";
+
+export type CrewMember = {
+  userId: number;
+  nickname: string;
+  profileImageUrl: string | null;
+  bio: string | null;
+  gender: string | null;
+  escapeCount: number;
+  role: CrewMemberRole;
+  joinedAt: string;
+};
+
 export type CrewJoinRequestInput = {
   message: string | null;
 };

@@ -189,6 +189,8 @@ npm.cmd run build
 - Crew Round 4 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-04-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-04-result.md)
 - Crew Round 5 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-05-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-05-result.md)
 - Crew Round 6 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-06-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-06-result.md)
+ - Crew Round 7 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-07-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-07-result.md)
+ - Crew Round 8 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-08-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-08-result.md)
 
 ## Crew Round 6 Minimal Invite Flow
 
@@ -226,4 +228,30 @@ npm.cmd run build
 - Scope guard
   - This round opens the internal crew space skeleton only.
   - It does not implement policy, member list, schedules, meetings, or a full management console yet.
+
+## Crew Round 8 Crew Members Read View
+
+- `/crews/{crewId}`
+  - The internal hub now links its `크루원` navigation item to the actual members screen.
+- `/crews/{crewId}/members`
+  - Reuses the joined-member access rule through `GET /api/crews/{crewId}/members`.
+  - `AUTH_ACCESS_DENIED` and `AUTH_UNAUTHENTICATED` are redirected back to `/crews/public/{crewId}` so the existing public/login/completion flow can continue.
+- Member list rendering
+  - The page is intentionally read-only and renders a simple list of members.
+  - Each row shows `nickname`, `role`, `joinedAt`, `bio`, `gender`, and `escapeCount`.
+  - `profileImageUrl` falls back to a default avatar label when the backend returns `null`.
+  - The frontend keeps the list stable with `LEADER` first and the remaining members sorted by `joinedAt desc`.
+- States
+  - Empty list: `아직 표시할 크루원이 없습니다.`
+  - Load failure: a safe error message with a link back to the internal crew hub
+  - No member row click action or management action is attached in this round
+
+### Manual Verification
+
+- Verified the round 08 checklist on the local app:
+  - joined members can open `/crews/{crewId}/members`
+  - non-members are redirected back to `/crews/public/{crewId}`
+  - leader-first ordering and joined-date ordering are visible
+  - avatar fallbacks render safely
+  - no member click action or management action was introduced
 

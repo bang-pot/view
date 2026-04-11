@@ -30,6 +30,7 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
   const crewIdNumber = Number(crewId);
   const hasValidCrewId = Number.isFinite(crewIdNumber);
   const publicCrewPath = useMemo(() => buildPublicCrewPath(crewId), [crewId]);
+  const membersPath = useMemo(() => `/crews/${crewId}/members`, [crewId]);
   const manageJoinRequestsPath = useMemo(() => `/crews/${crewId}/join-requests`, [crewId]);
 
   useEffect(() => {
@@ -49,7 +50,9 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
         setIsLoading(false);
       })
       .catch((error) => {
-        const shouldRedirect = isOperationalError(error) && error.code === "AUTH_ACCESS_DENIED";
+        const shouldRedirect =
+          isOperationalError(error) &&
+          (error.code === "AUTH_ACCESS_DENIED" || error.code === "AUTH_UNAUTHENTICATED");
 
         reportOperationalError("crew.hub_load_failed", error, {
           level: shouldRedirect ? "warn" : "error",
@@ -66,7 +69,7 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
         }
 
         setErrorMessage(
-          getUserMessage(error, "크루 내부 화면을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."),
+          getUserMessage(error, "크루 내부 허브를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."),
         );
         setIsLoading(false);
       });
@@ -97,7 +100,7 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
     return (
       <main>
         <h1>크루 허브</h1>
-        <p>{errorMessage ?? "크루 내부 화면을 불러오지 못했습니다."}</p>
+        <p>{errorMessage ?? "크루 내부 허브를 불러오지 못했습니다."}</p>
       </main>
     );
   }
@@ -121,7 +124,9 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
               <Link href={`/crews/${crew.crewId}`}>홈</Link>
             </li>
             <li>정책</li>
-            <li>크루원</li>
+            <li>
+              <Link href={membersPath}>크루원</Link>
+            </li>
             {leader ? <li>관리</li> : null}
           </ul>
         </nav>
@@ -135,7 +140,7 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
             <Link href={manageJoinRequestsPath}>가입 신청 관리</Link>
           </>
         ) : null}
-        {!crew.hasNotice && !leader ? <p>이 크루의 내부 공간이 준비되어 있습니다.</p> : null}
+        {!crew.hasNotice && !leader ? <p>이 크루의 공통 안내는 준비 중입니다.</p> : null}
       </section>
 
       <section aria-label="본문 캔버스">
