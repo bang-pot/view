@@ -6,6 +6,7 @@ import {
   createCrewInvite,
   createCrewJoinRequest,
   getCrewHub,
+  getCrewMembers,
   getCrewJoinRequests,
   getCrewInviteCandidates,
   getPendingCrewJoinRequests,
@@ -286,6 +287,42 @@ describe("crew client", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/backend/api/crews/11",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("loads the crew member list contract for joined members", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify([
+          {
+            userId: 11,
+            nickname: "leader-one",
+            profileImageUrl: null,
+            bio: null,
+            gender: null,
+            escapeCount: 0,
+            role: "LEADER",
+            joinedAt: "2026-04-08T00:00:00Z",
+          },
+        ]),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getCrewMembers(11);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/members",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",
