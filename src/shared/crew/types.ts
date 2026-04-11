@@ -40,6 +40,17 @@ export type CrewJoinViewResponse = {
   myStatus: CrewJoinStatus;
 };
 
+export type CrewHubResponse = {
+  crewId: number;
+  name: string;
+  description: string | null;
+  visibility: CrewVisibility;
+  imageUrl: string | null;
+  myRole: string;
+  hasNotice: boolean;
+  pendingJoinRequestCount: number | null;
+};
+
 export type CrewJoinRequestInput = {
   message: string | null;
 };

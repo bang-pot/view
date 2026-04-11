@@ -209,3 +209,21 @@ npm.cmd run build
   - Reject: `POST /api/crew-invites/{inviteId}/reject`
   - Successful actions update local state immediately without a refetch.
 
+## Crew Round 7 Minimal Internal Hub
+
+- `/crews/{crewId}`
+  - Reuses the new member-only hub contract from `GET /api/crews/{crewId}`.
+  - Non-members are redirected back to `/crews/public/{crewId}` instead of seeing the internal hub shell.
+- Crew hub shell
+  - Renders a minimal `Crew summary card`, `Crew navigation`, `Crew guidance area`, and `Body canvas`.
+  - The summary card shows `crewId`, `name`, `description`, `visibility`, and the current member `role`.
+  - The visible labels are currently Korean for the manual verification round: `홈`, `정책`, `크루원`, `관리`, `본문 캔버스`.
+  - The side navigation stays intentionally small and only exposes the shell structure, not actual tab bodies.
+- Guidance area
+  - `hasNotice=true` shows a minimal notice marker only.
+  - Leaders additionally see `pendingJoinRequestCount` and a `가입 신청 관리` link.
+  - Regular members do not see the leader-only join request summary.
+- Scope guard
+  - This round opens the internal crew space skeleton only.
+  - It does not implement policy, member list, schedules, meetings, or a full management console yet.
+

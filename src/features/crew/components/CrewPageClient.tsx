@@ -1,49 +1,58 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
-import { getCrewInviteCandidates, getPendingCrewJoinRequests } from "@/shared/crew/client";
-import type { PendingCrewJoinRequestSummary } from "@/shared/crew/types";
+import { getCrewHub } from "@/shared/crew/client";
+import type { CrewHubResponse } from "@/shared/crew/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
 type CrewPageClientProps = {
   crewId: string;
 };
 
+function buildPublicCrewPath(crewId: string): string {
+  return `/crews/public/${crewId}`;
+}
+
+function isLeader(role: string): boolean {
+  return role === "LEADER";
+}
+
 export function CrewPageClient({ crewId }: CrewPageClientProps) {
-  const [pendingRequests, setPendingRequests] = useState<PendingCrewJoinRequestSummary[] | null>(
-    null,
-  );
-  const [summaryError, setSummaryError] = useState<string | null>(null);
-  const [canDirectInvite, setCanDirectInvite] = useState(false);
+  const router = useRouter();
+  const [crew, setCrew] = useState<CrewHubResponse | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const crewIdNumber = Number(crewId);
-  const managePath = useMemo(() => `/crews/${crewId}/join-requests`, [crewId]);
-  const invitePath = useMemo(() => `/crews/${crewId}/invites`, [crewId]);
+  const hasValidCrewId = Number.isFinite(crewIdNumber);
+  const publicCrewPath = useMemo(() => buildPublicCrewPath(crewId), [crewId]);
+  const manageJoinRequestsPath = useMemo(() => `/crews/${crewId}/join-requests`, [crewId]);
 
   useEffect(() => {
-    if (!Number.isFinite(crewIdNumber)) {
+    if (!hasValidCrewId) {
       return;
     }
 
     let isMounted = true;
 
-    void getPendingCrewJoinRequests(crewIdNumber)
+    void getCrewHub(crewIdNumber)
       .then((response) => {
         if (!isMounted) {
           return;
         }
 
-        setPendingRequests(response);
+        setCrew(response);
+        setIsLoading(false);
       })
       .catch((error) => {
-        const level =
-          isOperationalError(error) && error.code === "AUTH_ACCESS_DENIED" ? "warn" : "error";
+        const shouldRedirect = isOperationalError(error) && error.code === "AUTH_ACCESS_DENIED";
 
-        reportOperationalError("crew.join_request_summary_failed", error, {
-          level,
+        reportOperationalError("crew.hub_load_failed", error, {
+          level: shouldRedirect ? "warn" : "error",
           route: `/crews/${crewId}`,
         });
 
@@ -51,75 +60,88 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
           return;
         }
 
-        if (isOperationalError(error) && error.code === "AUTH_ACCESS_DENIED") {
-          setPendingRequests(null);
+        if (shouldRedirect) {
+          router.replace(publicCrewPath);
           return;
         }
 
-        setSummaryError(
-          getUserMessage(error, "가입 신청 요약을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."),
+        setErrorMessage(
+          getUserMessage(error, "크루 내부 화면을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."),
         );
-      });
-
-    void getCrewInviteCandidates(crewIdNumber)
-      .then(() => {
-        if (!isMounted) {
-          return;
-        }
-
-        setCanDirectInvite(true);
-      })
-      .catch((error) => {
-        const code = isOperationalError(error) ? error.code : null;
-        const level =
-          code === "AUTH_ACCESS_DENIED" || code === "CREW_INVITE_NOT_ALLOWED" ? "warn" : "error";
-
-        reportOperationalError("crew.invite_entry_check_failed", error, {
-          level,
-          route: `/crews/${crewId}`,
-        });
-
-        if (!isMounted) {
-          return;
-        }
-
-        if (code === "AUTH_ACCESS_DENIED" || code === "CREW_INVITE_NOT_ALLOWED") {
-          setCanDirectInvite(false);
-        }
+        setIsLoading(false);
       });
 
     return () => {
       isMounted = false;
     };
-  }, [crewId, crewIdNumber]);
+  }, [crewId, crewIdNumber, hasValidCrewId, publicCrewPath, router]);
+
+  if (!hasValidCrewId) {
+    return (
+      <main>
+        <h1>크루 허브</h1>
+        <p>잘못된 크루 경로입니다.</p>
+      </main>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <main>
+        <p>크루 내부 공간을 불러오고 있습니다.</p>
+      </main>
+    );
+  }
+
+  if (!crew) {
+    return (
+      <main>
+        <h1>크루 허브</h1>
+        <p>{errorMessage ?? "크루 내부 화면을 불러오지 못했습니다."}</p>
+      </main>
+    );
+  }
+
+  const leader = isLeader(crew.myRole);
 
   return (
     <main>
-      <h1>Crew</h1>
-      <p>Crew ID: {crewId}</p>
-
-      {pendingRequests ? (
-        <section>
-          <h2>가입 신청 관리</h2>
-          <p>대기 중 {pendingRequests.length}건</p>
-          {pendingRequests.length > 0 ? (
-            <p>신청자: {pendingRequests.map((request) => request.nickname).join(", ")}</p>
-          ) : (
-            <p>대기 중인 가입 신청이 없습니다.</p>
-          )}
-          <Link href={managePath}>가입 신청 관리</Link>
+      <div>
+        <section aria-label="크루 요약 카드">
+          <h1>{crew.name}</h1>
+          <p>Crew ID: {crew.crewId}</p>
+          <p>{crew.description ?? "크루 소개가 아직 없습니다."}</p>
+          <p>공개 범위: {crew.visibility}</p>
+          <p>내 역할: {crew.myRole}</p>
         </section>
-      ) : null}
 
-      {canDirectInvite ? (
-        <section>
-          <h2>직접 초대</h2>
-          <p>비공개 크루 리더만 회원을 직접 초대할 수 있습니다.</p>
-          <Link href={invitePath}>직접 초대</Link>
-        </section>
-      ) : null}
+        <nav aria-label="크루 네비게이션">
+          <ul>
+            <li>
+              <Link href={`/crews/${crew.crewId}`}>홈</Link>
+            </li>
+            <li>정책</li>
+            <li>크루원</li>
+            {leader ? <li>관리</li> : null}
+          </ul>
+        </nav>
+      </div>
 
-      {summaryError ? <p>{summaryError}</p> : null}
+      <section aria-label="공통 안내 영역">
+        {crew.hasNotice ? <p>공지사항이 등록되어 있습니다.</p> : null}
+        {leader && typeof crew.pendingJoinRequestCount === "number" ? (
+          <>
+            <p>가입 신청 대기: {crew.pendingJoinRequestCount}건</p>
+            <Link href={manageJoinRequestsPath}>가입 신청 관리</Link>
+          </>
+        ) : null}
+        {!crew.hasNotice && !leader ? <p>이 크루의 내부 공간이 준비되어 있습니다.</p> : null}
+      </section>
+
+      <section aria-label="본문 캔버스">
+        <h2>본문 캔버스</h2>
+        <p>선택한 크루 콘텐츠는 다음 라운드에서 연결됩니다.</p>
+      </section>
     </main>
   );
 }
