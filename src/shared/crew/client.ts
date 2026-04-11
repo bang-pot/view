@@ -1,6 +1,7 @@
 import { requestJson } from "@/shared/api/client";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
 import type {
+  CrewHubResponse,
   CrewJoinRequestApproveResponse,
   CrewCreateInput,
   CrewCreateResponse,
@@ -66,6 +67,21 @@ export async function getPublicCrewJoinView(crewId: number): Promise<CrewJoinVie
     {
       code: "CREW_JOIN_VIEW_REQUEST_FAILED",
       message: "공개 크루 소개를 불러오지 못했습니다. 잠시 뒤 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getCrewHub(crewId: number): Promise<CrewHubResponse> {
+  return requestJson<CrewHubResponse>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}`,
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "CREW_HUB_REQUEST_FAILED",
+      message: "크루 내부 화면을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

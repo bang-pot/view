@@ -5,6 +5,7 @@ import {
   createCrew,
   createCrewInvite,
   createCrewJoinRequest,
+  getCrewHub,
   getCrewJoinRequests,
   getCrewInviteCandidates,
   getPendingCrewJoinRequests,
@@ -251,6 +252,40 @@ describe("crew client", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/backend/api/crews/11/join-requests/pending",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("loads the internal crew hub contract for members", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          crewId: 11,
+          name: "Night runners",
+          description: "Private crew for late runners",
+          visibility: "PRIVATE",
+          imageUrl: null,
+          myRole: "LEADER",
+          hasNotice: true,
+          pendingJoinRequestCount: 2,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getCrewHub(11);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",
