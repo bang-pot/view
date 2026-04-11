@@ -70,6 +70,10 @@ describe("ProfilePage", () => {
 
     expect(await screen.findByRole("heading", { name: "Profile" })).toBeInTheDocument();
     expect(screen.getByText("User ID: 1")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "My invites" })).toHaveAttribute(
+      "href",
+      "/crew-invites",
+    );
 
     const nicknameInput = screen.getByLabelText("Nickname");
     fireEvent.change(nicknameInput, { target: { value: "potmaster" } });
