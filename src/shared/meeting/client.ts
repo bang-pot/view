@@ -5,6 +5,7 @@ import type {
   CreateMeetingResponse,
   MeetingDetail,
   MeetingListItem,
+  RequestMeetingParticipationResponse,
 } from "@/shared/meeting/types";
 
 function getApiBaseUrl(): string {
@@ -62,6 +63,27 @@ export async function getMeetingDetail(
     {
       code: "MEETING_DETAIL_REQUEST_FAILED",
       message: "모임 상세를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function requestMeetingParticipation(
+  crewId: number,
+  meetingId: number,
+): Promise<RequestMeetingParticipationResponse> {
+  return requestJson<RequestMeetingParticipationResponse>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/meetings/${meetingId}/participation-requests`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+    {
+      code: "MEETING_PARTICIPATION_REQUEST_FAILED",
+      message: "참가 신청을 보내지 못했습니다. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

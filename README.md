@@ -336,3 +336,28 @@ npm.cmd run build
 - 목록으로 돌아왔을 때 방금 만든 모임이 바로 보이는 것을 확인했습니다.
 - 비가입자는 `/crews/public/{crewId}` 흐름으로 분기되는 것을 확인했습니다.
 
+## Meeting Round 2 모임 참가 신청
+
+- `/crews/{crewId}/meetings/{meetingId}`
+  - 기존 모임 상세 화면에 `내 참가 상태` 블록을 추가했습니다.
+  - 상세 응답의 `myParticipationStatus`를 그대로 읽어 상태별 UI를 분기합니다.
+- 참가 상태 분기
+  - `NOT_REQUESTED`: `참가 신청` 버튼 노출
+  - `PENDING`: `승인 대기 중` 읽기 상태 노출
+  - `APPROVED`: `참가 중` 읽기 상태 노출
+- 참가 신청 요청
+  - `POST /api/crews/{crewId}/meetings/{meetingId}/participation-requests`
+  - 성공 시 별도 새로고침 없이 로컬 meeting state를 `PENDING`으로 즉시 갱신합니다.
+  - backend가 `MEETING_PARTICIPATION_ALREADY_PENDING` 또는 `MEETING_PARTICIPATION_ALREADY_APPROVED`를 주면 각각 `PENDING`, `APPROVED` 상태처럼 반영합니다.
+- 접근 가드
+  - guest / temp / 비가입자는 기존 내부 크루 접근 규칙을 그대로 재사용합니다.
+  - `AUTH_ACCESS_DENIED`, `AUTH_UNAUTHENTICATED`면 `/crews/public/{crewId}` 공개 소개 흐름으로 돌려보냅니다.
+- 범위 제한
+  - 승인 / 거절 / 참가 취소 / 일정 중복 경고 / 모집마감 / 취소 / 종료는 이번 라운드에 포함하지 않습니다.
+
+### Meeting Round 2 수동 검증
+
+- 가입한 크루원이 모임 상세에서 `NOT_REQUESTED / PENDING / APPROVED` 상태를 구분해서 보는 것을 확인했습니다.
+- `참가 신청` 성공 후 상세 화면 상태가 바로 `PENDING`으로 바뀌는 것을 확인했습니다.
+- 비가입자, guest, temp 사용자는 내부 상세 대신 기존 공개 소개 / 로그인 / completion 흐름으로 분기되는 것을 확인했습니다.
+

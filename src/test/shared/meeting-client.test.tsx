@@ -4,6 +4,7 @@ import {
   createMeeting,
   getMeetingDetail,
   getMeetings,
+  requestMeetingParticipation,
 } from "@/shared/meeting/client";
 
 const ORIGINAL_ENV = { ...process.env };
@@ -120,6 +121,7 @@ describe("meeting client", () => {
           description: null,
           status: "RECRUITING",
           result: "NOT_RECORDED",
+          myParticipationStatus: "NOT_REQUESTED",
         }),
         {
           status: 200,
@@ -138,6 +140,37 @@ describe("meeting client", () => {
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",
+      }),
+    );
+  });
+
+  it("posts a participation request for the current meeting", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          meetingId: 99,
+          myParticipationStatus: "PENDING",
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await requestMeetingParticipation(11, 99);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/meetings/99/participation-requests",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
       }),
     );
   });
