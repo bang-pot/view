@@ -63,6 +63,7 @@ describe("CrewPage", () => {
     expect(screen.getByText("공개 범위: PRIVATE")).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "크루 네비게이션" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "홈" })).toHaveAttribute("href", "/crews/11");
+    expect(screen.getByRole("link", { name: "모임" })).toHaveAttribute("href", "/crews/11/meetings");
     expect(screen.getByRole("link", { name: "정책" })).toHaveAttribute("href", "/crews/11/policies");
     expect(screen.getByRole("link", { name: "크루원" })).toHaveAttribute("href", "/crews/11/members");
     expect(screen.getByRole("link", { name: "설정" })).toHaveAttribute("href", "/crews/11/settings");
@@ -95,7 +96,7 @@ describe("CrewPage", () => {
     expect(screen.queryByText("가입 신청 대기: 0건")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "가입 신청 관리" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "설정" })).not.toBeInTheDocument();
-    expect(screen.getByText("이 크루의 공통 안내를 준비 중입니다.")).toBeInTheDocument();
+    expect(screen.getByText("이 크루의 공통 안내는 아직 준비 중입니다.")).toBeInTheDocument();
   });
 
   it("redirects non-members back to the public crew introduction", async () => {

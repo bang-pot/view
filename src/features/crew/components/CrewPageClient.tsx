@@ -30,6 +30,7 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
   const crewIdNumber = Number(crewId);
   const hasValidCrewId = Number.isFinite(crewIdNumber);
   const publicCrewPath = useMemo(() => buildPublicCrewPath(crewId), [crewId]);
+  const meetingsPath = useMemo(() => `/crews/${crewId}/meetings`, [crewId]);
   const policiesPath = useMemo(() => `/crews/${crewId}/policies`, [crewId]);
   const membersPath = useMemo(() => `/crews/${crewId}/members`, [crewId]);
   const settingsPath = useMemo(() => `/crews/${crewId}/settings`, [crewId]);
@@ -126,6 +127,9 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
               <Link href={`/crews/${crew.crewId}`}>홈</Link>
             </li>
             <li>
+              <Link href={meetingsPath}>모임</Link>
+            </li>
+            <li>
               <Link href={policiesPath}>정책</Link>
             </li>
             <li>
@@ -148,7 +152,7 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
             <Link href={manageJoinRequestsPath}>가입 신청 관리</Link>
           </>
         ) : null}
-        {!crew.hasNotice && !leader ? <p>이 크루의 공통 안내를 준비 중입니다.</p> : null}
+        {!crew.hasNotice && !leader ? <p>이 크루의 공통 안내는 아직 준비 중입니다.</p> : null}
       </section>
 
       <section aria-label="본문 캔버스">
