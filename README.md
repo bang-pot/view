@@ -193,6 +193,7 @@ npm.cmd run build
 - Crew Round 8 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-08-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-08-result.md)
 - Crew Round 9 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-09-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-09-result.md)
 - Crew Round 10 결과: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-10-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-10-result.md)
+- Meeting Round 1 결과: [C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-01-result.md](C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-01-result.md)
 
 ## Crew Round 6 Minimal Invite Flow
 
@@ -303,4 +304,35 @@ npm.cmd run build
   - `PRIVATE`이면 탐색 비노출 + 직접 가입 신청 불가
   - 토글 변경 시 `PATCH /api/crews/{crewId}/visibility`를 즉시 호출하고, 성공하면 화면 상태를 로컬에서 바로 갱신합니다.
   - 확인 모달이나 변경 이력은 이번 라운드에 넣지 않습니다.
+
+## Meeting Round 1 모임 생성 / 목록 / 상세
+
+- 내부 허브
+  - `/crews/{crewId}`의 네비게이션에 `모임` 링크를 추가했습니다.
+  - 가입한 크루원만 모임 영역으로 진입할 수 있습니다.
+- `/crews/{crewId}/meetings`
+  - `GET /api/crews/{crewId}/meetings`로 모임 목록을 읽습니다.
+  - 각 항목에 `테마명`, `장소`, `날짜`, `시간`, `정원`, `모임 상태`, `결과 상태`를 표시합니다.
+  - 빈 목록이면 `아직 등록된 모임이 없습니다.` 문구를 보여줍니다.
+  - `모임 만들기` 링크를 통해 생성 화면으로 이동합니다.
+- `/crews/{crewId}/meetings/new`
+  - 필수 입력: `날짜`, `시간`, `장소`, `테마명`, `정원`
+  - 선택 입력: `총 비용`, `예약 링크`, `오픈채팅 링크`, `설명`
+  - `POST /api/crews/{crewId}/meetings` 성공 시 새 모임 상세 페이지로 바로 이동합니다.
+- `/crews/{crewId}/meetings/{meetingId}`
+  - `GET /api/crews/{crewId}/meetings/{meetingId}`로 상세를 읽습니다.
+  - 생성 직후 기본 상태인 `RECRUITING`, `NOT_RECORDED`를 화면에서 확인할 수 있습니다.
+- 접근 가드
+  - guest와 temp는 기존 auth 규칙을 그대로 재사용합니다.
+  - 비가입자는 내부 모임 화면 대신 `/crews/public/{crewId}` 공개 소개 흐름으로 돌려보냅니다.
+- 범위 제한
+  - 참가 신청, 승인/거절, 모집마감, 취소, 종료, 결과 입력은 이번 라운드에 포함하지 않습니다.
+
+### Meeting Round 1 수동 검증
+
+- 가입한 크루원 기준으로 `/crews/{crewId}/meetings` 진입을 확인했습니다.
+- `모임 만들기` 화면에서 필수 입력만으로 생성이 성공하는 것을 확인했습니다.
+- 생성 직후 상세 화면에서 `RECRUITING`, `NOT_RECORDED`가 보이는 것을 확인했습니다.
+- 목록으로 돌아왔을 때 방금 만든 모임이 바로 보이는 것을 확인했습니다.
+- 비가입자는 `/crews/public/{crewId}` 흐름으로 분기되는 것을 확인했습니다.
 
