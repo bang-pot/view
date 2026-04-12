@@ -1,0 +1,71 @@
+.button {
+  --text-button-color: #111111;
+  --text-button-disabled-color: #a3a3a3;
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  color: var(--text-button-color);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-weight: 500;
+  gap: var(--text-button-gap);
+  justify-content: center;
+  line-height: 1;
+  min-height: var(--text-button-height);
+  padding: 0;
+}
+
+.button:disabled,
+.button[data-state="disabled"] {
+  color: var(--text-button-disabled-color);
+  cursor: not-allowed;
+}
+
+.primary {
+  --text-button-color: #111111;
+}
+
+.assist {
+  --text-button-color: #449bfe;
+}
+
+.sm {
+  --text-button-gap: 4px;
+  --text-button-height: 24px;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.md {
+  --text-button-gap: 6px;
+  --text-button-height: 28px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.label {
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.icon {
+  align-items: center;
+  display: inline-flex;
+  flex-shrink: 0;
+  justify-content: center;
+}
+
+.sm .icon {
+  height: 14px;
+  width: 14px;
+}
+
+.md .icon {
+  height: 16px;
+  width: 16px;
+}
