@@ -19,6 +19,8 @@ import type {
   MyCrewInvite,
   PendingCrewJoinRequestSummary,
   PublicCrewSummary,
+  CrewVisibility,
+  CrewVisibilityUpdateResponse,
 } from "@/shared/crew/types";
 
 function getApiBaseUrl(): string {
@@ -84,6 +86,30 @@ export async function getCrewHub(crewId: number): Promise<CrewHubResponse> {
     {
       code: "CREW_HUB_REQUEST_FAILED",
       message: "크루 내부 화면을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function updateCrewVisibility(
+  crewId: number,
+  visibility: CrewVisibility,
+): Promise<CrewVisibilityUpdateResponse> {
+  return requestJson<CrewVisibilityUpdateResponse>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/visibility`,
+    {
+      method: "PATCH",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        visibility,
+      }),
+    },
+    {
+      code: "CREW_VISIBILITY_UPDATE_FAILED",
+      message: "크루 공개 범위를 변경하지 못했습니다. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

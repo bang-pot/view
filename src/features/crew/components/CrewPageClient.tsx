@@ -32,6 +32,7 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
   const publicCrewPath = useMemo(() => buildPublicCrewPath(crewId), [crewId]);
   const policiesPath = useMemo(() => `/crews/${crewId}/policies`, [crewId]);
   const membersPath = useMemo(() => `/crews/${crewId}/members`, [crewId]);
+  const settingsPath = useMemo(() => `/crews/${crewId}/settings`, [crewId]);
   const manageJoinRequestsPath = useMemo(() => `/crews/${crewId}/join-requests`, [crewId]);
 
   useEffect(() => {
@@ -130,7 +131,11 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
             <li>
               <Link href={membersPath}>크루원</Link>
             </li>
-            {leader ? <li>관리</li> : null}
+            {leader ? (
+              <li>
+                <Link href={settingsPath}>설정</Link>
+              </li>
+            ) : null}
           </ul>
         </nav>
       </div>
