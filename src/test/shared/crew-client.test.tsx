@@ -7,6 +7,7 @@ import {
   createCrewJoinRequest,
   getCrewHub,
   getCrewMembers,
+  getCrewPolicies,
   getCrewJoinRequests,
   getCrewInviteCandidates,
   getPendingCrewJoinRequests,
@@ -323,6 +324,37 @@ describe("crew client", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/backend/api/crews/11/members",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("loads the crew policy list contract for joined members", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify([
+          {
+            policyId: 101,
+            title: "모임 규칙",
+            content: "지각 금지\n노쇼 금지",
+          },
+        ]),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getCrewPolicies(11);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/policies",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",

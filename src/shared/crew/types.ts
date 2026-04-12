@@ -64,6 +64,12 @@ export type CrewMember = {
   joinedAt: string;
 };
 
+export type CrewPolicy = {
+  policyId: number;
+  title: string;
+  content: string;
+};
+
 export type CrewJoinRequestInput = {
   message: string | null;
 };
