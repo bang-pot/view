@@ -5,6 +5,7 @@ import {
   createCrew,
   createCrewInvite,
   createCrewJoinRequest,
+  updateCrewVisibility,
   getCrewHub,
   getCrewMembers,
   getCrewPolicies,
@@ -291,6 +292,40 @@ describe("crew client", () => {
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",
+      }),
+    );
+  });
+
+  it("patches the crew visibility setting for leaders", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          crewId: 11,
+          visibility: "PRIVATE",
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await updateCrewVisibility(11, "PRIVATE");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/visibility",
+      expect.objectContaining({
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          visibility: "PRIVATE",
+        }),
       }),
     );
   });

@@ -190,8 +190,9 @@ npm.cmd run build
 - Crew Round 5 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-05-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-05-result.md)
 - Crew Round 6 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-06-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-06-result.md)
  - Crew Round 7 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-07-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-07-result.md)
- - Crew Round 8 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-08-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-08-result.md)
- - Crew Round 9 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-09-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-09-result.md)
+- Crew Round 8 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-08-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-08-result.md)
+- Crew Round 9 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-09-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-09-result.md)
+- Crew Round 10 결과: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-10-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-10-result.md)
 
 ## Crew Round 6 Minimal Invite Flow
 
@@ -284,4 +285,22 @@ npm.cmd run build
   - empty-state messaging changes between leader and member views
   - non-members are redirected back to `/crews/public/{crewId}`
   - no policy management action was introduced beyond the leader-only CTA placeholder
+
+## Crew Round 10 크루 공개 범위 설정
+
+- `/crews/{crewId}`
+  - 리더에게만 `설정` 링크가 보입니다.
+  - 링크는 `/crews/{crewId}/settings`로 연결됩니다.
+- `/crews/{crewId}/settings`
+  - 기존 `GET /api/crews/{crewId}` 응답의 `visibility`와 `myRole`을 그대로 사용합니다.
+  - `GUEST`는 `/login?redirectTo=%2Fcrews%2F{crewId}%2Fsettings`
+  - `TEMP` 또는 `completionRequired=true`는 `/auth/complete?redirectTo=%2Fcrews%2F{crewId}%2Fsettings`
+  - 비가입자는 `/crews/public/{crewId}`로 돌려보냅니다.
+  - 일반 크루원은 값을 바꾸지 못하고 `크루장만 공개 범위를 변경할 수 있습니다.` 문구만 봅니다.
+- 토글 동작
+  - 스위치 라벨: `공개 크루 여부`
+  - `PUBLIC`이면 탐색 노출 + 직접 가입 신청 가능
+  - `PRIVATE`이면 탐색 비노출 + 직접 가입 신청 불가
+  - 토글 변경 시 `PATCH /api/crews/{crewId}/visibility`를 즉시 호출하고, 성공하면 화면 상태를 로컬에서 바로 갱신합니다.
+  - 확인 모달이나 변경 이력은 이번 라운드에 넣지 않습니다.
 

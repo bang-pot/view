@@ -51,6 +51,11 @@ export type CrewHubResponse = {
   pendingJoinRequestCount: number | null;
 };
 
+export type CrewVisibilityUpdateResponse = {
+  crewId: number;
+  visibility: CrewVisibility;
+};
+
 export type CrewMemberRole = "LEADER" | "MEMBER";
 
 export type CrewMember = {
