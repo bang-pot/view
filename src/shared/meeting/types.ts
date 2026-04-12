@@ -6,6 +6,11 @@ export type MeetingStatus =
 
 export type MeetingResult = "NOT_RECORDED" | "SUCCESS" | "FAILURE";
 
+export type MeetingParticipationStatus =
+  | "NOT_REQUESTED"
+  | "PENDING"
+  | "APPROVED";
+
 export type CreateMeetingInput = {
   date: string;
   time: string;
@@ -55,4 +60,10 @@ export type MeetingDetail = {
   description: string | null;
   status: MeetingStatus;
   result: MeetingResult;
+  myParticipationStatus: MeetingParticipationStatus;
+};
+
+export type RequestMeetingParticipationResponse = {
+  meetingId: number;
+  myParticipationStatus: "PENDING";
 };

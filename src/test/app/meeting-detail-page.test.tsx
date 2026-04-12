@@ -1,9 +1,9 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import CrewMeetingDetailPage from "@/app/crews/[crewId]/meetings/[meetingId]/page";
 import { getCrewHub } from "@/shared/crew/client";
-import { getMeetingDetail } from "@/shared/meeting/client";
+import { getMeetingDetail, requestMeetingParticipation } from "@/shared/meeting/client";
 
 const replaceMock = vi.fn();
 const routerMock = {
@@ -22,6 +22,7 @@ vi.mock("@/shared/meeting/client", () => ({
   createMeeting: vi.fn(),
   getMeetings: vi.fn(),
   getMeetingDetail: vi.fn(),
+  requestMeetingParticipation: vi.fn(),
 }));
 
 describe("MeetingDetailPage", () => {
@@ -34,7 +35,7 @@ describe("MeetingDetailPage", () => {
     cleanup();
   });
 
-  it("renders the meeting detail with recruiting and not-recorded states", async () => {
+  it("renders the meeting detail with recruiting, not-recorded, and not-requested participation states", async () => {
     vi.mocked(getCrewHub).mockResolvedValue({
       crewId: 11,
       name: "Night runners",
@@ -49,8 +50,8 @@ describe("MeetingDetailPage", () => {
       meetingId: 99,
       crewId: 11,
       hostUserId: 1,
-      themeName: "세븐클루스",
-      place: "강남점",
+      themeName: "야간 러닝",
+      place: "강남역",
       date: "2026-04-20",
       time: "19:30",
       capacity: 4,
@@ -60,6 +61,7 @@ describe("MeetingDetailPage", () => {
       description: "지각 없이 모여 주세요.",
       status: "RECRUITING",
       result: "NOT_RECORDED",
+      myParticipationStatus: "NOT_REQUESTED",
     });
 
     render(await CrewMeetingDetailPage({ params: Promise.resolve({ crewId: "11", meetingId: "99" }) }));
@@ -67,11 +69,132 @@ describe("MeetingDetailPage", () => {
     expect(await screen.findByRole("heading", { name: "모임 상세" })).toBeInTheDocument();
     expect(screen.getByText("모집 상태: RECRUITING")).toBeInTheDocument();
     expect(screen.getByText("결과 상태: NOT_RECORDED")).toBeInTheDocument();
-    expect(screen.getByText("장소: 강남점")).toBeInTheDocument();
+    expect(screen.getByText("내 참가 상태: NOT_REQUESTED")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "참가 신청" })).toBeInTheDocument();
+    expect(screen.getByText("장소: 강남역")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "모임 목록으로 돌아가기" })).toHaveAttribute(
       "href",
       "/crews/11/meetings",
     );
+  });
+
+  it("updates the participation status to pending after a successful request", async () => {
+    vi.mocked(getCrewHub).mockResolvedValue({
+      crewId: 11,
+      name: "Night runners",
+      description: "Private crew for late runners",
+      visibility: "PRIVATE",
+      imageUrl: null,
+      myRole: "MEMBER",
+      hasNotice: false,
+      pendingJoinRequestCount: 0,
+    });
+    vi.mocked(getMeetingDetail).mockResolvedValue({
+      meetingId: 99,
+      crewId: 11,
+      hostUserId: 1,
+      themeName: "야간 러닝",
+      place: "강남역",
+      date: "2026-04-20",
+      time: "19:30",
+      capacity: 4,
+      totalCost: 120000,
+      reservationLink: "https://example.com/reserve",
+      openChatLink: "https://open.kakao.com/o/example",
+      description: "지각 없이 모여 주세요.",
+      status: "RECRUITING",
+      result: "NOT_RECORDED",
+      myParticipationStatus: "NOT_REQUESTED",
+    });
+    vi.mocked(requestMeetingParticipation).mockResolvedValue({
+      meetingId: 99,
+      myParticipationStatus: "PENDING",
+    });
+
+    render(await CrewMeetingDetailPage({ params: Promise.resolve({ crewId: "11", meetingId: "99" }) }));
+
+    fireEvent.click(await screen.findByRole("button", { name: "참가 신청" }));
+
+    await waitFor(() => {
+      expect(requestMeetingParticipation).toHaveBeenCalledWith(11, 99);
+    });
+    expect(await screen.findByText("내 참가 상태: PENDING")).toBeInTheDocument();
+    expect(screen.getByText("승인 대기 중")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "참가 신청" })).not.toBeInTheDocument();
+  });
+
+  it("renders pending and approved states as read-only labels", async () => {
+    vi.mocked(getCrewHub).mockResolvedValue({
+      crewId: 11,
+      name: "Night runners",
+      description: "Private crew for late runners",
+      visibility: "PRIVATE",
+      imageUrl: null,
+      myRole: "MEMBER",
+      hasNotice: false,
+      pendingJoinRequestCount: 0,
+    });
+    vi.mocked(getMeetingDetail).mockResolvedValueOnce({
+      meetingId: 99,
+      crewId: 11,
+      hostUserId: 1,
+      themeName: "야간 러닝",
+      place: "강남역",
+      date: "2026-04-20",
+      time: "19:30",
+      capacity: 4,
+      totalCost: null,
+      reservationLink: null,
+      openChatLink: null,
+      description: null,
+      status: "RECRUITING",
+      result: "NOT_RECORDED",
+      myParticipationStatus: "PENDING",
+    });
+
+    render(await CrewMeetingDetailPage({ params: Promise.resolve({ crewId: "11", meetingId: "99" }) }));
+
+    expect(await screen.findByText("내 참가 상태: PENDING")).toBeInTheDocument();
+    expect(screen.getByText("승인 대기 중")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "참가 신청" })).not.toBeInTheDocument();
+
+    cleanup();
+    vi.clearAllMocks();
+    replaceMock.mockReset();
+
+    vi.mocked(getCrewHub).mockResolvedValue({
+      crewId: 11,
+      name: "Night runners",
+      description: "Private crew for late runners",
+      visibility: "PRIVATE",
+      imageUrl: null,
+      myRole: "MEMBER",
+      hasNotice: false,
+      pendingJoinRequestCount: 0,
+    });
+    vi.mocked(getMeetingDetail).mockResolvedValueOnce({
+      meetingId: 99,
+      crewId: 11,
+      hostUserId: 1,
+      themeName: "야간 러닝",
+      place: "강남역",
+      date: "2026-04-20",
+      time: "19:30",
+      capacity: 4,
+      totalCost: null,
+      reservationLink: null,
+      openChatLink: null,
+      description: null,
+      status: "RECRUITING",
+      result: "NOT_RECORDED",
+      myParticipationStatus: "APPROVED",
+    });
+
+    render(await CrewMeetingDetailPage({ params: Promise.resolve({ crewId: "11", meetingId: "99" }) }));
+
+    expect(await screen.findByText("내 참가 상태: APPROVED")).toBeInTheDocument();
+    expect(screen.getByText("참가 중")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "참가 신청" })).not.toBeInTheDocument();
   });
 
   it("shows a safe failure state and redirects non-members to the public crew introduction", async () => {
