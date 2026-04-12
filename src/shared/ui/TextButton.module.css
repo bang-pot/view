@@ -10,10 +10,10 @@
   cursor: pointer;
   display: inline-flex;
   font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
-  font-weight: 500;
+  font-weight: 600;
   gap: var(--text-button-gap);
   justify-content: center;
-  line-height: 1;
+  line-height: var(--text-button-line-height);
   min-height: var(--text-button-height);
   padding: 0;
 }
@@ -29,21 +29,21 @@
 }
 
 .assist {
-  --text-button-color: #449bfe;
+  --text-button-color: #525252;
 }
 
 .sm {
-  --text-button-gap: 4px;
-  --text-button-height: 24px;
-  font-size: 13px;
-  line-height: 18px;
+  --text-button-gap: 6px;
+  --text-button-height: 20px;
+  --text-button-line-height: 20px;
+  font-size: 14px;
 }
 
 .md {
   --text-button-gap: 6px;
-  --text-button-height: 28px;
-  font-size: 14px;
-  line-height: 20px;
+  --text-button-height: 24px;
+  --text-button-line-height: 24px;
+  font-size: 16px;
 }
 
 .label {
@@ -61,11 +61,11 @@
 }
 
 .sm .icon {
-  height: 14px;
-  width: 14px;
+  height: 10px;
+  width: 10px;
 }
 
 .md .icon {
-  height: 16px;
-  width: 16px;
+  height: 12px;
+  width: 12px;
 }
