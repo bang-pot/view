@@ -21,9 +21,9 @@ describe("UiPlaygroundPage", () => {
     );
     expect(screen.getByRole("heading", { name: "Button" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Applied preview" })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Variant x Size" })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "State preview" })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Icon combinations" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Small · 32px" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Medium · 40px" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Large · 48px" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Figma text styles" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Figma tokens" })).toBeInTheDocument();
     expect(screen.getByText("button/primaryBg")).toBeInTheDocument();
@@ -40,9 +40,15 @@ describe("UiPlaygroundPage", () => {
       "/playground/ui?tab=text-button",
     );
     expect(screen.getByRole("heading", { name: "Text Button" })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Variant x Size" })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Type preview" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Small · 14px" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Medium · 16px" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Figma text styles" })).toBeInTheDocument();
-    expect(screen.getByText("Pretendard 13px")).toBeInTheDocument();
+    expect(screen.getByText("Pretendard 16px")).toBeInTheDocument();
+  });
+
+  it("defaults unknown tabs back to the button tab", async () => {
+    render(await UiPlaygroundPage({ searchParams: { tab: "unknown" } }));
+
+    expect(screen.getByRole("heading", { name: "Button" })).toBeInTheDocument();
   });
 });

@@ -1,0 +1,122 @@
+.chip {
+  --chip-bg: #ffffff;
+  --chip-bg-hover: #f2f2f2;
+  --chip-bg-pressed: #e5e5e5;
+  --chip-border: #d4d4d4;
+  --chip-color: #111111;
+  --chip-outline: #111111;
+  --chip-outline-width: 0px;
+  align-items: center;
+  background: var(--chip-bg);
+  border: 1px solid var(--chip-border);
+  border-radius: 9999px;
+  color: var(--chip-color);
+  display: inline-flex;
+  font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-weight: 500;
+  gap: var(--chip-gap);
+  justify-content: center;
+  line-height: 1;
+  min-height: var(--chip-height);
+  min-width: 0;
+  padding: 0 var(--chip-padding-x);
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease,
+    box-shadow 120ms ease;
+  white-space: nowrap;
+}
+
+.chip[data-state="hover"] {
+  background: var(--chip-bg-hover);
+}
+
+.chip[data-state="focused"] {
+  background: var(--chip-bg);
+  box-shadow: 0 0 0 var(--chip-outline-width) var(--chip-outline);
+}
+
+.chip[data-state="pressed"] {
+  background: var(--chip-bg-pressed);
+}
+
+.chip[data-state="disabled"] {
+  background: var(--chip-disabled-bg, #f2f2f2);
+  border-color: var(--chip-disabled-border, #e5e5e5);
+  color: #a3a3a3;
+}
+
+.normal {
+  --chip-bg: #ffffff;
+  --chip-bg-hover: #f2f2f2;
+  --chip-bg-pressed: #e5e5e5;
+  --chip-border: #d4d4d4;
+  --chip-color: #111111;
+  --chip-outline: #111111;
+  --chip-outline-width: 2px;
+  --chip-disabled-bg: #f2f2f2;
+  --chip-disabled-border: #e5e5e5;
+}
+
+.solid {
+  --chip-bg: #111111;
+  --chip-bg-hover: #262626;
+  --chip-bg-pressed: #404040;
+  --chip-border: #111111;
+  --chip-color: #ffffff;
+  --chip-outline: #e5e5e5;
+  --chip-outline-width: 2px;
+  --chip-disabled-bg: #e5e5e5;
+  --chip-disabled-border: #e5e5e5;
+}
+
+.lg {
+  --chip-height: 32px;
+  --chip-padding-x: 12px;
+  --chip-gap: 6px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.md {
+  --chip-height: 28px;
+  --chip-padding-x: 10px;
+  --chip-gap: 6px;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.sm {
+  --chip-height: 24px;
+  --chip-padding-x: 8px;
+  --chip-gap: 4px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.icon {
+  align-items: center;
+  display: inline-flex;
+  flex-shrink: 0;
+  justify-content: center;
+}
+
+.lg .icon {
+  height: 14px;
+  width: 14px;
+}
+
+.md .icon {
+  height: 12px;
+  width: 12px;
+}
+
+.sm .icon {
+  height: 10px;
+  width: 10px;
+}
+
+.label {
+  display: inline-flex;
+}
