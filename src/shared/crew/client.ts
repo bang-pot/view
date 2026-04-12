@@ -3,6 +3,7 @@ import { getPublicRuntimeConfig } from "@/shared/config/public";
 import type {
   CrewHubResponse,
   CrewMember,
+  CrewPolicy,
   CrewJoinRequestApproveResponse,
   CrewCreateInput,
   CrewCreateResponse,
@@ -98,6 +99,21 @@ export async function getCrewMembers(crewId: number): Promise<CrewMember[]> {
     {
       code: "CREW_MEMBERS_REQUEST_FAILED",
       message: "크루원 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getCrewPolicies(crewId: number): Promise<CrewPolicy[]> {
+  return requestJson<CrewPolicy[]>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/policies`,
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "CREW_POLICIES_REQUEST_FAILED",
+      message: "크루 정책을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

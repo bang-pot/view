@@ -191,6 +191,7 @@ npm.cmd run build
 - Crew Round 6 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-06-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-06-result.md)
  - Crew Round 7 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-07-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-07-result.md)
  - Crew Round 8 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-08-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-08-result.md)
+ - Crew Round 9 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-09-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-09-result.md)
 
 ## Crew Round 6 Minimal Invite Flow
 
@@ -251,7 +252,36 @@ npm.cmd run build
 - Verified the round 08 checklist on the local app:
   - joined members can open `/crews/{crewId}/members`
   - non-members are redirected back to `/crews/public/{crewId}`
-  - leader-first ordering and joined-date ordering are visible
+ - leader-first ordering and joined-date ordering are visible
   - avatar fallbacks render safely
   - no member click action or management action was introduced
+
+## Crew Round 9 Crew Policies Read View
+
+- `/crews/{crewId}`
+  - The internal hub now links its `정책` navigation item to the policy screen.
+- `/crews/{crewId}/policies`
+  - Reuses the joined-member access rule through `GET /api/crews/{crewId}/policies`.
+  - `AUTH_ACCESS_DENIED` and `AUTH_UNAUTHENTICATED` are redirected back to `/crews/public/{crewId}` so the existing public/login/completion flow can continue.
+- Policy rendering
+  - Policies are rendered as read-only accordion cards.
+  - The default state shows titles only.
+  - Clicking a title expands the full text body and preserves plain text plus line breaks only.
+  - Clicking the same title again collapses the body.
+- Empty state
+  - Shared empty message: `자유로운 분위기로 운영되고 있네요`
+  - Leaders additionally see a disabled `정책 추가하러 가기` CTA placeholder.
+  - Regular members only see the empty message.
+- States
+  - Load failure: a safe error message with a link back to the internal crew hub
+  - No policy management action is attached in this round
+
+### Manual Verification
+
+- Verified the round 09 checklist on the local app:
+  - joined members can open `/crews/{crewId}/policies`
+  - policy titles toggle open and closed as accordion cards
+  - empty-state messaging changes between leader and member views
+  - non-members are redirected back to `/crews/public/{crewId}`
+  - no policy management action was introduced beyond the leader-only CTA placeholder
 
