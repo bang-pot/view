@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { getMe } from "@/shared/auth/client";
-import { transferCrewLeadership, getCrewMembers } from "@/shared/crew/client";
+import { getCrewMembers, removeCrewMember, transferCrewLeadership } from "@/shared/crew/client";
 import type { CrewMember } from "@/shared/crew/types";
 import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
 import { reportOperationalError } from "@/shared/monitoring/operations";
@@ -47,8 +47,10 @@ export function CrewMembersPageClient({ crewId }: CrewMembersPageClientProps) {
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [transferErrorMessage, setTransferErrorMessage] = useState<string | null>(null);
+  const [removeErrorMessage, setRemoveErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isTransferringUserId, setIsTransferringUserId] = useState<number | null>(null);
+  const [isRemovingUserId, setIsRemovingUserId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const crewIdNumber = Number(crewId);
@@ -123,12 +125,12 @@ export function CrewMembersPageClient({ crewId }: CrewMembersPageClientProps) {
   }, [crewId, crewIdNumber, hasValidCrewId, publicCrewPath, router]);
 
   async function handleTransferLeadership(targetMember: CrewMember) {
-    if (!currentUserIsLeader || isTransferringUserId !== null) {
+    if (!currentUserIsLeader || isTransferringUserId !== null || isRemovingUserId !== null) {
       return;
     }
 
     const shouldTransfer = window.confirm(
-      `${targetMember.nickname}에게 크루장을 위임할까요?\n\n위임 후에는 크루 관리 권한이 즉시 새로운 크루장에게 넘어갑니다`,
+      `${targetMember.nickname}님에게 크루장을 위임할까요?\n\n위임 후에는 크루 관리 권한이 즉시 새로운 크루장에게 넘어갑니다`,
     );
 
     if (!shouldTransfer) {
@@ -137,6 +139,7 @@ export function CrewMembersPageClient({ crewId }: CrewMembersPageClientProps) {
 
     try {
       setTransferErrorMessage(null);
+      setRemoveErrorMessage(null);
       setSuccessMessage(null);
       setIsTransferringUserId(targetMember.userId);
 
@@ -179,11 +182,56 @@ export function CrewMembersPageClient({ crewId }: CrewMembersPageClientProps) {
         setTransferErrorMessage("현재 크루장만 위임할 수 있어요.");
       } else {
         setTransferErrorMessage(
-          getUserMessage(error, "크루장 위임에 실패했습니다. 잠시 후 다시 시도해 주세요."),
+          getUserMessage(error, "크루장 위임에 실패했어요. 잠시 후 다시 시도해 주세요."),
         );
       }
     } finally {
       setIsTransferringUserId(null);
+    }
+  }
+
+  async function handleRemoveMember(targetMember: CrewMember) {
+    if (!currentUserIsLeader || isRemovingUserId !== null || isTransferringUserId !== null) {
+      return;
+    }
+
+    const shouldRemove = window.confirm(
+      `${targetMember.nickname}님을 크루원에서 제외할까요?\n\n이 사용자를 퇴출하면 해당 사용자가 맡은 진행 중 모임은 취소됩니다.\n참여 중인 모임에서는 자동으로 제외됩니다.`,
+    );
+
+    if (!shouldRemove) {
+      return;
+    }
+
+    try {
+      setTransferErrorMessage(null);
+      setRemoveErrorMessage(null);
+      setSuccessMessage(null);
+      setIsRemovingUserId(targetMember.userId);
+
+      const response = await removeCrewMember(crewIdNumber, targetMember.userId);
+
+      setMembers((previousMembers) =>
+        previousMembers.filter((member) => member.userId !== response.removedUserId),
+      );
+      setSuccessMessage("크루원에서 제외했습니다");
+    } catch (error) {
+      reportOperationalError("crew.remove_member_failed", error, {
+        level: "warn",
+        route: `/crews/${crewId}/members`,
+      });
+
+      if (isOperationalError(error) && error.code === "CREW_MEMBER_REMOVE_TARGET_NOT_ALLOWED") {
+        setRemoveErrorMessage("현재 일반 크루원만 퇴출할 수 있어요.");
+      } else if (isOperationalError(error) && error.code === "AUTH_ACCESS_DENIED") {
+        setRemoveErrorMessage("현재 크루장만 퇴출할 수 있어요.");
+      } else {
+        setRemoveErrorMessage(
+          getUserMessage(error, "크루원을 제외하지 못했어요. 잠시 후 다시 시도해 주세요."),
+        );
+      }
+    } finally {
+      setIsRemovingUserId(null);
     }
   }
 
@@ -217,10 +265,11 @@ export function CrewMembersPageClient({ crewId }: CrewMembersPageClientProps) {
   return (
     <main>
       <h1>크루원</h1>
-      <p>가입한 크루원만 볼 수 있는 읽기 전용 목록입니다.</p>
+      <p>가입한 크루원만 볼 수 있는 내부 전용 목록입니다.</p>
       <Link href={hubPath}>크루 허브로 돌아가기</Link>
       {successMessage ? <p>{successMessage}</p> : null}
       {transferErrorMessage ? <p>{transferErrorMessage}</p> : null}
+      {removeErrorMessage ? <p>{removeErrorMessage}</p> : null}
 
       {members.length === 0 ? (
         <p>아직 표시할 크루원이 없습니다.</p>
@@ -236,9 +285,7 @@ export function CrewMembersPageClient({ crewId }: CrewMembersPageClientProps) {
                   height={40}
                 />
               ) : (
-                <div aria-label={`${member.nickname} 기본 아바타`}>
-                  기본 아바타
-                </div>
+                <div aria-label={`${member.nickname} 기본 아바타`}>기본 아바타</div>
               )}
               <p>{member.nickname}</p>
               <p>역할: {member.role}</p>
@@ -247,17 +294,28 @@ export function CrewMembersPageClient({ crewId }: CrewMembersPageClientProps) {
               <p>성별: {member.gender ?? "미설정"}</p>
               <p>탈주 횟수: {member.escapeCount}회</p>
               {currentUserIsLeader && member.role === "MEMBER" ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    void handleTransferLeadership(member);
-                  }}
-                  disabled={isTransferringUserId !== null}
-                >
-                  {isTransferringUserId === member.userId
-                    ? "위임 중..."
-                    : `${member.nickname}에게 크루장 위임`}
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void handleTransferLeadership(member);
+                    }}
+                    disabled={isTransferringUserId !== null || isRemovingUserId !== null}
+                  >
+                    {isTransferringUserId === member.userId
+                      ? "위임 중..."
+                      : `${member.nickname}에게 크루장 위임`}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void handleRemoveMember(member);
+                    }}
+                    disabled={isRemovingUserId !== null || isTransferringUserId !== null}
+                  >
+                    {isRemovingUserId === member.userId ? "퇴출 중..." : `${member.nickname} 퇴출`}
+                  </button>
+                </>
               ) : null}
             </li>
           ))}

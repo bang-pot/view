@@ -21,6 +21,7 @@ vi.mock("@/shared/crew/client", () => ({
   getCrewHub: vi.fn(),
   getCrewMembers: vi.fn(),
   transferCrewLeadership: vi.fn(),
+  removeCrewMember: vi.fn(),
   createCrewJoinRequest: vi.fn(),
   getPendingCrewJoinRequests: vi.fn(),
   getCrewJoinRequests: vi.fn(),
@@ -219,7 +220,78 @@ describe("CrewMembersPage", () => {
     confirmMock.mockRestore();
   });
 
-  it("hides transfer actions for non-leader members", async () => {
+  it("removes the target member from the list after a successful leader-only removal", async () => {
+    const { removeCrewMember } = await import("@/shared/crew/client");
+    const confirmMock = vi.spyOn(window, "confirm").mockReturnValue(true);
+
+    vi.mocked(getCrewMembers).mockResolvedValue([
+      {
+        userId: 22,
+        nickname: "member-two",
+        profileImageUrl: null,
+        bio: null,
+        gender: null,
+        escapeCount: 0,
+        role: "MEMBER",
+        joinedAt: "2026-04-09T00:00:00Z",
+      },
+      {
+        userId: 33,
+        nickname: "member-three",
+        profileImageUrl: null,
+        bio: null,
+        gender: null,
+        escapeCount: 0,
+        role: "MEMBER",
+        joinedAt: "2026-04-10T00:00:00Z",
+      },
+      {
+        userId: 11,
+        nickname: "leader-one",
+        profileImageUrl: null,
+        bio: null,
+        gender: null,
+        escapeCount: 0,
+        role: "LEADER",
+        joinedAt: "2026-04-08T00:00:00Z",
+      },
+    ]);
+    vi.mocked(removeCrewMember).mockResolvedValue({
+      crewId: 11,
+      removedUserId: 22,
+    });
+
+    render(await CrewMembersPage({ params: Promise.resolve({ crewId: "11" }) }));
+
+    const removeButton = await screen.findByRole("button", {
+      name: "member-two 퇴출",
+    });
+
+    removeButton.click();
+
+    expect(confirmMock).toHaveBeenCalledWith(
+      expect.stringContaining("이 사용자를 퇴출하면 해당 사용자가 맡은 진행 중 모임은 취소됩니다."),
+    );
+    expect(confirmMock).toHaveBeenCalledWith(
+      expect.stringContaining("참여 중인 모임에서는 자동으로 제외됩니다."),
+    );
+
+    await waitFor(() => {
+      expect(removeCrewMember).toHaveBeenCalledWith(11, 22);
+    });
+
+    expect(await screen.findByText("크루원에서 제외했습니다")).toBeInTheDocument();
+
+    const items = within(screen.getByRole("list", { name: "크루원 목록" })).getAllByRole("listitem");
+    expect(items).toHaveLength(2);
+    expect(screen.queryByText("member-two")).not.toBeInTheDocument();
+    expect(within(items[0]).getByText("leader-one")).toBeInTheDocument();
+    expect(within(items[1]).getByText("member-three")).toBeInTheDocument();
+
+    confirmMock.mockRestore();
+  });
+
+  it("hides transfer and remove actions for non-leader members", async () => {
     vi.mocked(getMe).mockResolvedValue({
       authStatus: "FULL",
       completionRequired: false,
@@ -255,6 +327,8 @@ describe("CrewMembersPage", () => {
 
     expect(await screen.findByRole("heading", { name: "크루원" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "member-two에게 크루장 위임" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "member-two 퇴출" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "leader-one에게 크루장 위임" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "leader-one 퇴출" })).not.toBeInTheDocument();
   });
 });
