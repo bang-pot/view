@@ -6,10 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { getCrewHub } from "@/shared/crew/client";
 import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
-import {
-  getMeetingDetail,
-  requestMeetingParticipation,
-} from "@/shared/meeting/client";
+import { getMeetingDetail, joinMeeting } from "@/shared/meeting/client";
 import type {
   MeetingDetail,
   MeetingParticipationStatus,
@@ -34,15 +31,11 @@ function toDisplay(value: string | number | null | undefined): string {
 }
 
 function getParticipationLabel(status: MeetingParticipationStatus): string {
-  if (status === "PENDING") {
-    return "승인 대기 중";
+  if (status === "JOINED") {
+    return "참여 중";
   }
 
-  if (status === "APPROVED") {
-    return "참가 중";
-  }
-
-  return "참가 신청 가능";
+  return "지금 바로 참여할 수 있어요.";
 }
 
 export function MeetingDetailPageClient({
@@ -53,9 +46,9 @@ export function MeetingDetailPageClient({
   const [crewName, setCrewName] = useState<string | null>(null);
   const [meeting, setMeeting] = useState<MeetingDetail | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [participationErrorMessage, setParticipationErrorMessage] = useState<string | null>(null);
+  const [joinErrorMessage, setJoinErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmittingParticipation, setIsSubmittingParticipation] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
 
   const crewIdNumber = Number(crewId);
   const meetingIdNumber = Number(meetingId);
@@ -128,55 +121,44 @@ export function MeetingDetailPageClient({
     router,
   ]);
 
-  async function handleParticipationRequest(): Promise<void> {
+  async function handleJoin(): Promise<void> {
     if (!meeting) {
       return;
     }
 
-    setIsSubmittingParticipation(true);
-    setParticipationErrorMessage(null);
+    setIsJoining(true);
+    setJoinErrorMessage(null);
 
     try {
-      const response = await requestMeetingParticipation(crewIdNumber, meetingIdNumber);
+      const response = await joinMeeting(crewIdNumber, meetingIdNumber);
 
       setMeeting({
         ...meeting,
         myParticipationStatus: response.myParticipationStatus,
       });
     } catch (error) {
-      reportOperationalError("meeting.participation_request_failed", error, {
+      reportOperationalError("meeting.join_failed", error, {
         level: "warn",
         route: routePath,
       });
 
-      if (isOperationalError(error)) {
-        if (error.code === "MEETING_PARTICIPATION_ALREADY_PENDING") {
-          setMeeting({
-            ...meeting,
-            myParticipationStatus: "PENDING",
-          });
-          setIsSubmittingParticipation(false);
-          return;
-        }
-
-        if (error.code === "MEETING_PARTICIPATION_ALREADY_APPROVED") {
-          setMeeting({
-            ...meeting,
-            myParticipationStatus: "APPROVED",
-          });
-          setIsSubmittingParticipation(false);
-          return;
-        }
+      if (isOperationalError(error) && error.code === "MEETING_PARTICIPATION_ALREADY_JOINED") {
+        setMeeting({
+          ...meeting,
+          myParticipationStatus: "JOINED",
+        });
+        setIsJoining(false);
+        return;
       }
 
-      setParticipationErrorMessage(
+      setJoinErrorMessage(
         getUserMessage(
           error,
-          "참가 신청을 보내지 못했습니다. 잠시 후 다시 시도해 주세요.",
+          "즉시 참여를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
         ),
       );
     } finally {
-      setIsSubmittingParticipation(false);
+      setIsJoining(false);
     }
   }
 
@@ -216,15 +198,13 @@ export function MeetingDetailPageClient({
       <section aria-label="모임 참가 상태">
         <h2>내 참가 상태</h2>
         <p>내 참가 상태: {meeting.myParticipationStatus}</p>
-        {meeting.myParticipationStatus === "NOT_REQUESTED" ? (
-          <button type="button" onClick={handleParticipationRequest} disabled={isSubmittingParticipation}>
-            {isSubmittingParticipation ? "참가 신청 중..." : "참가 신청"}
+        {meeting.myParticipationStatus === "NOT_JOINED" ? (
+          <button type="button" onClick={handleJoin} disabled={isJoining}>
+            {isJoining ? "참여 처리 중..." : "참여하기"}
           </button>
         ) : null}
-        {meeting.myParticipationStatus !== "NOT_REQUESTED" ? (
-          <p>{getParticipationLabel(meeting.myParticipationStatus)}</p>
-        ) : null}
-        {participationErrorMessage ? <p>{participationErrorMessage}</p> : null}
+        <p>{getParticipationLabel(meeting.myParticipationStatus)}</p>
+        {joinErrorMessage ? <p>{joinErrorMessage}</p> : null}
       </section>
 
       <section aria-label="모임 상세 정보">
