@@ -98,13 +98,13 @@ export function Textarea({
           }}
           value={value}
         />
+        {countText || footerText ? (
+          <div className={styles.metaRow}>
+            <span>{countText}</span>
+            <span>{footerText}</span>
+          </div>
+        ) : null}
       </div>
-      {countText || footerText ? (
-        <div className={styles.metaRow}>
-          <span>{countText}</span>
-          <span>{footerText}</span>
-        </div>
-      ) : null}
       {supportingText ? (
         <p className={styles.supportingText} id={supportingId}>
           {supportingText}
