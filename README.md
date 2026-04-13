@@ -435,3 +435,52 @@ npm.cmd run build
 - 범위 제한
   - 결과 입력, 정산, 운영 히스토리는 이번 라운드에 포함하지 않습니다.
 
+## Meeting Round 5 모임 결과 입력
+
+- `/crews/{crewId}/meetings/{meetingId}`
+  - 기존 모임 상세 화면에 `모임 결과` 섹션을 추가했습니다.
+  - 현재 결과 상태를 항상 읽기 상태로 보여주고, 필요할 때만 개설자 입력 UI를 노출합니다.
+- 결과 상태 분기
+  - `NOT_RECORDED`: 아직 결과를 기록하지 않은 상태입니다.
+  - `SUCCESS`: 모임이 성공적으로 진행된 상태입니다.
+  - `FAILURE`: 모임이 실패로 기록된 상태입니다.
+- 결과 입력 조건
+  - 현재 사용자가 모임 개설자여야 합니다.
+  - 모임 상태가 `COMPLETED`여야 합니다.
+  - 결과 상태가 `NOT_RECORDED`여야 합니다.
+  - 위 조건을 모두 만족할 때만 `성공`, `실패` 버튼을 보여줍니다.
+- 결과 입력 요청
+  - `POST /api/crews/{crewId}/meetings/{meetingId}/result`
+  - body: `{ result: "SUCCESS" | "FAILURE" }`
+  - 성공 시 별도 새로고침 없이 상세 화면의 `meeting.result`를 로컬에서 즉시 갱신합니다.
+  - backend가 `MEETING_RESULT_ALREADY_RECORDED`, `MEETING_RESULT_RECORD_NOT_ALLOWED`를 주면 상세를 한 번 다시 읽어 실제 상태를 맞추고, 사용자 메시지를 함께 보여줍니다.
+- 개설자 / 크루장 / 일반 참가자 분기
+  - 개설자: `COMPLETED + NOT_RECORDED`에서만 입력 가능
+  - 크루장: 결과 읽기만 가능, 입력 버튼 없음
+  - 일반 참가자: 결과 읽기만 가능, 입력 버튼 없음
+- 목록 / 상세 동기화
+  - 상세는 로컬 상태 갱신으로 즉시 반영합니다.
+  - 목록은 기존 `GET /api/crews/{crewId}/meetings` no-store 조회 흐름을 그대로 사용하므로 목록 화면 재진입 시 최신 결과를 다시 읽습니다.
+- 접근 가드
+  - guest / temp / 비가입자는 기존 내부 크루 접근 규칙을 그대로 재사용합니다.
+  - `AUTH_ACCESS_DENIED`, `AUTH_UNAUTHENTICATED`면 `/crews/public/{crewId}` 공개 소개 흐름으로 돌려보냅니다.
+- 범위 제한
+  - 정산, 결과 재수정, richer record, 운영 히스토리는 이번 라운드에 포함하지 않습니다.
+
+### Meeting Round 5 자동 검증
+
+- `npm.cmd run test -- src/test/shared/meeting-client.test.tsx src/test/app/meeting-detail-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+모두 통과했습니다.
+
+### Meeting Round 5 수동 검증
+
+- 개설자 기준 `COMPLETED + NOT_RECORDED` 모임에서 `성공`, `실패` 입력이 가능한 것을 확인했습니다.
+- 결과 입력 직후 상세 화면이 즉시 `SUCCESS` 또는 `FAILURE`로 갱신되는 것을 확인했습니다.
+- 목록 화면으로 돌아갔을 때 같은 결과 상태가 최신으로 반영되는 것을 확인했습니다.
+- 크루장과 일반 참가자는 결과를 읽을 수만 있고 입력 버튼은 보이지 않는 것을 확인했습니다.
+- 비가입자, guest, temp 사용자는 기존 공개 소개 / 로그인 / completion 흐름으로 분기되는 것을 확인했습니다.
+
