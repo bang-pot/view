@@ -3,9 +3,9 @@ import { getPublicRuntimeConfig } from "@/shared/config/public";
 import type {
   CreateMeetingInput,
   CreateMeetingResponse,
+  JoinMeetingResponse,
   MeetingDetail,
   MeetingListItem,
-  RequestMeetingParticipationResponse,
 } from "@/shared/meeting/types";
 
 function getApiBaseUrl(): string {
@@ -67,13 +67,13 @@ export async function getMeetingDetail(
   );
 }
 
-export async function requestMeetingParticipation(
+export async function joinMeeting(
   crewId: number,
   meetingId: number,
-): Promise<RequestMeetingParticipationResponse> {
-  return requestJson<RequestMeetingParticipationResponse>(
+): Promise<JoinMeetingResponse> {
+  return requestJson<JoinMeetingResponse>(
     getApiBaseUrl(),
-    `/api/crews/${crewId}/meetings/${meetingId}/participation-requests`,
+    `/api/crews/${crewId}/meetings/${meetingId}/join`,
     {
       method: "POST",
       credentials: "include",
@@ -82,8 +82,8 @@ export async function requestMeetingParticipation(
       },
     },
     {
-      code: "MEETING_PARTICIPATION_REQUEST_FAILED",
-      message: "참가 신청을 보내지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      code: "MEETING_JOIN_FAILED",
+      message: "즉시 참여를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

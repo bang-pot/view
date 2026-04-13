@@ -4,7 +4,7 @@ import {
   createMeeting,
   getMeetingDetail,
   getMeetings,
-  requestMeetingParticipation,
+  joinMeeting,
 } from "@/shared/meeting/client";
 
 const ORIGINAL_ENV = { ...process.env };
@@ -29,8 +29,8 @@ describe("meeting client", () => {
         JSON.stringify({
           meetingId: 99,
           crewId: 11,
-          themeName: "세븐클루스",
-          place: "강남점",
+          themeName: "보드게임",
+          place: "강남역",
           date: "2026-04-20",
           time: "19:30",
           status: "RECRUITING",
@@ -49,8 +49,8 @@ describe("meeting client", () => {
     await createMeeting(11, {
       date: "2026-04-20",
       time: "19:30",
-      place: "강남점",
-      themeName: "세븐클루스",
+      place: "강남역",
+      themeName: "보드게임",
       capacity: 4,
       totalCost: 120000,
       reservationLink: "https://example.com/reserve",
@@ -69,8 +69,8 @@ describe("meeting client", () => {
         body: JSON.stringify({
           date: "2026-04-20",
           time: "19:30",
-          place: "강남점",
-          themeName: "세븐클루스",
+          place: "강남역",
+          themeName: "보드게임",
           capacity: 4,
           totalCost: 120000,
           reservationLink: "https://example.com/reserve",
@@ -110,8 +110,8 @@ describe("meeting client", () => {
           meetingId: 99,
           crewId: 11,
           hostUserId: 1,
-          themeName: "세븐클루스",
-          place: "강남점",
+          themeName: "보드게임",
+          place: "강남역",
           date: "2026-04-20",
           time: "19:30",
           capacity: 4,
@@ -121,7 +121,7 @@ describe("meeting client", () => {
           description: null,
           status: "RECRUITING",
           result: "NOT_RECORDED",
-          myParticipationStatus: "NOT_REQUESTED",
+          myParticipationStatus: "NOT_JOINED",
         }),
         {
           status: 200,
@@ -144,12 +144,12 @@ describe("meeting client", () => {
     );
   });
 
-  it("posts a participation request for the current meeting", async () => {
+  it("posts an instant join request for the current meeting", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
           meetingId: 99,
-          myParticipationStatus: "PENDING",
+          myParticipationStatus: "JOINED",
         }),
         {
           status: 200,
@@ -161,10 +161,10 @@ describe("meeting client", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    await requestMeetingParticipation(11, 99);
+    await joinMeeting(11, 99);
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "/backend/api/crews/11/meetings/99/participation-requests",
+      "/backend/api/crews/11/meetings/99/join",
       expect.objectContaining({
         method: "POST",
         credentials: "include",
