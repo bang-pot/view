@@ -1,0 +1,69 @@
+.root {
+  align-items: center;
+  color: #111111;
+  display: inline-flex;
+  font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  gap: 8px;
+  line-height: 24px;
+}
+
+.input {
+  appearance: none;
+  margin: 0;
+  position: absolute;
+}
+
+.indicator {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #d4d4d4;
+  border-radius: 999px;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 24px;
+  justify-content: center;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+  width: 24px;
+}
+
+.indicator::after {
+  background: transparent;
+  border-radius: 999px;
+  content: "";
+  height: 12px;
+  transition: background-color 120ms ease;
+  width: 12px;
+}
+
+.input:checked + .indicator {
+  border-color: #449bfe;
+}
+
+.input:checked + .indicator::after {
+  background: #449bfe;
+}
+
+.input:focus-visible + .indicator {
+  box-shadow: 0 0 0 2px rgba(68, 155, 254, 0.24);
+}
+
+.input:disabled + .indicator {
+  background: #f2f2f2;
+  border-color: #e5e5e5;
+}
+
+.input:disabled:checked + .indicator::after {
+  background: #a3a3a3;
+}
+
+.input:disabled ~ .label {
+  color: #a3a3a3;
+}
+
+.label {
+  color: inherit;
+}

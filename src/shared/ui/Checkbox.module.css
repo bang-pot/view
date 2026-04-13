@@ -1,0 +1,73 @@
+.root {
+  align-items: center;
+  color: #111111;
+  display: inline-flex;
+  font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  gap: 8px;
+  line-height: 24px;
+}
+
+.input {
+  appearance: none;
+  margin: 0;
+  position: absolute;
+}
+
+.indicator {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #d4d4d4;
+  border-radius: 8px;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 24px;
+  justify-content: center;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+  width: 24px;
+}
+
+.indicator::after {
+  border-bottom: 2px solid transparent;
+  border-right: 2px solid transparent;
+  content: "";
+  height: 10px;
+  transform: rotate(45deg) translate(-1px, -1px);
+  width: 6px;
+}
+
+.input:checked + .indicator {
+  background: #449bfe;
+  border-color: #449bfe;
+}
+
+.input:checked + .indicator::after {
+  border-bottom-color: #ffffff;
+  border-right-color: #ffffff;
+}
+
+.input:focus-visible + .indicator {
+  box-shadow: 0 0 0 2px rgba(68, 155, 254, 0.24);
+}
+
+.input:disabled + .indicator {
+  background: #f2f2f2;
+  border-color: #e5e5e5;
+}
+
+.input:disabled:checked + .indicator {
+  background: #d4d4d4;
+  border-color: #d4d4d4;
+}
+
+.input:disabled ~ .label {
+  color: #a3a3a3;
+}
+
+.label {
+  color: inherit;
+}

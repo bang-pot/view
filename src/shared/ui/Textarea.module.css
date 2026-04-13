@@ -1,0 +1,107 @@
+.root {
+  --textarea-bg: #ffffff;
+  --textarea-border: #e5e5e5;
+  --textarea-text: #111111;
+  --textarea-placeholder: #a3a3a3;
+  --textarea-label: #111111;
+  --textarea-supporting: #a3a3a3;
+  display: grid;
+  gap: 4px;
+  width: min(100%, 320px);
+}
+
+.root[data-variant="filled"] {
+  --textarea-bg: #f9f9f9;
+  --textarea-border: transparent;
+}
+
+.root[data-state="focused"] {
+  --textarea-bg: #ffffff;
+  --textarea-border: #111111;
+}
+
+.root[data-state="error"] {
+  --textarea-border: #f5494a;
+  --textarea-label: #f5494a;
+  --textarea-supporting: #f5494a;
+}
+
+.root[data-variant="filled"][data-state="error"] .control {
+  background: #fde0e0;
+}
+
+.root[data-state="disabled"] {
+  --textarea-bg: #f9f9f9;
+  --textarea-border: #e5e5e5;
+  --textarea-text: #a3a3a3;
+  --textarea-placeholder: #d4d4d4;
+  --textarea-label: #a3a3a3;
+  --textarea-supporting: #a3a3a3;
+}
+
+.label {
+  color: var(--textarea-label);
+  font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.control {
+  background: var(--textarea-bg);
+  border: 1px solid var(--textarea-border);
+  border-radius: 12px;
+  min-height: 96px;
+  padding: 10px 12px;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.root[data-state="focused"] .control {
+  box-shadow: 0 0 0 1px var(--textarea-border);
+}
+
+.textarea {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--textarea-text);
+  font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  min-height: 72px;
+  outline: none;
+  padding: 0;
+  resize: none;
+  width: 100%;
+}
+
+.textarea::placeholder {
+  color: var(--textarea-placeholder);
+}
+
+.textarea:disabled {
+  cursor: not-allowed;
+}
+
+.metaRow {
+  color: var(--textarea-supporting);
+  display: flex;
+  font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  justify-content: space-between;
+  line-height: 14px;
+}
+
+.supportingText {
+  color: var(--textarea-supporting);
+  font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 14px;
+  margin: 0;
+}

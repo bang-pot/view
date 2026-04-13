@@ -1,0 +1,117 @@
+.root {
+  --text-field-bg: #ffffff;
+  --text-field-border: #e5e5e5;
+  --text-field-text: #111111;
+  --text-field-placeholder: #a3a3a3;
+  --text-field-label: #111111;
+  --text-field-supporting: #737373;
+  display: grid;
+  gap: 4px;
+  width: min(100%, 280px);
+}
+
+.root[data-variant="filled"] {
+  --text-field-bg: #f9f9f9;
+  --text-field-border: transparent;
+}
+
+.root[data-state="focused"] {
+  --text-field-bg: #ffffff;
+  --text-field-border: #111111;
+}
+
+.root[data-state="error"] {
+  --text-field-border: #f5494a;
+  --text-field-label: #f5494a;
+  --text-field-supporting: #f5494a;
+}
+
+.root[data-variant="filled"][data-state="error"] .control {
+  background: #fde0e0;
+}
+
+.root[data-state="disabled"] {
+  --text-field-bg: #f9f9f9;
+  --text-field-border: #e5e5e5;
+  --text-field-text: #a3a3a3;
+  --text-field-placeholder: #d4d4d4;
+  --text-field-label: #a3a3a3;
+  --text-field-supporting: #a3a3a3;
+}
+
+.label {
+  color: var(--text-field-label);
+  font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.control {
+  align-items: center;
+  background: var(--text-field-bg);
+  border: 1px solid var(--text-field-border);
+  border-radius: 12px;
+  display: flex;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.root[data-state="focused"] .control {
+  box-shadow: 0 0 0 1px var(--text-field-border);
+}
+
+.input {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--text-field-text);
+  flex: 1;
+  font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  min-width: 0;
+  outline: none;
+  padding: 0;
+}
+
+.input::placeholder {
+  color: var(--text-field-placeholder);
+}
+
+.input:disabled {
+  cursor: not-allowed;
+}
+
+.icon {
+  align-items: center;
+  color: var(--text-field-placeholder);
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 14px;
+  justify-content: center;
+  width: 14px;
+}
+
+.root[data-state="error"] .icon {
+  color: #f5494a;
+}
+
+.root[data-state="disabled"] .icon {
+  color: #a3a3a3;
+}
+
+.supportingText {
+  color: var(--text-field-supporting);
+  font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  margin: 0;
+}
