@@ -2,8 +2,14 @@ import { Fragment } from "react";
 import Link from "next/link";
 
 import { Button } from "@/shared/ui/Button";
+import { Checkbox } from "@/shared/ui/Checkbox";
 import { Chip } from "@/shared/ui/Chip";
 import { IconButton } from "@/shared/ui/IconButton";
+import { Radio } from "@/shared/ui/Radio";
+import { Select } from "@/shared/ui/Select";
+import { SwitchBox } from "@/shared/ui/SwitchBox";
+import { TextField } from "@/shared/ui/TextField";
+import { Textarea } from "@/shared/ui/Textarea";
 import { TextButton } from "@/shared/ui/TextButton";
 
 type UiPlaygroundPageProps = {
@@ -16,13 +22,29 @@ type UiPlaygroundPageProps = {
       }>;
 };
 
-type TabKey = "button" | "text-button" | "icon-button" | "chip";
+type TabKey =
+  | "button"
+  | "text-button"
+  | "icon-button"
+  | "chip"
+  | "text-field"
+  | "textarea"
+  | "select"
+  | "checkbox"
+  | "radio"
+  | "switch-box";
 
 const tabs: Array<{ key: TabKey; label: string }> = [
   { key: "button", label: "Button" },
   { key: "text-button", label: "Text Button" },
   { key: "icon-button", label: "Icon Button" },
   { key: "chip", label: "Chip" },
+  { key: "text-field", label: "Text Field" },
+  { key: "textarea", label: "Textarea" },
+  { key: "select", label: "Select" },
+  { key: "checkbox", label: "Checkbox" },
+  { key: "radio", label: "Radio" },
+  { key: "switch-box", label: "Switch Box" },
 ];
 
 const buttonTextStyles = [
@@ -49,7 +71,17 @@ const buttonTokens = [
 ];
 
 function resolveActiveTab(tab?: string): TabKey {
-  return tab === "text-button" || tab === "icon-button" || tab === "chip" ? tab : "button";
+  return tab === "text-button" ||
+    tab === "icon-button" ||
+    tab === "chip" ||
+    tab === "text-field" ||
+    tab === "textarea" ||
+    tab === "select" ||
+    tab === "checkbox" ||
+    tab === "radio" ||
+    tab === "switch-box"
+    ? tab
+    : "button";
 }
 
 function SquareIcon({ color = "currentColor" }: { color?: string }) {
@@ -77,8 +109,74 @@ const chipTextStyles = [
   { label: "sm", font: "Pretendard 12px", weight: "Medium" },
 ];
 
+const textFieldTextStyles = [
+  { label: "Input", font: "Pretendard 14px", weight: "Regular" },
+  { label: "Label", font: "Pretendard 12px", weight: "Medium" },
+  { label: "Supporting", font: "Pretendard 12px", weight: "Regular" },
+];
+
+const textFieldTokens = [
+  { name: "text.primary", value: "#111111" },
+  { name: "text.secondary", value: "#525252" },
+  { name: "text.disabled", value: "#a3a3a3" },
+  { name: "background.default", value: "#ffffff" },
+  { name: "background.subtle", value: "#f9f9f9" },
+  { name: "border.default", value: "#e5e5e5" },
+  { name: "status.danger", value: "#f5494a" },
+  { name: "radius.md", value: "12px" },
+  { name: "spacing.4", value: "8px" },
+  { name: "spacing.6", value: "12px" },
+];
+
+const textareaTextStyles = [
+  { label: "Input", font: "Pretendard 14px", weight: "Regular" },
+  { label: "Label", font: "Pretendard 12px", weight: "Medium" },
+  { label: "Supporting", font: "Pretendard 11px", weight: "Regular" },
+];
+
+const selectTextStyles = [
+  { label: "Input", font: "Pretendard 14px", weight: "Regular" },
+  { label: "Label", font: "Pretendard 12px", weight: "Medium" },
+];
+
+const textareaTokens = [
+  { name: "text.primary", value: "#111111" },
+  { name: "text.secondary", value: "#525252" },
+  { name: "text.disabled", value: "#a3a3a3" },
+  { name: "background.default", value: "#ffffff" },
+  { name: "background.subtle", value: "#f9f9f9" },
+  { name: "border.default", value: "#e5e5e5" },
+  { name: "status.danger", value: "#f5494a" },
+  { name: "radius.md", value: "12px" },
+  { name: "spacing.5", value: "10px" },
+  { name: "spacing.6", value: "12px" },
+];
+
+const selectTokens = [
+  { name: "text.primary", value: "#111111" },
+  { name: "text.disabled", value: "#a3a3a3" },
+  { name: "background.default", value: "#ffffff" },
+  { name: "background.subtle", value: "#f9f9f9" },
+  { name: "border.default", value: "#e5e5e5" },
+  { name: "status.danger", value: "#f5494a" },
+  { name: "radius.md", value: "12px" },
+  { name: "spacing.6", value: "12px" },
+];
+
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h2 style={{ fontSize: 20, marginBottom: 12, marginTop: 32 }}>{children}</h2>;
+  return (
+    <h2
+      style={{
+        fontSize: 32,
+        fontWeight: 700,
+        lineHeight: 1.2,
+        marginBottom: 20,
+        marginTop: 0,
+      }}
+    >
+      {children}
+    </h2>
+  );
 }
 
 function Panel({
@@ -93,13 +191,13 @@ function Panel({
       aria-label={title}
       style={{
         background: "#ffffff",
-        border: "1px solid #e5e7eb",
-        borderRadius: 16,
-        marginBottom: 16,
-        padding: 16,
+        border: "1px solid #eaeaea",
+        borderRadius: 8,
+        marginBottom: 24,
+        padding: 24,
       }}
     >
-      <h3 style={{ fontSize: 16, marginBottom: 12, marginTop: 0 }}>{title}</h3>
+      <h3 style={{ fontSize: 14, fontWeight: 600, color: "#111111", marginBottom: 16, marginTop: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>{title}</h3>
       {children}
     </section>
   );
@@ -196,8 +294,9 @@ function ButtonTabContent() {
         <div
           style={{
             alignItems: "center",
-            border: "1px solid #e5e7eb",
-            borderRadius: 16,
+            border: "1px solid #eaeaea",
+            borderRadius: 8,
+            boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
             display: "flex",
             flexWrap: "wrap",
             gap: 12,
@@ -232,7 +331,7 @@ function ButtonTabContent() {
       <Panel title="Figma text styles">
         <div style={{ display: "grid", gap: 12 }}>
           <p style={{ color: "#525252", margin: 0 }}>
-            Source node: <code>27:614</code>
+            Source node: <code style={{ fontFamily: "monospace", background: "#f4f4f5", padding: "2px 6px", borderRadius: 4, fontSize: 13, color: "#111111" }}>27:614</code>
           </p>
           <table style={{ borderCollapse: "collapse", width: "100%" }}>
             <thead>
@@ -245,9 +344,9 @@ function ButtonTabContent() {
             <tbody>
               {buttonTextStyles.map((style) => (
                 <tr key={style.label}>
-                  <td style={{ padding: "8px 0" }}>{style.label}</td>
-                  <td style={{ padding: "8px 0" }}>{style.font}</td>
-                  <td style={{ padding: "8px 0" }}>{style.weight}</td>
+                  <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.label}</td>
+                  <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.font}</td>
+                  <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.weight}</td>
                 </tr>
               ))}
             </tbody>
@@ -267,13 +366,14 @@ function ButtonTabContent() {
             <div
               key={token.name}
               style={{
-                border: "1px solid #e5e7eb",
-                borderRadius: 12,
-                padding: 12,
+                border: "1px solid #eaeaea",
+                borderRadius: 8,
+                padding: 16,
+                background: "#fcfcfc",
               }}
             >
-              <p style={{ fontWeight: 600, margin: "0 0 6px" }}>{token.name}</p>
-              <p style={{ color: "#525252", margin: 0 }}>{token.value}</p>
+              <p style={{ fontWeight: 600, margin: "0 0 6px", fontSize: 13, color: "#111111" }}>{token.name}</p>
+              <p style={{ color: "#737373", margin: 0, fontSize: 13, fontFamily: "monospace", letterSpacing: "0.02em" }}>{token.value}</p>
             </div>
           ))}
         </div>
@@ -346,8 +446,9 @@ function TextButtonTabContent() {
         <div
           style={{
             alignItems: "center",
-            border: "1px solid #e5e7eb",
-            borderRadius: 16,
+            border: "1px solid #eaeaea",
+            borderRadius: 8,
+            boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
             display: "flex",
             flexWrap: "wrap",
             gap: 12,
@@ -386,14 +487,14 @@ function TextButtonTabContent() {
           </thead>
           <tbody>
             <tr>
-              <td style={{ padding: "8px 0" }}>sm</td>
-              <td style={{ padding: "8px 0" }}>Pretendard 14px</td>
-              <td style={{ padding: "8px 0" }}>Semi Bold</td>
+              <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>sm</td>
+              <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>Pretendard 14px</td>
+              <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>Semi Bold</td>
             </tr>
             <tr>
-              <td style={{ padding: "8px 0" }}>md</td>
-              <td style={{ padding: "8px 0" }}>Pretendard 16px</td>
-              <td style={{ padding: "8px 0" }}>Semi Bold</td>
+              <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>md</td>
+              <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>Pretendard 16px</td>
+              <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>Semi Bold</td>
             </tr>
           </tbody>
         </table>
@@ -411,8 +512,9 @@ function IconButtonTabContent() {
         <div
           style={{
             alignItems: "center",
-            border: "1px solid #e5e7eb",
-            borderRadius: 16,
+            border: "1px solid #eaeaea",
+            borderRadius: 8,
+            boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
             display: "flex",
             flexWrap: "wrap",
             gap: 12,
@@ -479,7 +581,7 @@ function IconButtonTabContent() {
       <Panel title="Figma design notes">
         <div style={{ display: "grid", gap: 12 }}>
           <p style={{ color: "#525252", margin: 0 }}>
-            Source node: <code>42:62</code>
+            Source node: <code style={{ fontFamily: "monospace", background: "#f4f4f5", padding: "2px 6px", borderRadius: 4, fontSize: 13, color: "#111111" }}>42:62</code>
           </p>
           <table style={{ borderCollapse: "collapse", width: "100%" }}>
             <thead>
@@ -492,15 +594,15 @@ function IconButtonTabContent() {
             <tbody>
               {iconButtonTextStyles.map((style) => (
                 <tr key={style.label}>
-                  <td style={{ padding: "8px 0" }}>{style.label}</td>
-                  <td style={{ padding: "8px 0" }}>{style.font}</td>
-                  <td style={{ padding: "8px 0" }}>{style.weight}</td>
+                  <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.label}</td>
+                  <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.font}</td>
+                  <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.weight}</td>
                 </tr>
               ))}
               <tr>
-                <td style={{ padding: "8px 0" }}>Layout</td>
-                <td style={{ padding: "8px 0" }}>Normal / Background / Outline</td>
-                <td style={{ padding: "8px 0" }}>Three-row structure reconstructed from the screenshot</td>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>Layout</td>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>Normal / Background / Outline</td>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>Three-row structure reconstructed from the screenshot</td>
               </tr>
             </tbody>
           </table>
@@ -519,13 +621,14 @@ function IconButtonTabContent() {
             <div
               key={`icon-${token.name}`}
               style={{
-                border: "1px solid #e5e7eb",
-                borderRadius: 12,
-                padding: 12,
+                border: "1px solid #eaeaea",
+                borderRadius: 8,
+                padding: 16,
+                background: "#fcfcfc",
               }}
             >
-              <p style={{ fontWeight: 600, margin: "0 0 6px" }}>{token.name}</p>
-              <p style={{ color: "#525252", margin: 0 }}>{token.value}</p>
+              <p style={{ fontWeight: 600, margin: "0 0 6px", fontSize: 13, color: "#111111" }}>{token.name}</p>
+              <p style={{ color: "#737373", margin: 0, fontSize: 13, fontFamily: "monospace", letterSpacing: "0.02em" }}>{token.value}</p>
             </div>
           ))}
         </div>
@@ -557,8 +660,9 @@ function ChipTabContent() {
         <div
           style={{
             alignItems: "center",
-            border: "1px solid #e5e7eb",
-            borderRadius: 16,
+            border: "1px solid #eaeaea",
+            borderRadius: 8,
+            boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
             display: "flex",
             flexWrap: "wrap",
             gap: 12,
@@ -672,20 +776,20 @@ function ChipTabContent() {
             <tbody>
               {chipTextStyles.map((style) => (
                 <tr key={style.label}>
-                  <td style={{ padding: "8px 0" }}>{style.label}</td>
-                  <td style={{ padding: "8px 0" }}>{style.font}</td>
-                  <td style={{ padding: "8px 0" }}>{style.weight}</td>
+                  <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.label}</td>
+                  <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.font}</td>
+                  <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.weight}</td>
                 </tr>
               ))}
               <tr>
-                <td style={{ padding: "8px 0" }}>Variant</td>
-                <td style={{ padding: "8px 0" }}>normal / solid</td>
-                <td style={{ padding: "8px 0" }}>Two visual groups visible in the provided screenshot</td>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>Variant</td>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>normal / solid</td>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>Two visual groups visible in the provided screenshot</td>
               </tr>
               <tr>
-                <td style={{ padding: "8px 0" }}>Type</td>
-                <td style={{ padding: "8px 0" }}>text-only / icon + text</td>
-                <td style={{ padding: "8px 0" }}>Both structures are shown for every size</td>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>Type</td>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>text-only / icon + text</td>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>Both structures are shown for every size</td>
               </tr>
             </tbody>
           </table>
@@ -717,15 +821,630 @@ function ChipTabContent() {
             <div
               key={`chip-${token.name}`}
               style={{
-                border: "1px solid #e5e7eb",
-                borderRadius: 12,
-                padding: 12,
+                border: "1px solid #eaeaea",
+                borderRadius: 8,
+                padding: 16,
+                background: "#fcfcfc",
               }}
             >
-              <p style={{ fontWeight: 600, margin: "0 0 6px" }}>{token.name}</p>
-              <p style={{ color: "#525252", margin: 0 }}>{token.value}</p>
+              <p style={{ fontWeight: 600, margin: "0 0 6px", fontSize: 13, color: "#111111" }}>{token.name}</p>
+              <p style={{ color: "#737373", margin: 0, fontSize: 13, fontFamily: "monospace", letterSpacing: "0.02em" }}>{token.value}</p>
             </div>
           ))}
+        </div>
+      </Panel>
+    </>
+  );
+}
+
+function TextFieldTabContent() {
+  const rows = [
+    { label: "No icon", trailingIcon: null },
+    { label: "With icon", trailingIcon: <SquareIcon color="#a3a3a3" /> },
+  ];
+
+  const columns = [
+    {
+      key: "default",
+      title: "Default",
+      props: { helperText: "Helper text", placeholder: "Placeholder" },
+    },
+    {
+      key: "focused",
+      title: "Focus",
+      props: {
+        defaultValue: "Input value",
+        helperText: "Helper text",
+        placeholder: "Placeholder",
+        visualState: "focused" as const,
+      },
+    },
+    {
+      key: "error",
+      title: "Error",
+      props: {
+        defaultValue: "Input value",
+        errorMessage: "Error message",
+        hasError: true,
+        placeholder: "Placeholder",
+      },
+    },
+    {
+      key: "disabled",
+      title: "Disabled",
+      props: {
+        disabled: true,
+        helperText: "Helper text",
+        placeholder: "Placeholder",
+      },
+    },
+  ];
+
+  function renderVariant(variant: "outline" | "filled", title: string) {
+    return (
+      <Panel title={title}>
+        <div
+          style={{
+            display: "grid",
+            gap: 16,
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          }}
+        >
+          {columns.map((column) => (
+            <section
+              key={`${title}-${column.key}`}
+              aria-label={`${title} ${column.title}`}
+              style={{
+                border: "1px solid #e5e7eb",
+                borderRadius: 16,
+                display: "grid",
+                gap: 16,
+                padding: 16,
+              }}
+            >
+              <p
+                style={{
+                  color: "#737373",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  margin: 0,
+                }}
+              >
+                {column.title}
+              </p>
+              {rows.map((row) => (
+                <div
+                  key={`${title}-${column.key}-${row.label}`}
+                  style={{
+                    display: "grid",
+                    gap: 8,
+                  }}
+                >
+                  <p style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}>{row.label}</p>
+                  <TextField
+                    {...column.props}
+                    label="Label"
+                    trailingIcon={
+                      row.trailingIcon
+                        ? column.key === "error"
+                          ? <SquareIcon color="#f5494a" />
+                          : row.trailingIcon
+                        : null
+                    }
+                    variant={variant}
+                  />
+                </div>
+              ))}
+            </section>
+          ))}
+        </div>
+      </Panel>
+    );
+  }
+
+  return (
+    <>
+      <SectionTitle>Text Field</SectionTitle>
+
+      <Panel title="Interactive preview">
+        <div
+          style={{
+            display: "grid",
+            gap: 16,
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          }}
+        >
+          <TextField helperText="Helper text" label="Label" placeholder="Placeholder" variant="outline" />
+          <TextField
+            defaultValue="Input value"
+            label="Label"
+            trailingIcon={<SquareIcon color="#a3a3a3" />}
+            variant="filled"
+          />
+        </div>
+      </Panel>
+
+      {renderVariant("outline", "Outline")}
+      {renderVariant("filled", "Filled")}
+
+      <Panel title="Figma text styles">
+        <table style={{ borderCollapse: "collapse", width: "100%" }}>
+          <thead>
+            <tr>
+              <th align="left">Type</th>
+              <th align="left">Font</th>
+              <th align="left">Weight</th>
+            </tr>
+          </thead>
+          <tbody>
+            {textFieldTextStyles.map((style) => (
+              <tr key={style.label}>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.label}</td>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.font}</td>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.weight}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Panel>
+
+      <Panel title="Figma tokens">
+        <div
+          style={{
+            display: "grid",
+            gap: 8,
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          }}
+        >
+          {textFieldTokens.map((token) => (
+            <div
+              key={`text-field-${token.name}`}
+              style={{
+                border: "1px solid #eaeaea",
+                borderRadius: 8,
+                padding: 16,
+                background: "#fcfcfc",
+              }}
+            >
+              <p style={{ fontWeight: 600, margin: "0 0 6px", fontSize: 13, color: "#111111" }}>{token.name}</p>
+              <p style={{ color: "#737373", margin: 0, fontSize: 13, fontFamily: "monospace", letterSpacing: "0.02em" }}>{token.value}</p>
+            </div>
+          ))}
+        </div>
+      </Panel>
+    </>
+  );
+}
+
+function TextareaTabContent() {
+  const columns = [
+    {
+      key: "default",
+      title: "Default",
+      props: {
+        footerText: "텍스트",
+        helperText: "메시지에 바티코를 적어요.",
+        maxLength: 2000,
+        placeholder: "내용을 입력해주세요.",
+      },
+    },
+    {
+      key: "focused",
+      title: "Focus",
+      props: {
+        defaultValue:
+          "청천 이는 트기만 하여도 가슴이 설레는 말이다.\n\n청천 나의 두 손을 가슴에 대고, 불량아 같은 심장의 고동을 들어 보라. 청춘의 피는 끓는다.",
+        footerText: "텍스트",
+        helperText: "메시지에 바티코를 적어요.",
+        maxLength: 2000,
+        visualState: "focused" as const,
+      },
+    },
+    {
+      key: "error",
+      title: "Error",
+      props: {
+        defaultValue:
+          "청천 이는 트기만 하여도 가슴이 설레는 말이다.\n\n청천 나의 두 손을 가슴에 대고, 불량아 같은 심장의 고동을 들어 보라. 청춘의 피는 끓는다.",
+        errorMessage: "메시지에 바티코를 적어요.",
+        footerText: "텍스트",
+        hasError: true,
+        maxLength: 2000,
+      },
+    },
+    {
+      key: "disabled",
+      title: "Disabled",
+      props: {
+        disabled: true,
+        footerText: "텍스트",
+        helperText: "메시지에 바티코를 적어요.",
+        maxLength: 2000,
+        placeholder: "내용을 입력해주세요.",
+      },
+    },
+  ];
+
+  function renderVariant(variant: "outline" | "filled", title: string) {
+    return (
+      <Panel title={title}>
+        <div
+          style={{
+            alignItems: "start",
+            columnGap: 20,
+            display: "grid",
+            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+            rowGap: 18,
+          }}
+        >
+          {columns.map((column) => (
+            <div key={`${title}-${column.key}`} style={{ display: "grid", gap: 8 }}>
+              <p style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}>{column.title}</p>
+              <Textarea
+                {...column.props}
+                label="주제"
+                variant={variant}
+              />
+            </div>
+          ))}
+        </div>
+      </Panel>
+    );
+  }
+
+  return (
+    <>
+      <SectionTitle>Textarea</SectionTitle>
+
+      <Panel title="Interactive preview">
+        <div
+          style={{
+            display: "grid",
+            gap: 16,
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          }}
+        >
+          <Textarea
+            footerText="텍스트"
+            helperText="메시지에 바티코를 적어요."
+            label="주제"
+            maxLength={2000}
+            placeholder="내용을 입력해주세요."
+            variant="outline"
+          />
+          <Textarea
+            defaultValue="청천 이는 트기만 하여도 가슴이 설레는 말이다."
+            footerText="텍스트"
+            helperText="메시지에 바티코를 적어요."
+            label="주제"
+            maxLength={2000}
+            variant="filled"
+          />
+        </div>
+      </Panel>
+
+      {renderVariant("outline", "Outline")}
+      {renderVariant("filled", "Filled")}
+
+      <Panel title="Figma text styles">
+        <table style={{ borderCollapse: "collapse", width: "100%" }}>
+          <thead>
+            <tr>
+              <th align="left">Type</th>
+              <th align="left">Font</th>
+              <th align="left">Weight</th>
+            </tr>
+          </thead>
+          <tbody>
+            {textareaTextStyles.map((style) => (
+              <tr key={style.label}>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.label}</td>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.font}</td>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.weight}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Panel>
+
+      <Panel title="Figma tokens">
+        <div
+          style={{
+            display: "grid",
+            gap: 8,
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          }}
+        >
+          {textareaTokens.map((token) => (
+            <div
+              key={`textarea-${token.name}`}
+              style={{
+                border: "1px solid #eaeaea",
+                borderRadius: 8,
+                padding: 16,
+                background: "#fcfcfc",
+              }}
+            >
+              <p style={{ fontWeight: 600, margin: "0 0 6px", fontSize: 13, color: "#111111" }}>{token.name}</p>
+              <p style={{ color: "#737373", margin: 0, fontSize: 13, fontFamily: "monospace", letterSpacing: "0.02em" }}>{token.value}</p>
+            </div>
+          ))}
+        </div>
+      </Panel>
+    </>
+  );
+}
+
+function SelectTabContent() {
+  const options = [
+    { label: "선택하세요", value: "" },
+    { label: "선택됨", value: "selected" },
+  ];
+
+  const columns = [
+    {
+      key: "default",
+      title: "Default",
+      props: {
+        defaultValue: "",
+      },
+    },
+    {
+      key: "hover",
+      title: "Hover",
+      props: {
+        defaultValue: "selected",
+        visualState: "hover" as const,
+      },
+    },
+    {
+      key: "focus",
+      title: "Focus",
+      props: {
+        defaultValue: "selected",
+        visualState: "focused" as const,
+      },
+    },
+    {
+      key: "open",
+      title: "Open",
+      props: {
+        defaultValue: "selected",
+        visualState: "open" as const,
+      },
+    },
+    {
+      key: "error",
+      title: "Error",
+      props: {
+        defaultValue: "selected",
+        errorMessage: "에러 메시지",
+        hasError: true,
+      },
+    },
+    {
+      key: "disabled",
+      title: "Disabled",
+      props: {
+        disabled: true,
+        defaultValue: "",
+      },
+    },
+  ];
+
+  return (
+    <>
+      <SectionTitle>Select</SectionTitle>
+
+      <Panel title="Interactive preview">
+        <div
+          style={{
+            display: "grid",
+            gap: 16,
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          }}
+        >
+          <Select defaultValue="" label="Select" options={options} />
+          <Select defaultValue="selected" label="Select" options={options} visualState="focused" />
+        </div>
+      </Panel>
+
+      <Panel title="State matrix">
+        <div
+          style={{
+            alignItems: "start",
+            columnGap: 20,
+            display: "grid",
+            gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+            rowGap: 18,
+          }}
+        >
+          {columns.map((column) => (
+            <div key={column.key} style={{ display: "grid", gap: 8 }}>
+              <p style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}>{column.title}</p>
+              <Select
+                {...column.props}
+                label="Select"
+                options={options}
+              />
+            </div>
+          ))}
+        </div>
+      </Panel>
+
+      <Panel title="Figma text styles">
+        <table style={{ borderCollapse: "collapse", width: "100%" }}>
+          <thead>
+            <tr>
+              <th align="left">Type</th>
+              <th align="left">Font</th>
+              <th align="left">Weight</th>
+            </tr>
+          </thead>
+          <tbody>
+            {selectTextStyles.map((style) => (
+              <tr key={style.label}>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.label}</td>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.font}</td>
+                <td style={{ padding: "8px 0", fontSize: 13, color: "#525252" }}>{style.weight}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Panel>
+
+      <Panel title="Figma tokens">
+        <div
+          style={{
+            display: "grid",
+            gap: 8,
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          }}
+        >
+          {selectTokens.map((token) => (
+            <div
+              key={`select-${token.name}`}
+              style={{
+                border: "1px solid #eaeaea",
+                borderRadius: 8,
+                padding: 16,
+                background: "#fcfcfc",
+              }}
+            >
+              <p style={{ fontWeight: 600, margin: "0 0 6px", fontSize: 13, color: "#111111" }}>{token.name}</p>
+              <p style={{ color: "#737373", margin: 0, fontSize: 13, fontFamily: "monospace", letterSpacing: "0.02em" }}>{token.value}</p>
+            </div>
+          ))}
+        </div>
+      </Panel>
+    </>
+  );
+}
+
+function CheckboxTabContent() {
+  return (
+    <>
+      <SectionTitle>Checkbox</SectionTitle>
+
+      <Panel title="Interactive preview">
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 16,
+          }}
+        >
+          <Checkbox defaultChecked label="라벨" />
+        </div>
+      </Panel>
+
+      <Panel title="Checkbox">
+        <div
+          style={{
+            display: "grid",
+            gap: 16,
+            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+          }}
+        >
+          <div style={{ display: "grid", gap: 8 }}>
+            <p style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}>On</p>
+            <Checkbox defaultChecked label="라벨" />
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
+            <p style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}>Off</p>
+            <Checkbox label="라벨" />
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
+            <p style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}>Disabled</p>
+            <Checkbox disabled label="라벨" />
+          </div>
+        </div>
+      </Panel>
+
+    </>
+  );
+}
+
+function RadioTabContent() {
+  return (
+    <>
+      <SectionTitle>Radio</SectionTitle>
+
+      <Panel title="Interactive preview">
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 16,
+          }}
+        >
+          <Radio defaultChecked label="라벨" name="interactive-preview-radio" />
+        </div>
+      </Panel>
+
+      <Panel title="Radio">
+        <div
+          style={{
+            display: "grid",
+            gap: 16,
+            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+          }}
+        >
+          <div style={{ display: "grid", gap: 8 }}>
+            <p style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}>On</p>
+            <Radio defaultChecked label="라벨" name="radio-preview" />
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
+            <p style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}>Off</p>
+            <Radio label="라벨" name="radio-preview" />
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
+            <p style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}>Disabled</p>
+            <Radio disabled label="라벨" name="radio-preview-disabled" />
+          </div>
+        </div>
+      </Panel>
+    </>
+  );
+}
+
+function SwitchBoxTabContent() {
+  return (
+    <>
+      <SectionTitle>Switch Box</SectionTitle>
+
+      <Panel title="Interactive preview">
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 16,
+          }}
+        >
+          <SwitchBox defaultChecked label="라벨" />
+        </div>
+      </Panel>
+
+      <Panel title="Switch Box">
+        <div
+          style={{
+            display: "grid",
+            gap: 16,
+            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+          }}
+        >
+          <div style={{ display: "grid", gap: 8 }}>
+            <p style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}>On</p>
+            <SwitchBox defaultChecked label="라벨" />
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
+            <p style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}>Off</p>
+            <SwitchBox label="라벨" />
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
+            <p style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}>Disabled</p>
+            <SwitchBox defaultChecked disabled label="라벨" />
+          </div>
         </div>
       </Panel>
     </>
@@ -739,55 +1458,81 @@ export default async function UiPlaygroundPage({ searchParams }: UiPlaygroundPag
   return (
     <main
       style={{
-        background: "#fafafa",
+        background: "#fcfcfc",
         minHeight: "100vh",
-        padding: 24,
+        padding: 40,
       }}
     >
-      <h1>UI Playground</h1>
-      <p>URL-only preview space for shared components.</p>
-      <p>Current route: /playground/ui</p>
-
-      <nav aria-label="Component tabs" style={{ marginTop: 24 }}>
-        <ul
+      <div
+        style={{
+          alignItems: "start",
+          columnGap: 40,
+          display: "grid",
+          gridTemplateColumns: "200px minmax(0, 1fr)",
+          maxWidth: 1200,
+          margin: "0 auto",
+        }}
+      >
+        <aside
           style={{
-            display: "flex",
-            gap: 12,
-            listStyle: "none",
-            margin: 0,
-            padding: 0,
+            position: "sticky",
+            top: 40,
           }}
         >
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.key;
+          <h1 style={{ marginBottom: 32, marginTop: 0, fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em" }}>UI Playground</h1>
 
-            return (
-              <li key={tab.key}>
-                <Link
-                  aria-current={isActive ? "page" : undefined}
-                  href={`/playground/ui?tab=${tab.key}`}
-                  style={{
-                    background: isActive ? "#111111" : "#ffffff",
-                    border: "1px solid #d4d4d4",
-                    borderRadius: 999,
-                    color: isActive ? "#ffffff" : "#111111",
-                    display: "inline-flex",
-                    padding: "10px 16px",
-                    textDecoration: "none",
-                  }}
-                >
-                  {tab.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+          <nav aria-label="Component tabs">
+            <ul
+              style={{
+                display: "grid",
+                gap: 4,
+                listStyle: "none",
+                margin: 0,
+                padding: 0,
+              }}
+            >
+              {tabs.map((tab) => {
+                const isActive = activeTab === tab.key;
 
-      {activeTab === "button" ? <ButtonTabContent /> : null}
-      {activeTab === "text-button" ? <TextButtonTabContent /> : null}
-      {activeTab === "icon-button" ? <IconButtonTabContent /> : null}
-      {activeTab === "chip" ? <ChipTabContent /> : null}
+                return (
+                  <li key={tab.key}>
+                    <Link
+                      aria-current={isActive ? "page" : undefined}
+                      href={`/playground/ui?tab=${tab.key}`}
+                      style={{
+                        background: "transparent",
+                        borderLeft: isActive ? "2px solid #111111" : "2px solid transparent",
+                        color: isActive ? "#111111" : "#737373",
+                        display: "flex",
+                        fontWeight: isActive ? 600 : 400,
+                        padding: "8px 12px",
+                        textDecoration: "none",
+                        transition: "all 0.15s ease",
+                        fontSize: 14,
+                      }}
+                    >
+                      {tab.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        </aside>
+
+        <section>
+          {activeTab === "button" ? <ButtonTabContent /> : null}
+          {activeTab === "text-button" ? <TextButtonTabContent /> : null}
+          {activeTab === "icon-button" ? <IconButtonTabContent /> : null}
+          {activeTab === "chip" ? <ChipTabContent /> : null}
+          {activeTab === "text-field" ? <TextFieldTabContent /> : null}
+          {activeTab === "textarea" ? <TextareaTabContent /> : null}
+          {activeTab === "select" ? <SelectTabContent /> : null}
+          {activeTab === "checkbox" ? <CheckboxTabContent /> : null}
+          {activeTab === "radio" ? <RadioTabContent /> : null}
+          {activeTab === "switch-box" ? <SwitchBoxTabContent /> : null}
+        </section>
+      </div>
     </main>
   );
 }

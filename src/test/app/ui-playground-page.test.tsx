@@ -12,8 +12,6 @@ describe("UiPlaygroundPage", () => {
     render(await UiPlaygroundPage({ searchParams: { tab: "button" } }));
 
     expect(screen.getByRole("heading", { name: "UI Playground" })).toBeInTheDocument();
-    expect(screen.getByText("URL-only preview space for shared components.")).toBeInTheDocument();
-    expect(screen.getByText("Current route: /playground/ui")).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Component tabs" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Button" })).toHaveAttribute(
       "href",
