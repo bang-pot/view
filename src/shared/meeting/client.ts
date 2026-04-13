@@ -1,6 +1,7 @@
 import { requestJson } from "@/shared/api/client";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
 import type {
+  CancelMeetingJoinResponse,
   CreateMeetingInput,
   CreateMeetingResponse,
   JoinMeetingResponse,
@@ -29,7 +30,7 @@ export async function createMeeting(
     },
     {
       code: "MEETING_CREATE_FAILED",
-      message: "모임 생성에 실패했습니다. 입력값을 다시 확인해 주세요.",
+      message: "모임 생성을 완료하지 못했습니다. 입력값을 다시 확인해 주세요.",
     },
   );
 }
@@ -84,6 +85,24 @@ export async function joinMeeting(
     {
       code: "MEETING_JOIN_FAILED",
       message: "즉시 참여를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function cancelMeetingJoin(
+  crewId: number,
+  meetingId: number,
+): Promise<CancelMeetingJoinResponse> {
+  return requestJson<CancelMeetingJoinResponse>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/meetings/${meetingId}/join`,
+    {
+      method: "DELETE",
+      credentials: "include",
+    },
+    {
+      code: "MEETING_CANCEL_JOIN_FAILED",
+      message: "참여취소를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
     },
   );
 }
