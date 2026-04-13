@@ -5,6 +5,7 @@ import {
   createCrew,
   createCrewInvite,
   createCrewJoinRequest,
+  removeCrewMember,
   transferCrewLeadership,
   leaveCrew,
   updateCrewVisibility,
@@ -389,6 +390,34 @@ describe("crew client", () => {
         body: JSON.stringify({
           targetUserId: 22,
         }),
+      }),
+    );
+  });
+
+  it("posts a member removal request for the target member", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          crewId: 11,
+          removedUserId: 22,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await removeCrewMember(11, 22);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/members/22/remove",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
       }),
     );
   });
