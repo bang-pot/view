@@ -60,6 +60,11 @@ export type CrewLeaveResponse = {
   crewId: number;
 };
 
+export type CrewTransferLeadershipResponse = {
+  crewId: number;
+  leaderUserId: number;
+};
+
 export type CrewMemberRole = "LEADER" | "MEMBER";
 
 export type CrewMember = {

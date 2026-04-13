@@ -16,6 +16,7 @@ import type {
   CrewJoinRequestRejectResponse,
   CrewJoinRequestResponse,
   CrewLeaveResponse,
+  CrewTransferLeadershipResponse,
   CrewJoinViewResponse,
   MyCrewInvite,
   PendingCrewJoinRequestSummary,
@@ -126,6 +127,30 @@ export async function leaveCrew(crewId: number): Promise<CrewLeaveResponse> {
     {
       code: "CREW_LEAVE_FAILED",
       message: "크루를 탈퇴하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function transferCrewLeadership(
+  crewId: number,
+  targetUserId: number,
+): Promise<CrewTransferLeadershipResponse> {
+  return requestJson<CrewTransferLeadershipResponse>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/transfer-leadership`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        targetUserId,
+      }),
+    },
+    {
+      code: "CREW_TRANSFER_LEADERSHIP_FAILED",
+      message: "크루장 위임에 실패했습니다. 잠시 후 다시 시도해 주세요.",
     },
   );
 }
