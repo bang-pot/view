@@ -21,8 +21,11 @@ import type {
   MeetingDetail,
   MeetingParticipationStatus,
   MeetingResult,
-  MeetingStatus,
 } from "@/shared/meeting/types";
+import {
+  getMeetingStatusDescription,
+  getMeetingStatusLabel,
+} from "@/shared/meeting/presentation";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
 type MeetingDetailPageClientProps = {
@@ -54,21 +57,6 @@ function getParticipationLabel(status: MeetingParticipationStatus): string {
   }
 
   return "지금 바로 참여할 수 있어요.";
-}
-
-function getStatusLabel(status: MeetingStatus): string {
-  switch (status) {
-    case "RECRUITING":
-      return "모집 중입니다.";
-    case "RECRUITMENT_CLOSED":
-      return "모집이 마감된 상태입니다.";
-    case "COMPLETED":
-      return "종료된 모임입니다.";
-    case "CANCELED":
-      return "취소된 모임입니다.";
-    default:
-      return "";
-  }
 }
 
 function getResultLabel(result: MeetingResult): string {
@@ -417,7 +405,8 @@ export function MeetingDetailPageClient({
 
       <section aria-label="모임 운영">
         <h2>모임 운영</h2>
-        <p>{getStatusLabel(meeting.status)}</p>
+        <p>모집 상태: {getMeetingStatusLabel(meeting.status)}</p>
+        <p>{getMeetingStatusDescription(meeting.status)}</p>
         {canCloseRecruitment ? (
           <button
             type="button"
@@ -485,7 +474,7 @@ export function MeetingDetailPageClient({
       <section aria-label="모임 상세 정보">
         <h2>{meeting.themeName}</h2>
         <p>모임 ID: {meeting.meetingId}</p>
-        <p>모집 상태: {meeting.status}</p>
+        <p>모집 상태: {getMeetingStatusLabel(meeting.status)}</p>
         <p>결과 상태: {meeting.result}</p>
         <p>날짜: {meeting.date}</p>
         <p>시간: {meeting.time}</p>

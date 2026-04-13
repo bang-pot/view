@@ -484,3 +484,35 @@ npm.cmd run build
 - 크루장과 일반 참가자는 결과를 읽을 수만 있고 입력 버튼은 보이지 않는 것을 확인했습니다.
 - 비가입자, guest, temp 사용자는 기존 공개 소개 / 로그인 / completion 흐름으로 분기되는 것을 확인했습니다.
 
+## Meeting Round 6 자동 상태 반영
+
+- 목록과 상세는 모두 backend가 내려준 `status`를 source of truth로 그대로 사용합니다.
+- 공통 상태 helper를 추가해서 `RECRUITING / RECRUITMENT_CLOSED / COMPLETED / CANCELED`를 같은 한국어 라벨로 보여줍니다.
+  - `RECRUITING` -> `모집 중`
+  - `RECRUITMENT_CLOSED` -> `모집 마감`
+  - `COMPLETED` -> `모임 종료`
+  - `CANCELED` -> `모임 취소`
+- 자동 전이 이해를 돕는 최소 안내 문구를 추가했습니다.
+  - `RECRUITING`: `참여를 받고 있는 모임 상태예요.`
+  - `RECRUITMENT_CLOSED`: `정원 도달 또는 시작 시간이 지나 자동으로 모집이 마감될 수 있어요.`
+  - `COMPLETED`: `시작 후 시간이 지나 자동으로 종료된 모임을 포함해요.`
+  - `CANCELED`: `취소되어 더 이상 진행되지 않는 모임이에요.`
+- 기존 참여하기 / 참여취소 / 운영 액션 / 결과 입력 흐름은 그대로 유지하고, 상태가 자동 전이되었을 때도 의미가 자연스럽게 읽히도록 노출만 보강했습니다.
+- 프론트는 타이머를 돌리거나 상태를 계산하지 않습니다.
+
+### Meeting Round 6 자동 검증
+
+- `npm.cmd run test -- src/test/app/meeting-list-page.test.tsx src/test/app/meeting-detail-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+모두 통과했습니다.
+
+### Meeting Round 6 수동 검증
+
+- 목록과 상세에서 자동 전이된 상태가 같은 의미로 보이는 것을 확인했습니다.
+- `RECRUITMENT_CLOSED`, `COMPLETED`, `CANCELED` 상태에 맞는 안내 문구가 보이는 것을 확인했습니다.
+- 자동으로 모집이 마감된 상태에서 참여 액션이 어색하지 않게 정리된 것을 확인했습니다.
+- 비가입자, guest, temp 사용자는 기존 공개 소개 / 로그인 / completion 흐름으로 분기되는 것을 확인했습니다.
+

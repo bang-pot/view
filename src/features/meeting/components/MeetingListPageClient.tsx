@@ -7,6 +7,10 @@ import { useEffect, useMemo, useState } from "react";
 import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
 import { getCrewHub } from "@/shared/crew/client";
 import { getMeetings } from "@/shared/meeting/client";
+import {
+  getMeetingStatusDescription,
+  getMeetingStatusLabel,
+} from "@/shared/meeting/presentation";
 import type { MeetingListItem } from "@/shared/meeting/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
@@ -128,7 +132,8 @@ export function MeetingListPageClient({ crewId }: MeetingListPageClientProps) {
                 <p>장소: {meeting.place}</p>
                 <p>일시: {meeting.date} {meeting.time}</p>
                 <p>정원: {meeting.capacity}명</p>
-                <p>모집 상태: {meeting.status}</p>
+                <p>모집 상태: {getMeetingStatusLabel(meeting.status)}</p>
+                <p>{getMeetingStatusDescription(meeting.status)}</p>
                 <p>결과 상태: {meeting.result}</p>
               </article>
             </li>

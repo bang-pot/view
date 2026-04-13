@@ -71,8 +71,44 @@ describe("MeetingsPage", () => {
       "href",
       "/crews/11/meetings/99",
     );
-    expect(within(items[0]).getByText("모집 상태: RECRUITING")).toBeInTheDocument();
+    expect(within(items[0]).getByText("모집 상태: 모집 중")).toBeInTheDocument();
+    expect(within(items[0]).getByText("참여를 받고 있는 모임 상태예요.")).toBeInTheDocument();
     expect(within(items[0]).getByText("결과 상태: NOT_RECORDED")).toBeInTheDocument();
+  });
+
+  it("shows the same auto-transition guidance for a recruitment closed meeting", async () => {
+    vi.mocked(getCrewHub).mockResolvedValue({
+      crewId: 11,
+      name: "Night runners",
+      description: "Private crew for late runners",
+      visibility: "PRIVATE",
+      imageUrl: null,
+      myRole: "MEMBER",
+      hasNotice: false,
+      pendingJoinRequestCount: 0,
+    });
+    vi.mocked(getMeetings).mockResolvedValue([
+      {
+        meetingId: 100,
+        themeName: "러닝 모임",
+        place: "잠실",
+        date: "2026-04-21",
+        time: "20:00",
+        status: "RECRUITMENT_CLOSED",
+        result: "NOT_RECORDED",
+        capacity: 6,
+      },
+    ]);
+
+    render(await CrewMeetingsPage({ params: Promise.resolve({ crewId: "11" }) }));
+
+    const item = within(await screen.findByRole("list", { name: "모임 목록" })).getByRole(
+      "listitem",
+    );
+    expect(within(item).getByText("모집 상태: 모집 마감")).toBeInTheDocument();
+    expect(
+      within(item).getByText("정원 도달 또는 시작 시간이 지나 자동으로 모집이 마감될 수 있어요."),
+    ).toBeInTheDocument();
   });
 
   it("shows empty state and redirects non-members to the public crew introduction", async () => {
