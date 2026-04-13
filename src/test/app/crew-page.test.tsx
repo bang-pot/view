@@ -76,7 +76,7 @@ describe("CrewPage", () => {
     expect(screen.getByRole("heading", { name: "본문 캔버스" })).toBeInTheDocument();
   });
 
-  it("hides leader-only guidance for normal crew members", async () => {
+  it("shows the shared settings entry for normal crew members", async () => {
     vi.mocked(getCrewHub).mockResolvedValue({
       crewId: 11,
       name: "Night runners",
@@ -95,7 +95,7 @@ describe("CrewPage", () => {
     expect(screen.queryByText("공지사항이 등록되어 있습니다.")).not.toBeInTheDocument();
     expect(screen.queryByText("가입 신청 대기: 0건")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "가입 신청 관리" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "설정" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "설정" })).toHaveAttribute("href", "/crews/11/settings");
     expect(screen.getByText("이 크루의 공통 안내는 아직 준비 중입니다.")).toBeInTheDocument();
   });
 
