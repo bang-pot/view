@@ -5,6 +5,7 @@ import {
   createCrew,
   createCrewInvite,
   createCrewJoinRequest,
+  leaveCrew,
   updateCrewVisibility,
   getCrewHub,
   getCrewMembers,
@@ -326,6 +327,33 @@ describe("crew client", () => {
         body: JSON.stringify({
           visibility: "PRIVATE",
         }),
+      }),
+    );
+  });
+
+  it("posts a crew leave request for joined members", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          crewId: 11,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await leaveCrew(11);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/leave",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
       }),
     );
   });

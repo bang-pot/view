@@ -15,6 +15,7 @@ import type {
   CrewJoinRequestRecord,
   CrewJoinRequestRejectResponse,
   CrewJoinRequestResponse,
+  CrewLeaveResponse,
   CrewJoinViewResponse,
   MyCrewInvite,
   PendingCrewJoinRequestSummary,
@@ -110,6 +111,21 @@ export async function updateCrewVisibility(
     {
       code: "CREW_VISIBILITY_UPDATE_FAILED",
       message: "크루 공개 범위를 변경하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function leaveCrew(crewId: number): Promise<CrewLeaveResponse> {
+  return requestJson<CrewLeaveResponse>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/leave`,
+    {
+      method: "POST",
+      credentials: "include",
+    },
+    {
+      code: "CREW_LEAVE_FAILED",
+      message: "크루를 탈퇴하지 못했습니다. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

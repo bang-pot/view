@@ -135,11 +135,9 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
             <li>
               <Link href={membersPath}>크루원</Link>
             </li>
-            {leader ? (
-              <li>
-                <Link href={settingsPath}>설정</Link>
-              </li>
-            ) : null}
+            <li>
+              <Link href={settingsPath}>설정</Link>
+            </li>
           </ul>
         </nav>
       </div>

@@ -56,6 +56,10 @@ export type CrewVisibilityUpdateResponse = {
   visibility: CrewVisibility;
 };
 
+export type CrewLeaveResponse = {
+  crewId: number;
+};
+
 export type CrewMemberRole = "LEADER" | "MEMBER";
 
 export type CrewMember = {

@@ -34,7 +34,7 @@ describe("Home page", () => {
       requiredTermsAcceptedAt: null,
     });
 
-    render(<Home />);
+    render(await Home({ searchParams: Promise.resolve({}) }));
 
     expect(
       screen.getByRole("heading", { name: "BangPot frontend bootstrap" }),
@@ -59,12 +59,27 @@ describe("Home page", () => {
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
 
-    render(<Home />);
+    render(await Home({ searchParams: Promise.resolve({}) }));
 
     expect(await screen.findByRole("link", { name: "Profile" })).toHaveAttribute(
       "href",
       "/profile",
     );
     expect(screen.getByRole("button", { name: "Logout" })).toBeInTheDocument();
+  });
+
+  it("shows a crew leave success message after the redirect back home", async () => {
+    vi.mocked(getMe).mockResolvedValue({
+      authStatus: "FULL",
+      completionRequired: false,
+      redirectTo: null,
+      requiredTermsVersion: "2026-03-25",
+      user: { id: 1, nickname: "bangpot" },
+      requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
+    });
+
+    render(await Home({ searchParams: Promise.resolve({ notice: "crew-left" }) }));
+
+    expect(await screen.findByText("크루를 탈퇴했습니다.")).toBeInTheDocument();
   });
 });
