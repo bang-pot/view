@@ -2,12 +2,14 @@ import { requestJson } from "@/shared/api/client";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
 import type {
   CancelMeetingJoinResponse,
-  MeetingStatusUpdateResponse,
   CreateMeetingInput,
   CreateMeetingResponse,
   JoinMeetingResponse,
   MeetingDetail,
   MeetingListItem,
+  MeetingResult,
+  MeetingResultRecordResponse,
+  MeetingStatusUpdateResponse,
 } from "@/shared/meeting/types";
 
 function getApiBaseUrl(): string {
@@ -181,5 +183,30 @@ export async function completeMeeting(
     "complete",
     "MEETING_COMPLETE_FAILED",
     "모임 종료를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  );
+}
+
+export async function recordMeetingResult(
+  crewId: number,
+  meetingId: number,
+  result: Exclude<MeetingResult, "NOT_RECORDED">,
+): Promise<MeetingResultRecordResponse> {
+  return requestJson<MeetingResultRecordResponse>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/meetings/${meetingId}/result`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        result,
+      }),
+    },
+    {
+      code: "MEETING_RESULT_RECORD_FAILED",
+      message: "모임 결과를 기록하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
   );
 }

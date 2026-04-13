@@ -9,6 +9,7 @@ import {
   getMeetingDetail,
   getMeetings,
   joinMeeting,
+  recordMeetingResult,
   reopenMeetingRecruitment,
 } from "@/shared/meeting/client";
 
@@ -328,6 +329,40 @@ describe("meeting client", () => {
         headers: {
           "Content-Type": "application/json",
         },
+      }),
+    );
+  });
+
+  it("posts a meeting result record request", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          meetingId: 99,
+          result: "SUCCESS",
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await recordMeetingResult(11, 99, "SUCCESS");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/meetings/99/result",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          result: "SUCCESS",
+        }),
       }),
     );
   });

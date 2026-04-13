@@ -74,3 +74,8 @@ export type MeetingStatusUpdateResponse = {
   meetingId: number;
   status: MeetingStatus;
 };
+
+export type MeetingResultRecordResponse = {
+  meetingId: number;
+  result: Exclude<MeetingResult, "NOT_RECORDED">;
+};

@@ -14,11 +14,13 @@ import {
   completeMeeting,
   getMeetingDetail,
   joinMeeting,
+  recordMeetingResult,
   reopenMeetingRecruitment,
 } from "@/shared/meeting/client";
 import type {
   MeetingDetail,
   MeetingParticipationStatus,
+  MeetingResult,
   MeetingStatus,
 } from "@/shared/meeting/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
@@ -57,7 +59,7 @@ function getParticipationLabel(status: MeetingParticipationStatus): string {
 function getStatusLabel(status: MeetingStatus): string {
   switch (status) {
     case "RECRUITING":
-      return "모집 중";
+      return "모집 중입니다.";
     case "RECRUITMENT_CLOSED":
       return "모집이 마감된 상태입니다.";
     case "COMPLETED":
@@ -66,6 +68,18 @@ function getStatusLabel(status: MeetingStatus): string {
       return "취소된 모임입니다.";
     default:
       return "";
+  }
+}
+
+function getResultLabel(result: MeetingResult): string {
+  switch (result) {
+    case "SUCCESS":
+      return "모임이 성공적으로 진행되었습니다.";
+    case "FAILURE":
+      return "이번 모임은 아쉽게 마무리되었습니다.";
+    case "NOT_RECORDED":
+    default:
+      return "아직 결과를 기록하지 않았습니다.";
   }
 }
 
@@ -82,9 +96,11 @@ export function MeetingDetailPageClient({
   const [joinErrorMessage, setJoinErrorMessage] = useState<string | null>(null);
   const [cancelErrorMessage, setCancelErrorMessage] = useState<string | null>(null);
   const [operationErrorMessage, setOperationErrorMessage] = useState<string | null>(null);
+  const [resultErrorMessage, setResultErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
   const [isCancelingJoin, setIsCancelingJoin] = useState(false);
+  const [isRecordingResult, setIsRecordingResult] = useState(false);
   const [activeOperation, setActiveOperation] = useState<MeetingOperationAction | null>(null);
 
   const crewIdNumber = Number(crewId);
@@ -152,14 +168,12 @@ export function MeetingDetailPageClient({
     return () => {
       isMounted = false;
     };
-  }, [
-    crewIdNumber,
-    hasValidIds,
-    meetingIdNumber,
-    publicCrewPath,
-    routePath,
-    router,
-  ]);
+  }, [crewIdNumber, hasValidIds, meetingIdNumber, publicCrewPath, routePath, router]);
+
+  async function refreshMeetingDetail(): Promise<void> {
+    const nextDetail = await getMeetingDetail(crewIdNumber, meetingIdNumber);
+    setMeeting(nextDetail);
+  }
 
   async function handleJoin(): Promise<void> {
     if (!meeting) {
@@ -170,6 +184,7 @@ export function MeetingDetailPageClient({
     setJoinErrorMessage(null);
     setCancelErrorMessage(null);
     setOperationErrorMessage(null);
+    setResultErrorMessage(null);
 
     try {
       const response = await joinMeeting(crewIdNumber, meetingIdNumber);
@@ -212,6 +227,7 @@ export function MeetingDetailPageClient({
     setCancelErrorMessage(null);
     setJoinErrorMessage(null);
     setOperationErrorMessage(null);
+    setResultErrorMessage(null);
 
     try {
       const response = await cancelMeetingJoin(crewIdNumber, meetingIdNumber);
@@ -246,6 +262,7 @@ export function MeetingDetailPageClient({
     setOperationErrorMessage(null);
     setJoinErrorMessage(null);
     setCancelErrorMessage(null);
+    setResultErrorMessage(null);
 
     try {
       const response =
@@ -275,6 +292,55 @@ export function MeetingDetailPageClient({
       );
     } finally {
       setActiveOperation(null);
+    }
+  }
+
+  async function handleRecordResult(
+    nextResult: Exclude<MeetingResult, "NOT_RECORDED">,
+  ): Promise<void> {
+    if (!meeting) {
+      return;
+    }
+
+    setIsRecordingResult(true);
+    setResultErrorMessage(null);
+    setJoinErrorMessage(null);
+    setCancelErrorMessage(null);
+    setOperationErrorMessage(null);
+
+    try {
+      const response = await recordMeetingResult(crewIdNumber, meetingIdNumber, nextResult);
+
+      setMeeting({
+        ...meeting,
+        result: response.result,
+      });
+    } catch (error) {
+      reportOperationalError("meeting.result_record_failed", error, {
+        level: "warn",
+        route: routePath,
+      });
+
+      if (
+        isOperationalError(error) &&
+        (error.code === "MEETING_RESULT_ALREADY_RECORDED" ||
+          error.code === "MEETING_RESULT_RECORD_NOT_ALLOWED")
+      ) {
+        try {
+          await refreshMeetingDetail();
+        } catch {
+          // Keep the original user-facing error below if refresh also fails.
+        }
+      }
+
+      setResultErrorMessage(
+        getUserMessage(
+          error,
+          "모임 결과를 기록하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        ),
+      );
+    } finally {
+      setIsRecordingResult(false);
     }
   }
 
@@ -314,13 +380,16 @@ export function MeetingDetailPageClient({
     !isMeetingHost &&
     meeting.status !== "COMPLETED" &&
     meeting.status !== "CANCELED";
-
   const canCloseRecruitment = isMeetingHost && meeting.status === "RECRUITING";
   const canReopenRecruitment = isMeetingHost && meeting.status === "RECRUITMENT_CLOSED";
   const canCompleteMeeting = isMeetingHost && meeting.status === "RECRUITMENT_CLOSED";
   const canCancelMeeting =
     (isMeetingHost || isCrewLeader) &&
     (meeting.status === "RECRUITING" || meeting.status === "RECRUITMENT_CLOSED");
+  const canRecordResult =
+    isMeetingHost &&
+    meeting.status === "COMPLETED" &&
+    meeting.result === "NOT_RECORDED";
 
   return (
     <main>
@@ -386,6 +455,31 @@ export function MeetingDetailPageClient({
           </button>
         ) : null}
         {operationErrorMessage ? <p>{operationErrorMessage}</p> : null}
+      </section>
+
+      <section aria-label="모임 결과">
+        <h2>모임 결과</h2>
+        <p>결과 상태: {meeting.result}</p>
+        <p>{getResultLabel(meeting.result)}</p>
+        {canRecordResult ? (
+          <div>
+            <button
+              type="button"
+              onClick={() => void handleRecordResult("SUCCESS")}
+              disabled={isRecordingResult}
+            >
+              {isRecordingResult ? "기록 중..." : "성공"}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleRecordResult("FAILURE")}
+              disabled={isRecordingResult}
+            >
+              {isRecordingResult ? "기록 중..." : "실패"}
+            </button>
+          </div>
+        ) : null}
+        {resultErrorMessage ? <p>{resultErrorMessage}</p> : null}
       </section>
 
       <section aria-label="모임 상세 정보">
