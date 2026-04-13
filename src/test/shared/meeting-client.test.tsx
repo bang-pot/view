@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  cancelMeetingJoin,
   createMeeting,
   getMeetingDetail,
   getMeetings,
@@ -171,6 +172,34 @@ describe("meeting client", () => {
         headers: {
           "Content-Type": "application/json",
         },
+      }),
+    );
+  });
+
+  it("deletes the current joined meeting participation", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          meetingId: 99,
+          myParticipationStatus: "NOT_JOINED",
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await cancelMeetingJoin(11, 99);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/meetings/99/join",
+      expect.objectContaining({
+        method: "DELETE",
+        credentials: "include",
       }),
     );
   });

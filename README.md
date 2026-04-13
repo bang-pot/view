@@ -195,6 +195,7 @@ npm.cmd run build
 - Crew Round 10 결과: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-10-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-10-result.md)
 - Meeting Round 1 결과: [C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-01-result.md](C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-01-result.md)
 - Meeting Round 2 결과: [C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-02-result.md](C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-02-result.md)
+- Meeting Round 3 결과: [C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-03-result.md](C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-03-result.md)
 
 ## Meeting Round 2 Minimal Instant Join Flow
 
@@ -377,5 +378,32 @@ npm.cmd run build
 
 - 가입한 크루원이 모임 상세에서 `NOT_JOINED / JOINED` 상태를 구분해서 보는 것을 확인했습니다.
 - `참여하기` 성공 후 상세 화면 상태가 바로 `JOINED`로 바뀌는 것을 확인했습니다.
+- 비가입자, guest, temp 사용자는 내부 상세 대신 기존 공개 소개 / 로그인 / completion 흐름으로 분기되는 것을 확인했습니다.
+
+## Meeting Round 3 모임 참여취소
+
+- `/crews/{crewId}/meetings/{meetingId}`
+  - 기존 모임 상세 화면의 `내 참가 상태` 블록을 유지한 채 `참여취소` 흐름을 추가했습니다.
+  - 상세 응답의 `myParticipationStatus`는 계속 `NOT_JOINED / JOINED` 기준으로 읽습니다.
+- 참여 상태 분기
+  - `NOT_JOINED`: `참여하기` 버튼 노출
+  - `JOINED`: `참여 중` 읽기 상태 노출
+  - `JOINED`이면서 현재 사용자가 모임장이 아니면 `참여취소` 버튼을 함께 노출합니다.
+  - 모임장은 backend에서 `JOINED`로 해석되더라도 프론트에서는 `참여취소` 버튼을 숨깁니다.
+- 참여취소 요청
+  - `DELETE /api/crews/{crewId}/meetings/{meetingId}/join`
+  - 성공 시 별도 새로고침 없이 로컬 meeting state를 `NOT_JOINED`로 즉시 갱신합니다.
+  - 이미 참여 중이 아니거나 모임장 차단 에러가 오더라도 안전한 메시지로 처리하고 화면은 깨지지 않게 유지합니다.
+- 접근 가드
+  - guest / temp / 비가입자는 기존 내부 크루 접근 규칙을 그대로 재사용합니다.
+  - `AUTH_ACCESS_DENIED`, `AUTH_UNAUTHENTICATED`면 `/crews/public/{crewId}` 공개 소개 흐름으로 돌려보냅니다.
+- 범위 제한
+  - 모집마감, 수동 오픈, 모임 취소, 모임 종료, 결과 입력은 이번 라운드에 포함하지 않습니다.
+
+### Meeting Round 3 수동 검증
+
+- 가입한 크루원이 모임 상세에서 `JOINED / NOT_JOINED` 상태를 구분해서 보는 것을 확인했습니다.
+- `참여취소` 성공 후 상세 화면 상태가 바로 `NOT_JOINED`로 바뀌는 것을 확인했습니다.
+- 모임장은 `참여취소` 버튼이 노출되지 않는 것을 확인했습니다.
 - 비가입자, guest, temp 사용자는 내부 상세 대신 기존 공개 소개 / 로그인 / completion 흐름으로 분기되는 것을 확인했습니다.
 

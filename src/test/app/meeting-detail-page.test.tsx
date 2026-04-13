@@ -2,8 +2,13 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import CrewMeetingDetailPage from "@/app/crews/[crewId]/meetings/[meetingId]/page";
+import { getMe } from "@/shared/auth/client";
 import { getCrewHub } from "@/shared/crew/client";
-import { getMeetingDetail, joinMeeting } from "@/shared/meeting/client";
+import {
+  cancelMeetingJoin,
+  getMeetingDetail,
+  joinMeeting,
+} from "@/shared/meeting/client";
 
 const replaceMock = vi.fn();
 const routerMock = {
@@ -18,12 +23,44 @@ vi.mock("@/shared/crew/client", () => ({
   getCrewHub: vi.fn(),
 }));
 
+vi.mock("@/shared/auth/client", () => ({
+  getMe: vi.fn(),
+}));
+
 vi.mock("@/shared/meeting/client", () => ({
   createMeeting: vi.fn(),
   getMeetings: vi.fn(),
   getMeetingDetail: vi.fn(),
   joinMeeting: vi.fn(),
+  cancelMeetingJoin: vi.fn(),
 }));
+
+function mockCrewHub(role: "LEADER" | "MEMBER" = "MEMBER") {
+  vi.mocked(getCrewHub).mockResolvedValue({
+    crewId: 11,
+    name: "Night runners",
+    description: "Private crew for late runners",
+    visibility: "PRIVATE",
+    imageUrl: null,
+    myRole: role,
+    hasNotice: false,
+    pendingJoinRequestCount: 0,
+  });
+}
+
+function mockCurrentUser(id: number) {
+  vi.mocked(getMe).mockResolvedValue({
+    authStatus: "FULL",
+    completionRequired: false,
+    redirectTo: null,
+    requiredTermsVersion: "2026-04-01",
+    requiredTermsAcceptedAt: "2026-04-01T00:00:00Z",
+    user: {
+      id,
+      nickname: "tester",
+    },
+  });
+}
 
 describe("MeetingDetailPage", () => {
   beforeEach(() => {
@@ -36,16 +73,8 @@ describe("MeetingDetailPage", () => {
   });
 
   it("renders the meeting detail with recruiting, not-recorded, and not-joined participation states", async () => {
-    vi.mocked(getCrewHub).mockResolvedValue({
-      crewId: 11,
-      name: "Night runners",
-      description: "Private crew for late runners",
-      visibility: "PRIVATE",
-      imageUrl: null,
-      myRole: "MEMBER",
-      hasNotice: false,
-      pendingJoinRequestCount: 0,
-    });
+    mockCurrentUser(44);
+    mockCrewHub();
     vi.mocked(getMeetingDetail).mockResolvedValue({
       meetingId: 99,
       crewId: 11,
@@ -83,16 +112,8 @@ describe("MeetingDetailPage", () => {
   });
 
   it("updates the participation status to joined after a successful instant join", async () => {
-    vi.mocked(getCrewHub).mockResolvedValue({
-      crewId: 11,
-      name: "Night runners",
-      description: "Private crew for late runners",
-      visibility: "PRIVATE",
-      imageUrl: null,
-      myRole: "MEMBER",
-      hasNotice: false,
-      pendingJoinRequestCount: 0,
-    });
+    mockCurrentUser(44);
+    mockCrewHub();
     vi.mocked(getMeetingDetail).mockResolvedValue({
       meetingId: 99,
       crewId: 11,
@@ -126,26 +147,61 @@ describe("MeetingDetailPage", () => {
     await waitFor(() => {
       expect(joinMeeting).toHaveBeenCalledWith(11, 99);
     });
+
     expect(await screen.findByText("내 참가 상태: JOINED")).toBeInTheDocument();
     expect(screen.getByText("참여 중")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "참여하기" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "참여취소" })).toBeInTheDocument();
   });
 
-  it("renders joined state as a read-only label", async () => {
-    vi.mocked(getCrewHub).mockResolvedValue({
-      crewId: 11,
-      name: "Night runners",
-      description: "Private crew for late runners",
-      visibility: "PRIVATE",
-      imageUrl: null,
-      myRole: "MEMBER",
-      hasNotice: false,
-      pendingJoinRequestCount: 0,
-    });
+  it("updates the participation status to not-joined after a successful cancel", async () => {
+    mockCurrentUser(44);
+    mockCrewHub();
     vi.mocked(getMeetingDetail).mockResolvedValue({
       meetingId: 99,
       crewId: 11,
       hostUserId: 1,
+      themeName: "심야 테마 모임",
+      place: "강남역",
+      date: "2026-04-20",
+      time: "19:30",
+      capacity: 4,
+      totalCost: null,
+      reservationLink: null,
+      openChatLink: null,
+      description: null,
+      status: "RECRUITING",
+      result: "NOT_RECORDED",
+      myParticipationStatus: "JOINED",
+    });
+    vi.mocked(cancelMeetingJoin).mockResolvedValue({
+      meetingId: 99,
+      myParticipationStatus: "NOT_JOINED",
+    });
+
+    render(
+      await CrewMeetingDetailPage({
+        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
+      }),
+    );
+
+    fireEvent.click(await screen.findByRole("button", { name: "참여취소" }));
+
+    await waitFor(() => {
+      expect(cancelMeetingJoin).toHaveBeenCalledWith(11, 99);
+    });
+
+    expect(await screen.findByText("내 참가 상태: NOT_JOINED")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "참여하기" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "참여취소" })).not.toBeInTheDocument();
+  });
+
+  it("hides the cancel action for the meeting host", async () => {
+    mockCurrentUser(77);
+    mockCrewHub("LEADER");
+    vi.mocked(getMeetingDetail).mockResolvedValue({
+      meetingId: 99,
+      crewId: 11,
+      hostUserId: 77,
       themeName: "심야 테마 모임",
       place: "강남역",
       date: "2026-04-20",
@@ -168,20 +224,12 @@ describe("MeetingDetailPage", () => {
 
     expect(await screen.findByText("내 참가 상태: JOINED")).toBeInTheDocument();
     expect(screen.getByText("참여 중")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "참여하기" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "참여취소" })).not.toBeInTheDocument();
   });
 
   it("shows a safe failure state and redirects non-members to the public crew introduction", async () => {
-    vi.mocked(getCrewHub).mockResolvedValue({
-      crewId: 11,
-      name: "Night runners",
-      description: "Private crew for late runners",
-      visibility: "PRIVATE",
-      imageUrl: null,
-      myRole: "MEMBER",
-      hasNotice: false,
-      pendingJoinRequestCount: 0,
-    });
+    mockCurrentUser(44);
+    mockCrewHub();
     vi.mocked(getMeetingDetail).mockRejectedValueOnce(new Error("boom"));
 
     render(

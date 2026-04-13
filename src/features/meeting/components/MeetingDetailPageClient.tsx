@@ -4,9 +4,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
+import { getMe } from "@/shared/auth/client";
 import { getCrewHub } from "@/shared/crew/client";
 import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
-import { getMeetingDetail, joinMeeting } from "@/shared/meeting/client";
+import {
+  cancelMeetingJoin,
+  getMeetingDetail,
+  joinMeeting,
+} from "@/shared/meeting/client";
 import type {
   MeetingDetail,
   MeetingParticipationStatus,
@@ -45,10 +50,13 @@ export function MeetingDetailPageClient({
   const router = useRouter();
   const [crewName, setCrewName] = useState<string | null>(null);
   const [meeting, setMeeting] = useState<MeetingDetail | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [joinErrorMessage, setJoinErrorMessage] = useState<string | null>(null);
+  const [cancelErrorMessage, setCancelErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
 
   const crewIdNumber = Number(crewId);
   const meetingIdNumber = Number(meetingId);
@@ -68,14 +76,16 @@ export function MeetingDetailPageClient({
     let isMounted = true;
 
     void Promise.all([
+      getMe(),
       getCrewHub(crewIdNumber),
       getMeetingDetail(crewIdNumber, meetingIdNumber),
     ])
-      .then(([crew, detail]) => {
+      .then(([me, crew, detail]) => {
         if (!isMounted) {
           return;
         }
 
+        setCurrentUserId(me.user?.id ?? null);
         setCrewName(crew.name);
         setMeeting(detail);
         setErrorMessage(null);
@@ -128,6 +138,7 @@ export function MeetingDetailPageClient({
 
     setIsJoining(true);
     setJoinErrorMessage(null);
+    setCancelErrorMessage(null);
 
     try {
       const response = await joinMeeting(crewIdNumber, meetingIdNumber);
@@ -147,7 +158,6 @@ export function MeetingDetailPageClient({
           ...meeting,
           myParticipationStatus: "JOINED",
         });
-        setIsJoining(false);
         return;
       }
 
@@ -159,6 +169,39 @@ export function MeetingDetailPageClient({
       );
     } finally {
       setIsJoining(false);
+    }
+  }
+
+  async function handleCancelJoin(): Promise<void> {
+    if (!meeting) {
+      return;
+    }
+
+    setIsCanceling(true);
+    setCancelErrorMessage(null);
+    setJoinErrorMessage(null);
+
+    try {
+      const response = await cancelMeetingJoin(crewIdNumber, meetingIdNumber);
+
+      setMeeting({
+        ...meeting,
+        myParticipationStatus: response.myParticipationStatus,
+      });
+    } catch (error) {
+      reportOperationalError("meeting.cancel_join_failed", error, {
+        level: "warn",
+        route: routePath,
+      });
+
+      setCancelErrorMessage(
+        getUserMessage(
+          error,
+          "참여취소를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        ),
+      );
+    } finally {
+      setIsCanceling(false);
     }
   }
 
@@ -189,6 +232,10 @@ export function MeetingDetailPageClient({
     );
   }
 
+  const isMeetingHost = currentUserId !== null && meeting.hostUserId === currentUserId;
+  const canCancelJoin =
+    meeting.myParticipationStatus === "JOINED" && !isMeetingHost;
+
   return (
     <main>
       <h1>모임 상세</h1>
@@ -203,8 +250,14 @@ export function MeetingDetailPageClient({
             {isJoining ? "참여 처리 중..." : "참여하기"}
           </button>
         ) : null}
+        {canCancelJoin ? (
+          <button type="button" onClick={handleCancelJoin} disabled={isCanceling}>
+            {isCanceling ? "참여취소 처리 중..." : "참여취소"}
+          </button>
+        ) : null}
         <p>{getParticipationLabel(meeting.myParticipationStatus)}</p>
         {joinErrorMessage ? <p>{joinErrorMessage}</p> : null}
+        {cancelErrorMessage ? <p>{cancelErrorMessage}</p> : null}
       </section>
 
       <section aria-label="모임 상세 정보">
