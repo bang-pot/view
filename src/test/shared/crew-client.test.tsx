@@ -5,6 +5,7 @@ import {
   createCrew,
   createCrewInvite,
   createCrewJoinRequest,
+  transferCrewLeadership,
   leaveCrew,
   updateCrewVisibility,
   getCrewHub,
@@ -354,6 +355,40 @@ describe("crew client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
+      }),
+    );
+  });
+
+  it("posts a leadership transfer request for the target member", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          crewId: 11,
+          leaderUserId: 22,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await transferCrewLeadership(11, 22);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/transfer-leadership",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          targetUserId: 22,
+        }),
       }),
     );
   });
