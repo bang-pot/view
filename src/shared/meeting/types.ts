@@ -69,3 +69,8 @@ export type CancelMeetingJoinResponse = {
   meetingId: number;
   myParticipationStatus: "NOT_JOINED";
 };
+
+export type MeetingStatusUpdateResponse = {
+  meetingId: number;
+  status: MeetingStatus;
+};

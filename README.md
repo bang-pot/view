@@ -407,3 +407,31 @@ npm.cmd run build
 - 모임장은 `참여취소` 버튼이 노출되지 않는 것을 확인했습니다.
 - 비가입자, guest, temp 사용자는 내부 상세 대신 기존 공개 소개 / 로그인 / completion 흐름으로 분기되는 것을 확인했습니다.
 
+## Meeting Round 4 모임 운영 상태 변경
+
+- `/crews/{crewId}/meetings/{meetingId}`
+  - 기존 모임 상세 화면에 `모임 운영` 섹션을 추가했습니다.
+  - 상세 응답의 `status`를 그대로 읽고, 상태와 권한에 따라 허용된 버튼만 노출합니다.
+- 개설자 분기
+  - `RECRUITING`: `모집마감`, `모임 취소`
+  - `RECRUITMENT_CLOSED`: `수동 오픈`, `모임 종료`, `모임 취소`
+- 크루장 분기
+  - `RECRUITING`, `RECRUITMENT_CLOSED`: `모임 취소`만 가능
+  - 개설자 전용 `모집마감`, `수동 오픈`, `모임 종료`는 보이지 않습니다.
+- 일반 참가자 분기
+  - 운영 액션 버튼이 보이지 않습니다.
+- 상태 변경 요청
+  - `POST /api/crews/{crewId}/meetings/{meetingId}/close-recruitment`
+  - `POST /api/crews/{crewId}/meetings/{meetingId}/reopen-recruitment`
+  - `POST /api/crews/{crewId}/meetings/{meetingId}/cancel`
+  - `POST /api/crews/{crewId}/meetings/{meetingId}/complete`
+  - 성공 시 별도 새로고침 없이 상세 화면의 `meeting.status`를 로컬에서 즉시 갱신합니다.
+- 목록 / 상세 동기화
+  - 상세는 로컬 상태 갱신으로 바로 반영합니다.
+  - 목록은 기존 `GET /api/crews/{crewId}/meetings` no-store 조회를 유지하므로 목록 화면 재진입 시 최신 상태를 다시 읽습니다.
+- 접근 가드
+  - guest / temp / 비가입자는 기존 내부 크루 접근 규칙을 그대로 재사용합니다.
+  - `AUTH_ACCESS_DENIED`, `AUTH_UNAUTHENTICATED`면 `/crews/public/{crewId}` 공개 소개 흐름으로 돌려보냅니다.
+- 범위 제한
+  - 결과 입력, 정산, 운영 히스토리는 이번 라운드에 포함하지 않습니다.
+
