@@ -122,7 +122,8 @@ describe("MeetingDetailPage", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "모임 상세" })).toBeInTheDocument();
-    expect(screen.getByText("모집 상태: RECRUITING")).toBeInTheDocument();
+    expect(screen.getAllByText("모집 상태: 모집 중")).toHaveLength(2);
+    expect(screen.getByText("참여를 받고 있는 모임 상태예요.")).toBeInTheDocument();
     expect(screen.getAllByText("결과 상태: NOT_RECORDED")).toHaveLength(2);
     expect(screen.getByText("내 참가 상태: NOT_JOINED")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "참여하기" })).toBeInTheDocument();
@@ -240,7 +241,10 @@ describe("MeetingDetailPage", () => {
       expect(closeMeetingRecruitment).toHaveBeenCalledWith(11, 99);
     });
 
-    expect(await screen.findByText("모집 상태: RECRUITMENT_CLOSED")).toBeInTheDocument();
+    expect(await screen.findAllByText("모집 상태: 모집 마감")).toHaveLength(2);
+    expect(
+      screen.getByText("정원 도달 또는 시작 시간이 지나 자동으로 모집이 마감될 수 있어요."),
+    ).toBeInTheDocument();
   });
 
   it("shows reopen, complete, and cancel for the host after recruitment is closed", async () => {
@@ -274,7 +278,7 @@ describe("MeetingDetailPage", () => {
       expect(reopenMeetingRecruitment).toHaveBeenCalledWith(11, 99);
     });
 
-    expect(await screen.findByText("모집 상태: RECRUITING")).toBeInTheDocument();
+    expect(await screen.findAllByText("모집 상태: 모집 중")).toHaveLength(2);
   });
 
   it("lets the host complete a closed meeting", async () => {
@@ -304,7 +308,8 @@ describe("MeetingDetailPage", () => {
       expect(completeMeeting).toHaveBeenCalledWith(11, 99);
     });
 
-    expect(await screen.findByText("모집 상태: COMPLETED")).toBeInTheDocument();
+    expect(await screen.findAllByText("모집 상태: 모임 종료")).toHaveLength(2);
+    expect(screen.getByText("시작 후 시간이 지나 자동으로 종료된 모임을 포함해요.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "모임 종료" })).not.toBeInTheDocument();
   });
 
@@ -339,7 +344,8 @@ describe("MeetingDetailPage", () => {
       expect(cancelMeeting).toHaveBeenCalledWith(11, 99);
     });
 
-    expect(await screen.findByText("모집 상태: CANCELED")).toBeInTheDocument();
+    expect(await screen.findAllByText("모집 상태: 모임 취소")).toHaveLength(2);
+    expect(screen.getByText("취소되어 더 이상 진행되지 않는 모임이에요.")).toBeInTheDocument();
   });
 
   it("hides all operation buttons for a regular participant", async () => {
