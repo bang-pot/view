@@ -1,11 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  cancelMeeting,
   cancelMeetingJoin,
+  closeMeetingRecruitment,
+  completeMeeting,
   createMeeting,
   getMeetingDetail,
   getMeetings,
   joinMeeting,
+  reopenMeetingRecruitment,
 } from "@/shared/meeting/client";
 
 const ORIGINAL_ENV = { ...process.env };
@@ -200,6 +204,130 @@ describe("meeting client", () => {
       expect.objectContaining({
         method: "DELETE",
         credentials: "include",
+      }),
+    );
+  });
+
+  it("posts a close recruitment request", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          meetingId: 99,
+          status: "RECRUITMENT_CLOSED",
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await closeMeetingRecruitment(11, 99);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/meetings/99/close-recruitment",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }),
+    );
+  });
+
+  it("posts a reopen recruitment request", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          meetingId: 99,
+          status: "RECRUITING",
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await reopenMeetingRecruitment(11, 99);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/meetings/99/reopen-recruitment",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }),
+    );
+  });
+
+  it("posts a cancel meeting request", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          meetingId: 99,
+          status: "CANCELED",
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await cancelMeeting(11, 99);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/meetings/99/cancel",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }),
+    );
+  });
+
+  it("posts a complete meeting request", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          meetingId: 99,
+          status: "COMPLETED",
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await completeMeeting(11, 99);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/meetings/99/complete",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
       }),
     );
   });

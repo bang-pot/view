@@ -8,13 +8,18 @@ import { getMe } from "@/shared/auth/client";
 import { getCrewHub } from "@/shared/crew/client";
 import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
 import {
+  cancelMeeting,
   cancelMeetingJoin,
+  closeMeetingRecruitment,
+  completeMeeting,
   getMeetingDetail,
   joinMeeting,
+  reopenMeetingRecruitment,
 } from "@/shared/meeting/client";
 import type {
   MeetingDetail,
   MeetingParticipationStatus,
+  MeetingStatus,
 } from "@/shared/meeting/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
@@ -22,6 +27,12 @@ type MeetingDetailPageClientProps = {
   crewId: string;
   meetingId: string;
 };
+
+type MeetingOperationAction =
+  | "close-recruitment"
+  | "reopen-recruitment"
+  | "cancel-meeting"
+  | "complete-meeting";
 
 function buildPublicCrewPath(crewId: string): string {
   return `/crews/public/${crewId}`;
@@ -43,20 +54,38 @@ function getParticipationLabel(status: MeetingParticipationStatus): string {
   return "지금 바로 참여할 수 있어요.";
 }
 
+function getStatusLabel(status: MeetingStatus): string {
+  switch (status) {
+    case "RECRUITING":
+      return "모집 중";
+    case "RECRUITMENT_CLOSED":
+      return "모집이 마감된 상태입니다.";
+    case "COMPLETED":
+      return "종료된 모임입니다.";
+    case "CANCELED":
+      return "취소된 모임입니다.";
+    default:
+      return "";
+  }
+}
+
 export function MeetingDetailPageClient({
   crewId,
   meetingId,
 }: MeetingDetailPageClientProps) {
   const router = useRouter();
   const [crewName, setCrewName] = useState<string | null>(null);
+  const [crewRole, setCrewRole] = useState<string | null>(null);
   const [meeting, setMeeting] = useState<MeetingDetail | null>(null);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [joinErrorMessage, setJoinErrorMessage] = useState<string | null>(null);
   const [cancelErrorMessage, setCancelErrorMessage] = useState<string | null>(null);
+  const [operationErrorMessage, setOperationErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
-  const [isCanceling, setIsCanceling] = useState(false);
+  const [isCancelingJoin, setIsCancelingJoin] = useState(false);
+  const [activeOperation, setActiveOperation] = useState<MeetingOperationAction | null>(null);
 
   const crewIdNumber = Number(crewId);
   const meetingIdNumber = Number(meetingId);
@@ -87,6 +116,7 @@ export function MeetingDetailPageClient({
 
         setCurrentUserId(me.user?.id ?? null);
         setCrewName(crew.name);
+        setCrewRole(crew.myRole ?? null);
         setMeeting(detail);
         setErrorMessage(null);
         setIsLoading(false);
@@ -139,6 +169,7 @@ export function MeetingDetailPageClient({
     setIsJoining(true);
     setJoinErrorMessage(null);
     setCancelErrorMessage(null);
+    setOperationErrorMessage(null);
 
     try {
       const response = await joinMeeting(crewIdNumber, meetingIdNumber);
@@ -177,9 +208,10 @@ export function MeetingDetailPageClient({
       return;
     }
 
-    setIsCanceling(true);
+    setIsCancelingJoin(true);
     setCancelErrorMessage(null);
     setJoinErrorMessage(null);
+    setOperationErrorMessage(null);
 
     try {
       const response = await cancelMeetingJoin(crewIdNumber, meetingIdNumber);
@@ -201,7 +233,48 @@ export function MeetingDetailPageClient({
         ),
       );
     } finally {
-      setIsCanceling(false);
+      setIsCancelingJoin(false);
+    }
+  }
+
+  async function handleMeetingOperation(action: MeetingOperationAction): Promise<void> {
+    if (!meeting) {
+      return;
+    }
+
+    setActiveOperation(action);
+    setOperationErrorMessage(null);
+    setJoinErrorMessage(null);
+    setCancelErrorMessage(null);
+
+    try {
+      const response =
+        action === "close-recruitment"
+          ? await closeMeetingRecruitment(crewIdNumber, meetingIdNumber)
+          : action === "reopen-recruitment"
+            ? await reopenMeetingRecruitment(crewIdNumber, meetingIdNumber)
+            : action === "cancel-meeting"
+              ? await cancelMeeting(crewIdNumber, meetingIdNumber)
+              : await completeMeeting(crewIdNumber, meetingIdNumber);
+
+      setMeeting({
+        ...meeting,
+        status: response.status,
+      });
+    } catch (error) {
+      reportOperationalError("meeting.operation_failed", error, {
+        level: "warn",
+        route: routePath,
+      });
+
+      setOperationErrorMessage(
+        getUserMessage(
+          error,
+          "모임 운영 상태를 변경하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        ),
+      );
+    } finally {
+      setActiveOperation(null);
     }
   }
 
@@ -233,8 +306,21 @@ export function MeetingDetailPageClient({
   }
 
   const isMeetingHost = currentUserId !== null && meeting.hostUserId === currentUserId;
+  const isCrewLeader = crewRole === "LEADER";
+  const canJoinMeeting =
+    meeting.status === "RECRUITING" && meeting.myParticipationStatus === "NOT_JOINED";
   const canCancelJoin =
-    meeting.myParticipationStatus === "JOINED" && !isMeetingHost;
+    meeting.myParticipationStatus === "JOINED" &&
+    !isMeetingHost &&
+    meeting.status !== "COMPLETED" &&
+    meeting.status !== "CANCELED";
+
+  const canCloseRecruitment = isMeetingHost && meeting.status === "RECRUITING";
+  const canReopenRecruitment = isMeetingHost && meeting.status === "RECRUITMENT_CLOSED";
+  const canCompleteMeeting = isMeetingHost && meeting.status === "RECRUITMENT_CLOSED";
+  const canCancelMeeting =
+    (isMeetingHost || isCrewLeader) &&
+    (meeting.status === "RECRUITING" || meeting.status === "RECRUITMENT_CLOSED");
 
   return (
     <main>
@@ -245,19 +331,61 @@ export function MeetingDetailPageClient({
       <section aria-label="모임 참가 상태">
         <h2>내 참가 상태</h2>
         <p>내 참가 상태: {meeting.myParticipationStatus}</p>
-        {meeting.myParticipationStatus === "NOT_JOINED" ? (
+        {canJoinMeeting ? (
           <button type="button" onClick={handleJoin} disabled={isJoining}>
             {isJoining ? "참여 처리 중..." : "참여하기"}
           </button>
         ) : null}
         {canCancelJoin ? (
-          <button type="button" onClick={handleCancelJoin} disabled={isCanceling}>
-            {isCanceling ? "참여취소 처리 중..." : "참여취소"}
+          <button type="button" onClick={handleCancelJoin} disabled={isCancelingJoin}>
+            {isCancelingJoin ? "참여취소 처리 중..." : "참여취소"}
           </button>
         ) : null}
         <p>{getParticipationLabel(meeting.myParticipationStatus)}</p>
         {joinErrorMessage ? <p>{joinErrorMessage}</p> : null}
         {cancelErrorMessage ? <p>{cancelErrorMessage}</p> : null}
+      </section>
+
+      <section aria-label="모임 운영">
+        <h2>모임 운영</h2>
+        <p>{getStatusLabel(meeting.status)}</p>
+        {canCloseRecruitment ? (
+          <button
+            type="button"
+            onClick={() => void handleMeetingOperation("close-recruitment")}
+            disabled={activeOperation !== null}
+          >
+            {activeOperation === "close-recruitment" ? "처리 중..." : "모집마감"}
+          </button>
+        ) : null}
+        {canReopenRecruitment ? (
+          <button
+            type="button"
+            onClick={() => void handleMeetingOperation("reopen-recruitment")}
+            disabled={activeOperation !== null}
+          >
+            {activeOperation === "reopen-recruitment" ? "처리 중..." : "수동 오픈"}
+          </button>
+        ) : null}
+        {canCancelMeeting ? (
+          <button
+            type="button"
+            onClick={() => void handleMeetingOperation("cancel-meeting")}
+            disabled={activeOperation !== null}
+          >
+            {activeOperation === "cancel-meeting" ? "처리 중..." : "모임 취소"}
+          </button>
+        ) : null}
+        {canCompleteMeeting ? (
+          <button
+            type="button"
+            onClick={() => void handleMeetingOperation("complete-meeting")}
+            disabled={activeOperation !== null}
+          >
+            {activeOperation === "complete-meeting" ? "처리 중..." : "모임 종료"}
+          </button>
+        ) : null}
+        {operationErrorMessage ? <p>{operationErrorMessage}</p> : null}
       </section>
 
       <section aria-label="모임 상세 정보">

@@ -2,6 +2,7 @@ import { requestJson } from "@/shared/api/client";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
 import type {
   CancelMeetingJoinResponse,
+  MeetingStatusUpdateResponse,
   CreateMeetingInput,
   CreateMeetingResponse,
   JoinMeetingResponse,
@@ -104,5 +105,81 @@ export async function cancelMeetingJoin(
       code: "MEETING_CANCEL_JOIN_FAILED",
       message: "참여취소를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
     },
+  );
+}
+
+async function postMeetingStatusAction(
+  crewId: number,
+  meetingId: number,
+  actionPath: string,
+  failureCode: string,
+  failureMessage: string,
+): Promise<MeetingStatusUpdateResponse> {
+  return requestJson<MeetingStatusUpdateResponse>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/meetings/${meetingId}/${actionPath}`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+    {
+      code: failureCode,
+      message: failureMessage,
+    },
+  );
+}
+
+export async function closeMeetingRecruitment(
+  crewId: number,
+  meetingId: number,
+): Promise<MeetingStatusUpdateResponse> {
+  return postMeetingStatusAction(
+    crewId,
+    meetingId,
+    "close-recruitment",
+    "MEETING_CLOSE_RECRUITMENT_FAILED",
+    "모집마감을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  );
+}
+
+export async function reopenMeetingRecruitment(
+  crewId: number,
+  meetingId: number,
+): Promise<MeetingStatusUpdateResponse> {
+  return postMeetingStatusAction(
+    crewId,
+    meetingId,
+    "reopen-recruitment",
+    "MEETING_REOPEN_RECRUITMENT_FAILED",
+    "수동 오픈을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  );
+}
+
+export async function cancelMeeting(
+  crewId: number,
+  meetingId: number,
+): Promise<MeetingStatusUpdateResponse> {
+  return postMeetingStatusAction(
+    crewId,
+    meetingId,
+    "cancel",
+    "MEETING_CANCEL_FAILED",
+    "모임 취소를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  );
+}
+
+export async function completeMeeting(
+  crewId: number,
+  meetingId: number,
+): Promise<MeetingStatusUpdateResponse> {
+  return postMeetingStatusAction(
+    crewId,
+    meetingId,
+    "complete",
+    "MEETING_COMPLETE_FAILED",
+    "모임 종료를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
   );
 }
