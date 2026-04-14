@@ -44,7 +44,7 @@ export async function getExploreFilters(): Promise<ExploreFiltersResponse> {
     },
     {
       code: "EXPLORE_FILTERS_LOAD_FAILED",
-      userMessage: "탐색 필터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      userMessage: "탐색 필터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }
@@ -66,7 +66,7 @@ export async function getExploreThemes(
     },
     {
       code: "EXPLORE_THEMES_LOAD_FAILED",
-      userMessage: "탐색 결과를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      userMessage: "탐색 결과를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }
