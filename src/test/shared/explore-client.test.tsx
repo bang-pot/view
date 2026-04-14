@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getExploreFilters, getExploreThemes } from "@/shared/explore/client";
+import {
+  getExploreFilters,
+  getExploreThemeDetail,
+  getExploreThemes,
+} from "@/shared/explore/client";
 
 const ORIGINAL_ENV = { ...process.env };
 
@@ -83,6 +87,44 @@ describe("explore client", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/backend/api/explore/themes?q=%EA%B0%95%EB%82%A8+%EB%AF%B8%EC%8A%A4%ED%84%B0%EB%A6%AC&genres=%EA%B3%B5%ED%8F%AC&genres=%EC%B6%94%EB%A6%AC&region=%EC%84%9C%EC%9A%B8&district=%EA%B0%95%EB%82%A8&page=0&size=20",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("loads a public explore theme detail", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          themeId: 7,
+          themeName: "심야 추적",
+          storeId: 3,
+          storeName: "강남 이스케이프",
+          regionLabel: "서울 강남",
+          genre: "추리",
+          posterImageUrl: null,
+          difficulty: "보통",
+          runningTimeMinutes: 70,
+          description: "소개글",
+          externalLink: "https://example.com/theme/7",
+          relatedThemes: [],
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getExploreThemeDetail(7);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/explore/themes/7",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",

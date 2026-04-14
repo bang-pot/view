@@ -108,12 +108,14 @@ describe("ExplorePage", () => {
 
     const list = await screen.findByRole("list", { name: "탐색 결과 목록" });
     const item = within(list).getByRole("listitem");
+    const detailLink = within(item).getByRole("link", { name: "미스터리 룸 상세 보기" });
 
     expect(within(item).getByText("미스터리 룸")).toBeInTheDocument();
     expect(within(item).getByText("강남 이스케이프")).toBeInTheDocument();
     expect(within(item).getByText("서울 강남")).toBeInTheDocument();
     expect(within(item).getByText("추리")).toBeInTheDocument();
     expect(within(item).getByText("포스터 준비 중")).toBeInTheDocument();
+    expect(detailLink).toHaveAttribute("href", "/explore/themes/1");
 
     expect(getExploreThemes).toHaveBeenCalledWith({
       q: "",

@@ -7,10 +7,12 @@ import { getUserMessage } from "@/shared/errors/operational";
 import { getExploreFilters, getExploreThemes } from "@/shared/explore/client";
 import type {
   ExploreFiltersResponse,
-  ExploreThemeCard,
+  ExploreThemeCard as ExploreThemeCardItem,
   ExploreThemesQuery,
 } from "@/shared/explore/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
+
+import { ExploreThemeCard } from "./ExploreThemeCard";
 
 type ExplorePageClientProps = {
   initialQuery: {
@@ -61,7 +63,7 @@ function toQueryString(query: {
   return params.toString();
 }
 
-function mergeItems(previousItems: ExploreThemeCard[], nextItems: ExploreThemeCard[]) {
+function mergeItems(previousItems: ExploreThemeCardItem[], nextItems: ExploreThemeCardItem[]) {
   const seen = new Set(previousItems.map((item) => item.themeId));
   const merged = [...previousItems];
 
@@ -75,20 +77,12 @@ function mergeItems(previousItems: ExploreThemeCard[], nextItems: ExploreThemeCa
   return merged;
 }
 
-function toCardValue(value: string | number | null): string {
-  if (value === null || value === "") {
-    return "정보 준비 중";
-  }
-
-  return String(value);
-}
-
 export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
   const router = useRouter();
   const [filters, setFilters] = useState<ExploreFiltersResponse | null>(null);
   const [draftQuery, setDraftQuery] = useState(initialQuery.q);
   const [appliedQuery, setAppliedQuery] = useState(initialQuery);
-  const [items, setItems] = useState<ExploreThemeCard[]>([]);
+  const [items, setItems] = useState<ExploreThemeCardItem[]>([]);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -386,55 +380,7 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
         >
           {items.map((item) => (
             <li key={item.themeId}>
-              <article
-                data-disabled="true"
-                style={{
-                  border: "1px solid #d9d9d9",
-                  borderRadius: 16,
-                  overflow: "hidden",
-                  background: "#fff",
-                  opacity: 0.98,
-                }}
-              >
-                {item.posterImageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={item.posterImageUrl}
-                    alt={`${item.themeName} 포스터`}
-                    style={{ width: "100%", aspectRatio: "4 / 5", objectFit: "cover" }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      width: "100%",
-                      aspectRatio: "4 / 5",
-                      display: "grid",
-                      placeItems: "center",
-                      background: "#f5f5f5",
-                      color: "#666",
-                    }}
-                  >
-                    포스터 준비 중
-                  </div>
-                )}
-                <div style={{ padding: 16, display: "grid", gap: 8 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                    <strong>{item.themeName}</strong>
-                    <span aria-label="찜 수">관심 {item.favoriteCount}</span>
-                  </div>
-                  <span>{item.storeName}</span>
-                  <span>{item.regionLabel}</span>
-                  <span>{toCardValue(item.genre)}</span>
-                  <span>난이도 {toCardValue(item.difficulty)}</span>
-                  <span>활동성 {toCardValue(item.activityLabel)}</span>
-                  <span>권장 인원 {toCardValue(item.recommendedPlayers)}</span>
-                  <span>
-                    플레이 시간{" "}
-                    {item.runningTimeMinutes === null ? "정보 준비 중" : `${item.runningTimeMinutes}분`}
-                  </span>
-                  <span style={{ color: "#666" }}>상세는 준비 중입니다.</span>
-                </div>
-              </article>
+              <ExploreThemeCard item={item} />
             </li>
           ))}
         </ul>
