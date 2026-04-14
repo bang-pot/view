@@ -27,6 +27,8 @@ import {
   getMeetingStatusLabel,
 } from "@/shared/meeting/presentation";
 import { reportOperationalError } from "@/shared/monitoring/operations";
+import { getMyMeetingLog } from "@/shared/log/client";
+import type { MeetingLogSummary } from "@/shared/log/types";
 
 type MeetingDetailPageClientProps = {
   crewId: string;
@@ -91,6 +93,25 @@ function isEditableMeetingStatus(status: MeetingDetail["status"]): boolean {
   return status === "RECRUITING" || status === "RECRUITMENT_CLOSED";
 }
 
+function canWriteMeetingLog(
+  meeting: MeetingDetail,
+  currentUserId: number | null,
+): boolean {
+  if (meeting.status !== "COMPLETED") {
+    return false;
+  }
+
+  if (currentUserId !== null && meeting.hostUserId === currentUserId) {
+    return true;
+  }
+
+  return (
+    meeting.myParticipationStatus === "JOINED" ||
+    meeting.myParticipationStatus === "PENDING" ||
+    meeting.myParticipationStatus === "APPROVED"
+  );
+}
+
 export function MeetingDetailPageClient({
   crewId,
   meetingId,
@@ -99,6 +120,7 @@ export function MeetingDetailPageClient({
   const [crewName, setCrewName] = useState<string | null>(null);
   const [crewRole, setCrewRole] = useState<string | null>(null);
   const [meeting, setMeeting] = useState<MeetingDetail | null>(null);
+  const [myLogSummary, setMyLogSummary] = useState<MeetingLogSummary | null>(null);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [joinErrorMessage, setJoinErrorMessage] = useState<string | null>(null);
@@ -129,12 +151,31 @@ export function MeetingDetailPageClient({
 
     let isMounted = true;
 
-    void Promise.all([
-      getMe(),
-      getCrewHub(crewIdNumber),
-      getMeetingDetail(crewIdNumber, meetingIdNumber),
-    ])
-      .then(([me, crew, detail]) => {
+    async function bootstrap() {
+      try {
+        const [me, crew, detail] = await Promise.all([
+          getMe(),
+          getCrewHub(crewIdNumber),
+          getMeetingDetail(crewIdNumber, meetingIdNumber),
+        ]);
+
+        if (!isMounted) {
+          return;
+        }
+
+        let nextLogSummary: MeetingLogSummary | null = null;
+
+        if (detail.status === "COMPLETED") {
+          try {
+            nextLogSummary = await getMyMeetingLog(meetingIdNumber);
+          } catch (error) {
+            reportOperationalError("meeting.detail_log_lookup_failed", error, {
+              level: "warn",
+              route: routePath,
+            });
+          }
+        }
+
         if (!isMounted) {
           return;
         }
@@ -143,10 +184,10 @@ export function MeetingDetailPageClient({
         setCrewName(crew.name);
         setCrewRole(crew.myRole ?? null);
         setMeeting(detail);
+        setMyLogSummary(nextLogSummary);
         setErrorMessage(null);
         setIsLoading(false);
-      })
-      .catch((error) => {
+      } catch (error) {
         const shouldRedirect =
           isOperationalError(error) &&
           (error.code === "AUTH_ACCESS_DENIED" || error.code === "AUTH_UNAUTHENTICATED");
@@ -172,7 +213,10 @@ export function MeetingDetailPageClient({
           ),
         );
         setIsLoading(false);
-      });
+      }
+    }
+
+    void bootstrap();
 
     return () => {
       isMounted = false;
@@ -388,6 +432,7 @@ export function MeetingDetailPageClient({
     isMeetingHost &&
     meeting.status === "COMPLETED" &&
     meeting.result === "NOT_RECORDED";
+  const canOpenLogEntry = canWriteMeetingLog(meeting, currentUserId) || myLogSummary !== null;
   const perPersonCost = getPerPersonCost(meeting.totalCost, meeting.capacity);
 
   return (
@@ -485,6 +530,11 @@ export function MeetingDetailPageClient({
 
       <section aria-label="모임 상세 정보">
         <h2>{meeting.title}</h2>
+        {canOpenLogEntry ? (
+          <Link href={`/crews/${crewId}/meetings/${meetingId}/log`}>
+            {myLogSummary ? "방탈로그 수정하기" : "방탈로그 작성하기"}
+          </Link>
+        ) : null}
         <p>테마명: {meeting.themeName}</p>
         <p>모임 ID: {meeting.meetingId}</p>
         <p>모집 상태: {getMeetingStatusLabel(meeting.status)}</p>

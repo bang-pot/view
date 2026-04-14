@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CrewMeetingDetailPage from "@/app/crews/[crewId]/meetings/[meetingId]/page";
 import { getMe } from "@/shared/auth/client";
 import { getCrewHub } from "@/shared/crew/client";
+import { OperationalError } from "@/shared/errors/operational";
 import {
   cancelMeetingJoin,
   closeMeetingRecruitment,
@@ -11,6 +12,7 @@ import {
   joinMeeting,
   recordMeetingResult,
 } from "@/shared/meeting/client";
+import { getMyMeetingLog } from "@/shared/log/client";
 
 const replaceMock = vi.fn();
 const routerMock = {
@@ -40,7 +42,11 @@ vi.mock("@/shared/meeting/client", () => ({
   recordMeetingResult: vi.fn(),
 }));
 
-function mockCrewHub(role: "LEADER" | "MEMBER" = "MEMBER") {
+vi.mock("@/shared/log/client", () => ({
+  getMyMeetingLog: vi.fn(),
+}));
+
+function mockCrew(role: "LEADER" | "MEMBER" = "MEMBER") {
   vi.mocked(getCrewHub).mockResolvedValue({
     crewId: 11,
     name: "Night runners",
@@ -60,10 +66,7 @@ function mockCurrentUser(id: number) {
     redirectTo: null,
     requiredTermsVersion: "2026-04-01",
     requiredTermsAcceptedAt: "2026-04-01T00:00:00Z",
-    user: {
-      id,
-      nickname: "tester",
-    },
+    user: { id, nickname: "tester" },
   });
 }
 
@@ -74,9 +77,9 @@ function makeMeetingDetail(
     meetingId: 99,
     crewId: 11,
     hostUserId: 1,
-    title: "금요일 저녁 야식",
-    themeName: "야식",
-    place: "강남역",
+    title: "금요일 늦은 번개",
+    themeName: "미스터리 룸",
+    place: "강남 이스케이프",
     date: "2026-04-20",
     time: "19:30",
     capacity: 4,
@@ -94,6 +97,7 @@ describe("MeetingDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     replaceMock.mockReset();
+    vi.mocked(getMyMeetingLog).mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -102,7 +106,7 @@ describe("MeetingDetailPage", () => {
 
   it("renders the meeting detail with the current states and cost guidance", async () => {
     mockCurrentUser(44);
-    mockCrewHub();
+    mockCrew();
     vi.mocked(getMeetingDetail).mockResolvedValue(
       makeMeetingDetail({
         totalCost: 120000,
@@ -123,8 +127,8 @@ describe("MeetingDetailPage", () => {
     const participationSection = screen.getByRole("region", { name: "모임 참가 상태" });
     const operationSection = screen.getByRole("region", { name: "모임 운영" });
 
-    expect(within(detailSection).getByRole("heading", { name: "금요일 저녁 야식" })).toBeInTheDocument();
-    expect(within(detailSection).getByText("테마명: 야식")).toBeInTheDocument();
+    expect(within(detailSection).getByRole("heading", { name: "금요일 늦은 번개" })).toBeInTheDocument();
+    expect(within(detailSection).getByText("테마명: 미스터리 룸")).toBeInTheDocument();
     expect(within(detailSection).getByText("총 비용 안내: 120000원")).toBeInTheDocument();
     expect(within(detailSection).getByText("1인당 예상 비용: 30000원")).toBeInTheDocument();
     expect(
@@ -137,7 +141,7 @@ describe("MeetingDetailPage", () => {
 
   it("shows an edit entry only for the host when the meeting is editable", async () => {
     mockCurrentUser(1);
-    mockCrewHub("LEADER");
+    mockCrew("LEADER");
     vi.mocked(getMeetingDetail).mockResolvedValue(makeMeetingDetail());
 
     render(
@@ -156,7 +160,7 @@ describe("MeetingDetailPage", () => {
 
   it("hides the edit entry for non-host users and completed meetings", async () => {
     mockCurrentUser(44);
-    mockCrewHub("LEADER");
+    mockCrew("LEADER");
     vi.mocked(getMeetingDetail).mockResolvedValue(makeMeetingDetail());
 
     render(
@@ -174,9 +178,10 @@ describe("MeetingDetailPage", () => {
     cleanup();
     vi.clearAllMocks();
     replaceMock.mockReset();
+    vi.mocked(getMyMeetingLog).mockResolvedValue(null);
 
     mockCurrentUser(1);
-    mockCrewHub("LEADER");
+    mockCrew("LEADER");
     vi.mocked(getMeetingDetail).mockResolvedValue(
       makeMeetingDetail({
         status: "COMPLETED",
@@ -198,7 +203,7 @@ describe("MeetingDetailPage", () => {
 
   it("updates the participation status to joined after a successful instant join", async () => {
     mockCurrentUser(44);
-    mockCrewHub();
+    mockCrew();
     vi.mocked(getMeetingDetail).mockResolvedValue(makeMeetingDetail());
     vi.mocked(joinMeeting).mockResolvedValue({
       meetingId: 99,
@@ -228,7 +233,7 @@ describe("MeetingDetailPage", () => {
 
   it("updates the participation status to not-joined after a successful cancel", async () => {
     mockCurrentUser(44);
-    mockCrewHub();
+    mockCrew();
     vi.mocked(getMeetingDetail).mockResolvedValue(
       makeMeetingDetail({
         myParticipationStatus: "JOINED",
@@ -262,7 +267,7 @@ describe("MeetingDetailPage", () => {
 
   it("shows operation actions for the host and updates the meeting status immediately", async () => {
     mockCurrentUser(1);
-    mockCrewHub("LEADER");
+    mockCrew("LEADER");
     vi.mocked(getMeetingDetail).mockResolvedValue(makeMeetingDetail());
     vi.mocked(closeMeetingRecruitment).mockResolvedValue({
       meetingId: 99,
@@ -289,7 +294,7 @@ describe("MeetingDetailPage", () => {
 
   it("shows result input actions only for the host when the meeting is completed and not recorded", async () => {
     mockCurrentUser(1);
-    mockCrewHub("LEADER");
+    mockCrew("LEADER");
     vi.mocked(getMeetingDetail).mockResolvedValue(
       makeMeetingDetail({
         status: "COMPLETED",
@@ -310,9 +315,58 @@ describe("MeetingDetailPage", () => {
     expect(within(resultSection).getByRole("button", { name: "실패" })).toBeInTheDocument();
   });
 
+  it("shows the write log entry when the current user can write a completed meeting log", async () => {
+    mockCurrentUser(1);
+    mockCrew("LEADER");
+    vi.mocked(getMeetingDetail).mockResolvedValue(
+      makeMeetingDetail({
+        status: "COMPLETED",
+        result: "SUCCESS",
+      }),
+    );
+    vi.mocked(getMyMeetingLog).mockResolvedValue(null);
+
+    render(
+      await CrewMeetingDetailPage({
+        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
+      }),
+    );
+
+    const detailSection = await screen.findByRole("region", { name: "모임 상세 정보" });
+    expect(
+      await within(detailSection).findByRole("link", { name: "방탈로그 작성하기" }),
+    ).toHaveAttribute("href", "/crews/11/meetings/99/log");
+  });
+
+  it("shows the edit log entry when the current user already has a log", async () => {
+    mockCurrentUser(1);
+    mockCrew("LEADER");
+    vi.mocked(getMeetingDetail).mockResolvedValue(
+      makeMeetingDetail({
+        status: "COMPLETED",
+        result: "SUCCESS",
+      }),
+    );
+    vi.mocked(getMyMeetingLog).mockResolvedValue({
+      logId: 501,
+      meetingId: 99,
+    });
+
+    render(
+      await CrewMeetingDetailPage({
+        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
+      }),
+    );
+
+    const detailSection = await screen.findByRole("region", { name: "모임 상세 정보" });
+    expect(
+      await within(detailSection).findByRole("link", { name: "방탈로그 수정하기" }),
+    ).toHaveAttribute("href", "/crews/11/meetings/99/log");
+  });
+
   it("updates the result immediately after the host records success", async () => {
     mockCurrentUser(1);
-    mockCrewHub("LEADER");
+    mockCrew("LEADER");
     vi.mocked(getMeetingDetail).mockResolvedValue(
       makeMeetingDetail({
         status: "COMPLETED",
@@ -345,8 +399,6 @@ describe("MeetingDetailPage", () => {
 
   it("redirects non-members to the public crew introduction", async () => {
     mockCurrentUser(44);
-    const { OperationalError } = await import("@/shared/errors/operational");
-
     vi.mocked(getCrewHub).mockRejectedValue(
       new OperationalError({
         code: "AUTH_ACCESS_DENIED",
