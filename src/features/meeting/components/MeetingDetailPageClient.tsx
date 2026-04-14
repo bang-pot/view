@@ -71,6 +71,26 @@ function getResultLabel(result: MeetingResult): string {
   }
 }
 
+function formatCost(totalCost: number | null): string {
+  if (totalCost === null) {
+    return "미입력";
+  }
+
+  return `${totalCost}원`;
+}
+
+function getPerPersonCost(totalCost: number | null, capacity: number): string | null {
+  if (totalCost === null || capacity <= 0) {
+    return null;
+  }
+
+  return `${Math.floor(totalCost / capacity)}원`;
+}
+
+function isEditableMeetingStatus(status: MeetingDetail["status"]): boolean {
+  return status === "RECRUITING" || status === "RECRUITMENT_CLOSED";
+}
+
 export function MeetingDetailPageClient({
   crewId,
   meetingId,
@@ -99,6 +119,7 @@ export function MeetingDetailPageClient({
     [crewId, meetingId],
   );
   const listPath = useMemo(() => `/crews/${crewId}/meetings`, [crewId]);
+  const editPath = useMemo(() => `/crews/${crewId}/meetings/${meetingId}/edit`, [crewId, meetingId]);
   const publicCrewPath = useMemo(() => buildPublicCrewPath(crewId), [crewId]);
 
   useEffect(() => {
@@ -196,10 +217,7 @@ export function MeetingDetailPageClient({
       }
 
       setJoinErrorMessage(
-        getUserMessage(
-          error,
-          "즉시 참여를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-        ),
+        getUserMessage(error, "즉시 참여를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요."),
       );
     } finally {
       setIsJoining(false);
@@ -231,10 +249,7 @@ export function MeetingDetailPageClient({
       });
 
       setCancelErrorMessage(
-        getUserMessage(
-          error,
-          "참여취소를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-        ),
+        getUserMessage(error, "참여취소를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요."),
       );
     } finally {
       setIsCancelingJoin(false);
@@ -273,10 +288,7 @@ export function MeetingDetailPageClient({
       });
 
       setOperationErrorMessage(
-        getUserMessage(
-          error,
-          "모임 운영 상태를 변경하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-        ),
+        getUserMessage(error, "모임 운영 상태를 변경하지 못했습니다. 잠시 후 다시 시도해 주세요."),
       );
     } finally {
       setActiveOperation(null);
@@ -322,10 +334,7 @@ export function MeetingDetailPageClient({
       }
 
       setResultErrorMessage(
-        getUserMessage(
-          error,
-          "모임 결과를 기록하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-        ),
+        getUserMessage(error, "모임 결과를 기록하지 못했습니다. 잠시 후 다시 시도해 주세요."),
       );
     } finally {
       setIsRecordingResult(false);
@@ -336,7 +345,7 @@ export function MeetingDetailPageClient({
     return (
       <main>
         <h1>모임 상세</h1>
-        <p>잘못된 모임 경로입니다.</p>
+        <p>올바르지 않은 모임 경로입니다.</p>
       </main>
     );
   }
@@ -368,6 +377,7 @@ export function MeetingDetailPageClient({
     !isMeetingHost &&
     meeting.status !== "COMPLETED" &&
     meeting.status !== "CANCELED";
+  const canEditMeeting = isMeetingHost && isEditableMeetingStatus(meeting.status);
   const canCloseRecruitment = isMeetingHost && meeting.status === "RECRUITING";
   const canReopenRecruitment = isMeetingHost && meeting.status === "RECRUITMENT_CLOSED";
   const canCompleteMeeting = isMeetingHost && meeting.status === "RECRUITMENT_CLOSED";
@@ -378,6 +388,7 @@ export function MeetingDetailPageClient({
     isMeetingHost &&
     meeting.status === "COMPLETED" &&
     meeting.result === "NOT_RECORDED";
+  const perPersonCost = getPerPersonCost(meeting.totalCost, meeting.capacity);
 
   return (
     <main>
@@ -407,6 +418,7 @@ export function MeetingDetailPageClient({
         <h2>모임 운영</h2>
         <p>모집 상태: {getMeetingStatusLabel(meeting.status)}</p>
         <p>{getMeetingStatusDescription(meeting.status)}</p>
+        {canEditMeeting ? <Link href={editPath}>모임 수정</Link> : null}
         {canCloseRecruitment ? (
           <button
             type="button"
@@ -472,7 +484,8 @@ export function MeetingDetailPageClient({
       </section>
 
       <section aria-label="모임 상세 정보">
-        <h2>{meeting.themeName}</h2>
+        <h2>{meeting.title}</h2>
+        <p>테마명: {meeting.themeName}</p>
         <p>모임 ID: {meeting.meetingId}</p>
         <p>모집 상태: {getMeetingStatusLabel(meeting.status)}</p>
         <p>결과 상태: {meeting.result}</p>
@@ -480,9 +493,9 @@ export function MeetingDetailPageClient({
         <p>시간: {meeting.time}</p>
         <p>장소: {meeting.place}</p>
         <p>정원: {meeting.capacity}명</p>
-        <p>총 비용: {toDisplay(meeting.totalCost)}</p>
-        <p>예약 링크: {toDisplay(meeting.reservationLink)}</p>
-        <p>오픈채팅 링크: {toDisplay(meeting.openChatLink)}</p>
+        <p>총 비용 안내: {formatCost(meeting.totalCost)}</p>
+        {perPersonCost ? <p>1인당 예상 비용: {perPersonCost}</p> : null}
+        <p>연락 링크: {toDisplay(meeting.contactLink)}</p>
         <p>설명: {toDisplay(meeting.description)}</p>
       </section>
     </main>

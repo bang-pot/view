@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
 import { getCrewHub } from "@/shared/crew/client";
+import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
 import { getMeetings } from "@/shared/meeting/client";
 import {
   getMeetingStatusDescription,
@@ -87,7 +87,7 @@ export function MeetingListPageClient({ crewId }: MeetingListPageClientProps) {
     return (
       <main>
         <h1>모임 목록</h1>
-        <p>잘못된 크루 경로입니다.</p>
+        <p>올바르지 않은 크루 경로입니다.</p>
       </main>
     );
   }
@@ -127,10 +127,15 @@ export function MeetingListPageClient({ crewId }: MeetingListPageClientProps) {
             <li key={meeting.meetingId}>
               <article>
                 <h2>
-                  <Link href={`/crews/${crewId}/meetings/${meeting.meetingId}`}>{meeting.themeName}</Link>
+                  <Link href={`/crews/${crewId}/meetings/${meeting.meetingId}`}>
+                    {meeting.title ?? meeting.themeName}
+                  </Link>
                 </h2>
+                <p>테마명: {meeting.themeName}</p>
                 <p>장소: {meeting.place}</p>
-                <p>일시: {meeting.date} {meeting.time}</p>
+                <p>
+                  일시: {meeting.date} {meeting.time}
+                </p>
                 <p>정원: {meeting.capacity}명</p>
                 <p>모집 상태: {getMeetingStatusLabel(meeting.status)}</p>
                 <p>{getMeetingStatusDescription(meeting.status)}</p>

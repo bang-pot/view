@@ -196,6 +196,10 @@ npm.cmd run build
 - Meeting Round 1 결과: [C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-01-result.md](C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-01-result.md)
 - Meeting Round 2 결과: [C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-02-result.md](C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-02-result.md)
 - Meeting Round 3 결과: [C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-03-result.md](C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-03-result.md)
+- Meeting Round 4 결과: [C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-04-result.md](C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-04-result.md)
+- Meeting Round 5 결과: [C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-05-result.md](C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-05-result.md)
+- Meeting Round 6 결과: [C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-06-result.md](C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-06-result.md)
+- Meeting Round 7 결과: [C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-07-result.md](C:\bangpot\workdocs-repo\docs\plans\results\meeting\03-meeting-builder-round-07-result.md)
 
 ## Meeting Round 2 Minimal Instant Join Flow
 
@@ -514,6 +518,44 @@ npm.cmd run build
 - 목록과 상세에서 자동 전이된 상태가 같은 의미로 보이는 것을 확인했습니다.
 - `RECRUITMENT_CLOSED`, `COMPLETED`, `CANCELED` 상태에 맞는 안내 문구가 보이는 것을 확인했습니다.
 - 자동으로 모집이 마감된 상태에서 참여 액션이 어색하지 않게 정리된 것을 확인했습니다.
+- 비가입자, guest, temp 사용자는 기존 공개 소개 / 로그인 / completion 흐름으로 분기되는 것을 확인했습니다.
+
+## Meeting Round 7 모임 수정과 비용 안내 정합화
+
+- `/crews/{crewId}/meetings/{meetingId}`
+  - 모임 개설자이면서 상태가 `RECRUITING` 또는 `RECRUITMENT_CLOSED`일 때만 `모임 수정` 진입점을 보여줍니다.
+  - `COMPLETED`, `CANCELED`에서는 수정 링크를 숨겨 수정 불가 상태를 그대로 읽게 합니다.
+- `/crews/{crewId}/meetings/{meetingId}/edit`
+  - 생성과 같은 의미의 입력 구조를 재사용합니다.
+  - 수정 가능한 필드는 `제목`, `테마명`, `장소`, `날짜`, `시간`, `정원`, `비용 안내(총 비용)`, `설명`, `연락 링크`입니다.
+  - 개설자가 아니거나 수정 불가 상태면 `이 모임은 지금 수정할 수 없습니다.` 안내만 보여주고 상세로 돌아가게 합니다.
+- 수정 요청
+  - `PATCH /api/crews/{crewId}/meetings/{meetingId}`
+  - 성공 시 상세 화면으로 돌아가며 최신 값을 다시 읽습니다.
+- 비용 안내 처리
+  - 비용은 settlement가 아니라 meeting 안내 정보로 유지합니다.
+  - 저장 필드는 `totalCost` 하나만 사용합니다.
+  - 상세에서는 `총 비용 안내`와 `1인당 예상 비용(totalCost / capacity)`을 읽기 전용으로 보여줍니다.
+  - 목록에서는 비용을 노출하지 않습니다.
+- 목록 / 상세 동기화
+  - 상세는 수정 후 상세 경로로 재진입해 최신 응답을 다시 읽습니다.
+  - 목록은 기존 `GET /api/crews/{crewId}/meetings` no-store 조회 흐름을 그대로 사용하므로 재진입 시 최신 값이 반영됩니다.
+
+### Meeting Round 7 자동 검증
+
+- `npm.cmd run test -- src/test/shared/meeting-client.test.tsx src/test/app/meeting-create-page.test.tsx src/test/app/meeting-edit-page.test.tsx src/test/app/meeting-detail-page.test.tsx src/test/app/meeting-list-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+- 모두 통과했습니다.
+
+### Meeting Round 7 수동 검증
+
+- 개설자만 `RECRUITING`, `RECRUITMENT_CLOSED` 상태 모임에서 `모임 수정` 진입점을 보는 것을 확인했습니다.
+- 수정 화면에서 `제목`, `테마명`, `장소`, `날짜`, `시간`, `정원`, `비용 안내(총 비용)`, `설명`, `연락 링크`를 수정할 수 있는 것을 확인했습니다.
+- 수정 성공 후 상세 화면에서 최신 값이 바로 반영되고, 목록 재진입 시 최신 meeting 정보가 보이는 것을 확인했습니다.
+- `COMPLETED`, `CANCELED` 상태와 개설자 아님 케이스에서는 수정이 차단되는 것을 확인했습니다.
 - 비가입자, guest, temp 사용자는 기존 공개 소개 / 로그인 / completion 흐름으로 분기되는 것을 확인했습니다.
 
 ## Crew Round 11A 크루 탈퇴

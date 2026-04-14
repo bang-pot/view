@@ -19,9 +19,7 @@ vi.mock("@/shared/crew/client", () => ({
 }));
 
 vi.mock("@/shared/meeting/client", () => ({
-  createMeeting: vi.fn(),
   getMeetings: vi.fn(),
-  getMeetingDetail: vi.fn(),
 }));
 
 describe("MeetingsPage", () => {
@@ -48,8 +46,9 @@ describe("MeetingsPage", () => {
     vi.mocked(getMeetings).mockResolvedValue([
       {
         meetingId: 99,
-        themeName: "세븐클루스",
-        place: "강남점",
+        title: "금요일 한강 러닝",
+        themeName: "러닝",
+        place: "강남역",
         date: "2026-04-20",
         time: "19:30",
         status: "RECRUITING",
@@ -67,10 +66,11 @@ describe("MeetingsPage", () => {
     );
 
     const items = within(screen.getByRole("list", { name: "모임 목록" })).getAllByRole("listitem");
-    expect(within(items[0]).getByRole("link", { name: "세븐클루스" })).toHaveAttribute(
+    expect(within(items[0]).getByRole("link", { name: "금요일 한강 러닝" })).toHaveAttribute(
       "href",
       "/crews/11/meetings/99",
     );
+    expect(within(items[0]).getByText("테마명: 러닝")).toBeInTheDocument();
     expect(within(items[0]).getByText("모집 상태: 모집 중")).toBeInTheDocument();
     expect(within(items[0]).getByText("참여를 받고 있는 모임 상태예요.")).toBeInTheDocument();
     expect(within(items[0]).getByText("결과 상태: NOT_RECORDED")).toBeInTheDocument();
@@ -90,8 +90,9 @@ describe("MeetingsPage", () => {
     vi.mocked(getMeetings).mockResolvedValue([
       {
         meetingId: 100,
-        themeName: "러닝 모임",
-        place: "잠실",
+        title: "토요일 보드게임",
+        themeName: "보드게임",
+        place: "홍대",
         date: "2026-04-21",
         time: "20:00",
         status: "RECRUITMENT_CLOSED",
@@ -102,9 +103,7 @@ describe("MeetingsPage", () => {
 
     render(await CrewMeetingsPage({ params: Promise.resolve({ crewId: "11" }) }));
 
-    const item = within(await screen.findByRole("list", { name: "모임 목록" })).getByRole(
-      "listitem",
-    );
+    const item = within(await screen.findByRole("list", { name: "모임 목록" })).getByRole("listitem");
     expect(within(item).getByText("모집 상태: 모집 마감")).toBeInTheDocument();
     expect(
       within(item).getByText("정원 도달 또는 시작 시간이 지나 자동으로 모집이 마감될 수 있어요."),

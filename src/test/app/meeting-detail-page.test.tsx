@@ -5,14 +5,11 @@ import CrewMeetingDetailPage from "@/app/crews/[crewId]/meetings/[meetingId]/pag
 import { getMe } from "@/shared/auth/client";
 import { getCrewHub } from "@/shared/crew/client";
 import {
-  cancelMeeting,
   cancelMeetingJoin,
   closeMeetingRecruitment,
-  completeMeeting,
   getMeetingDetail,
   joinMeeting,
   recordMeetingResult,
-  reopenMeetingRecruitment,
 } from "@/shared/meeting/client";
 
 const replaceMock = vi.fn();
@@ -33,8 +30,6 @@ vi.mock("@/shared/auth/client", () => ({
 }));
 
 vi.mock("@/shared/meeting/client", () => ({
-  createMeeting: vi.fn(),
-  getMeetings: vi.fn(),
   getMeetingDetail: vi.fn(),
   joinMeeting: vi.fn(),
   cancelMeetingJoin: vi.fn(),
@@ -72,19 +67,21 @@ function mockCurrentUser(id: number) {
   });
 }
 
-function makeMeetingDetail(overrides: Partial<Awaited<ReturnType<typeof getMeetingDetail>>> = {}) {
+function makeMeetingDetail(
+  overrides: Partial<Awaited<ReturnType<typeof getMeetingDetail>>> = {},
+) {
   return {
     meetingId: 99,
     crewId: 11,
     hostUserId: 1,
-    themeName: "Board game meetup",
-    place: "Gangnam",
+    title: "금요일 저녁 야식",
+    themeName: "야식",
+    place: "강남역",
     date: "2026-04-20",
     time: "19:30",
     capacity: 4,
     totalCost: null,
-    reservationLink: null,
-    openChatLink: null,
+    contactLink: null,
     description: null,
     status: "RECRUITING" as const,
     result: "NOT_RECORDED" as const,
@@ -103,15 +100,14 @@ describe("MeetingDetailPage", () => {
     cleanup();
   });
 
-  it("renders the meeting detail with recruiting, not-recorded, and not-joined participation states", async () => {
+  it("renders the meeting detail with the current states and cost guidance", async () => {
     mockCurrentUser(44);
     mockCrewHub();
     vi.mocked(getMeetingDetail).mockResolvedValue(
       makeMeetingDetail({
         totalCost: 120000,
-        reservationLink: "https://example.com/reserve",
-        openChatLink: "https://open.kakao.com/o/example",
-        description: "Please join on time.",
+        contactLink: "https://open.kakao.com/o/example",
+        description: "지각 없이 모여 주세요.",
       }),
     );
 
@@ -122,15 +118,82 @@ describe("MeetingDetailPage", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "모임 상세" })).toBeInTheDocument();
-    expect(screen.getAllByText("모집 상태: 모집 중")).toHaveLength(2);
-    expect(screen.getByText("참여를 받고 있는 모임 상태예요.")).toBeInTheDocument();
-    expect(screen.getAllByText("결과 상태: NOT_RECORDED")).toHaveLength(2);
-    expect(screen.getByText("내 참가 상태: NOT_JOINED")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "참여하기" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "모임 목록으로 돌아가기" })).toHaveAttribute(
-      "href",
-      "/crews/11/meetings",
+
+    const detailSection = screen.getByRole("region", { name: "모임 상세 정보" });
+    const participationSection = screen.getByRole("region", { name: "모임 참가 상태" });
+    const operationSection = screen.getByRole("region", { name: "모임 운영" });
+
+    expect(within(detailSection).getByRole("heading", { name: "금요일 저녁 야식" })).toBeInTheDocument();
+    expect(within(detailSection).getByText("테마명: 야식")).toBeInTheDocument();
+    expect(within(detailSection).getByText("총 비용 안내: 120000원")).toBeInTheDocument();
+    expect(within(detailSection).getByText("1인당 예상 비용: 30000원")).toBeInTheDocument();
+    expect(
+      within(detailSection).getByText("연락 링크: https://open.kakao.com/o/example"),
+    ).toBeInTheDocument();
+    expect(within(participationSection).getByText("내 참가 상태: NOT_JOINED")).toBeInTheDocument();
+    expect(within(participationSection).getByRole("button", { name: "참여하기" })).toBeInTheDocument();
+    expect(within(operationSection).getByText("모집 상태: 모집 중")).toBeInTheDocument();
+  });
+
+  it("shows an edit entry only for the host when the meeting is editable", async () => {
+    mockCurrentUser(1);
+    mockCrewHub("LEADER");
+    vi.mocked(getMeetingDetail).mockResolvedValue(makeMeetingDetail());
+
+    render(
+      await CrewMeetingDetailPage({
+        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
+      }),
     );
+
+    const operationSection = await screen.findByRole("region", { name: "모임 운영" });
+
+    expect(within(operationSection).getByRole("link", { name: "모임 수정" })).toHaveAttribute(
+      "href",
+      "/crews/11/meetings/99/edit",
+    );
+  });
+
+  it("hides the edit entry for non-host users and completed meetings", async () => {
+    mockCurrentUser(44);
+    mockCrewHub("LEADER");
+    vi.mocked(getMeetingDetail).mockResolvedValue(makeMeetingDetail());
+
+    render(
+      await CrewMeetingDetailPage({
+        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
+      }),
+    );
+
+    const firstOperationSection = await screen.findByRole("region", { name: "모임 운영" });
+    expect(screen.getByText("내 참가 상태: NOT_JOINED")).toBeInTheDocument();
+    expect(
+      within(firstOperationSection).queryByRole("link", { name: "모임 수정" }),
+    ).not.toBeInTheDocument();
+
+    cleanup();
+    vi.clearAllMocks();
+    replaceMock.mockReset();
+
+    mockCurrentUser(1);
+    mockCrewHub("LEADER");
+    vi.mocked(getMeetingDetail).mockResolvedValue(
+      makeMeetingDetail({
+        status: "COMPLETED",
+      }),
+    );
+
+    render(
+      await CrewMeetingDetailPage({
+        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
+      }),
+    );
+
+    const secondOperationSection = await screen.findByRole("region", { name: "모임 운영" });
+    expect(within(secondOperationSection).getByText("모집 상태: 모임 종료")).toBeInTheDocument();
+    expect(
+      within(secondOperationSection).queryByRole("link", { name: "모임 수정" }),
+    ).not.toBeInTheDocument();
   });
 
   it("updates the participation status to joined after a successful instant join", async () => {
@@ -148,15 +211,19 @@ describe("MeetingDetailPage", () => {
       }),
     );
 
-    fireEvent.click(await screen.findByRole("button", { name: "참여하기" }));
+    const participationSection = await screen.findByRole("region", { name: "모임 참가 상태" });
+    fireEvent.click(within(participationSection).getByRole("button", { name: "참여하기" }));
 
     await waitFor(() => {
       expect(joinMeeting).toHaveBeenCalledWith(11, 99);
     });
 
     expect(await screen.findByText("내 참가 상태: JOINED")).toBeInTheDocument();
-    expect(screen.getByText("참여 중")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "참여취소" })).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("region", { name: "모임 참가 상태" })).getByRole("button", {
+        name: "참여취소",
+      }),
+    ).toBeInTheDocument();
   });
 
   it("updates the participation status to not-joined after a successful cancel", async () => {
@@ -178,47 +245,25 @@ describe("MeetingDetailPage", () => {
       }),
     );
 
-    fireEvent.click(await screen.findByRole("button", { name: "참여취소" }));
+    const participationSection = await screen.findByRole("region", { name: "모임 참가 상태" });
+    fireEvent.click(within(participationSection).getByRole("button", { name: "참여취소" }));
 
     await waitFor(() => {
       expect(cancelMeetingJoin).toHaveBeenCalledWith(11, 99);
     });
 
     expect(await screen.findByText("내 참가 상태: NOT_JOINED")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "참여하기" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "참여취소" })).not.toBeInTheDocument();
+    expect(
+      within(screen.getByRole("region", { name: "모임 참가 상태" })).getByRole("button", {
+        name: "참여하기",
+      }),
+    ).toBeInTheDocument();
   });
 
-  it("hides the cancel action for the meeting host", async () => {
-    mockCurrentUser(77);
+  it("shows operation actions for the host and updates the meeting status immediately", async () => {
+    mockCurrentUser(1);
     mockCrewHub("LEADER");
-    vi.mocked(getMeetingDetail).mockResolvedValue(
-      makeMeetingDetail({
-        hostUserId: 77,
-        myParticipationStatus: "JOINED",
-      }),
-    );
-
-    render(
-      await CrewMeetingDetailPage({
-        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
-      }),
-    );
-
-    expect(await screen.findByText("내 참가 상태: JOINED")).toBeInTheDocument();
-    expect(screen.getByText("참여 중")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "참여취소" })).not.toBeInTheDocument();
-  });
-
-  it("shows host operation actions for recruiting meetings and updates to recruitment closed", async () => {
-    mockCurrentUser(77);
-    mockCrewHub("LEADER");
-    vi.mocked(getMeetingDetail).mockResolvedValue(
-      makeMeetingDetail({
-        hostUserId: 77,
-        myParticipationStatus: "JOINED",
-      }),
-    );
+    vi.mocked(getMeetingDetail).mockResolvedValue(makeMeetingDetail());
     vi.mocked(closeMeetingRecruitment).mockResolvedValue({
       meetingId: 99,
       status: "RECRUITMENT_CLOSED",
@@ -230,154 +275,23 @@ describe("MeetingDetailPage", () => {
       }),
     );
 
-    expect(await screen.findByRole("button", { name: "모집마감" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "모임 취소" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "수동 오픈" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "모임 종료" })).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "모집마감" }));
+    const operationSection = await screen.findByRole("region", { name: "모임 운영" });
+    fireEvent.click(within(operationSection).getByRole("button", { name: "모집마감" }));
 
     await waitFor(() => {
       expect(closeMeetingRecruitment).toHaveBeenCalledWith(11, 99);
     });
 
-    expect(await screen.findAllByText("모집 상태: 모집 마감")).toHaveLength(2);
     expect(
-      screen.getByText("정원 도달 또는 시작 시간이 지나 자동으로 모집이 마감될 수 있어요."),
+      within(screen.getByRole("region", { name: "모임 운영" })).getByText("모집 상태: 모집 마감"),
     ).toBeInTheDocument();
   });
 
-  it("shows reopen, complete, and cancel for the host after recruitment is closed", async () => {
-    mockCurrentUser(77);
-    mockCrewHub("LEADER");
-    vi.mocked(getMeetingDetail).mockResolvedValue(
-      makeMeetingDetail({
-        hostUserId: 77,
-        myParticipationStatus: "JOINED",
-        status: "RECRUITMENT_CLOSED",
-      }),
-    );
-    vi.mocked(reopenMeetingRecruitment).mockResolvedValue({
-      meetingId: 99,
-      status: "RECRUITING",
-    });
-
-    render(
-      await CrewMeetingDetailPage({
-        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
-      }),
-    );
-
-    expect(await screen.findByRole("button", { name: "수동 오픈" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "모임 종료" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "모임 취소" })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "수동 오픈" }));
-
-    await waitFor(() => {
-      expect(reopenMeetingRecruitment).toHaveBeenCalledWith(11, 99);
-    });
-
-    expect(await screen.findAllByText("모집 상태: 모집 중")).toHaveLength(2);
-  });
-
-  it("lets the host complete a closed meeting", async () => {
-    mockCurrentUser(77);
-    mockCrewHub("LEADER");
-    vi.mocked(getMeetingDetail).mockResolvedValue(
-      makeMeetingDetail({
-        hostUserId: 77,
-        myParticipationStatus: "JOINED",
-        status: "RECRUITMENT_CLOSED",
-      }),
-    );
-    vi.mocked(completeMeeting).mockResolvedValue({
-      meetingId: 99,
-      status: "COMPLETED",
-    });
-
-    render(
-      await CrewMeetingDetailPage({
-        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
-      }),
-    );
-
-    fireEvent.click(await screen.findByRole("button", { name: "모임 종료" }));
-
-    await waitFor(() => {
-      expect(completeMeeting).toHaveBeenCalledWith(11, 99);
-    });
-
-    expect(await screen.findAllByText("모집 상태: 모임 종료")).toHaveLength(2);
-    expect(screen.getByText("시작 후 시간이 지나 자동으로 종료된 모임을 포함해요.")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "모임 종료" })).not.toBeInTheDocument();
-  });
-
-  it("lets a crew leader cancel a recruiting meeting but hides host-only actions", async () => {
-    mockCurrentUser(44);
-    mockCrewHub("LEADER");
-    vi.mocked(getMeetingDetail).mockResolvedValue(
-      makeMeetingDetail({
-        hostUserId: 77,
-        myParticipationStatus: "JOINED",
-      }),
-    );
-    vi.mocked(cancelMeeting).mockResolvedValue({
-      meetingId: 99,
-      status: "CANCELED",
-    });
-
-    render(
-      await CrewMeetingDetailPage({
-        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
-      }),
-    );
-
-    expect(await screen.findByRole("button", { name: "모임 취소" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "모집마감" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "수동 오픈" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "모임 종료" })).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "모임 취소" }));
-
-    await waitFor(() => {
-      expect(cancelMeeting).toHaveBeenCalledWith(11, 99);
-    });
-
-    expect(await screen.findAllByText("모집 상태: 모임 취소")).toHaveLength(2);
-    expect(screen.getByText("취소되어 더 이상 진행되지 않는 모임이에요.")).toBeInTheDocument();
-  });
-
-  it("hides all operation buttons for a regular participant", async () => {
-    mockCurrentUser(44);
-    mockCrewHub("MEMBER");
-    vi.mocked(getMeetingDetail).mockResolvedValue(
-      makeMeetingDetail({
-        hostUserId: 77,
-        myParticipationStatus: "JOINED",
-      }),
-    );
-
-    render(
-      await CrewMeetingDetailPage({
-        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
-      }),
-    );
-
-    expect(await screen.findByText("내 참가 상태: JOINED")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "모집마감" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "수동 오픈" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "모임 취소" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "모임 종료" })).not.toBeInTheDocument();
-  });
-
   it("shows result input actions only for the host when the meeting is completed and not recorded", async () => {
-    mockCurrentUser(77);
+    mockCurrentUser(1);
     mockCrewHub("LEADER");
     vi.mocked(getMeetingDetail).mockResolvedValue(
       makeMeetingDetail({
-        hostUserId: 77,
-        myParticipationStatus: "JOINED",
         status: "COMPLETED",
         result: "NOT_RECORDED",
       }),
@@ -397,12 +311,10 @@ describe("MeetingDetailPage", () => {
   });
 
   it("updates the result immediately after the host records success", async () => {
-    mockCurrentUser(77);
+    mockCurrentUser(1);
     mockCrewHub("LEADER");
     vi.mocked(getMeetingDetail).mockResolvedValue(
       makeMeetingDetail({
-        hostUserId: 77,
-        myParticipationStatus: "JOINED",
         status: "COMPLETED",
         result: "NOT_RECORDED",
       }),
@@ -418,88 +330,21 @@ describe("MeetingDetailPage", () => {
       }),
     );
 
-    fireEvent.click(await screen.findByRole("button", { name: "성공" }));
+    const resultSection = await screen.findByRole("region", { name: "모임 결과" });
+    fireEvent.click(within(resultSection).getByRole("button", { name: "성공" }));
 
     await waitFor(() => {
       expect(recordMeetingResult).toHaveBeenCalledWith(11, 99, "SUCCESS");
     });
 
-    const resultSection = await screen.findByRole("region", { name: "모임 결과" });
-
-    expect(within(resultSection).getByText("결과 상태: SUCCESS")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "성공" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "실패" })).not.toBeInTheDocument();
+    const updatedResultSection = await screen.findByRole("region", { name: "모임 결과" });
+    expect(within(updatedResultSection).getByText("결과 상태: SUCCESS")).toBeInTheDocument();
+    expect(within(updatedResultSection).queryByRole("button", { name: "성공" })).not.toBeInTheDocument();
+    expect(within(updatedResultSection).queryByRole("button", { name: "실패" })).not.toBeInTheDocument();
   });
 
-  it("keeps the result section read-only for non-host users", async () => {
+  it("redirects non-members to the public crew introduction", async () => {
     mockCurrentUser(44);
-    mockCrewHub("LEADER");
-    vi.mocked(getMeetingDetail).mockResolvedValue(
-      makeMeetingDetail({
-        hostUserId: 77,
-        myParticipationStatus: "JOINED",
-        status: "COMPLETED",
-        result: "NOT_RECORDED",
-      }),
-    );
-
-    render(
-      await CrewMeetingDetailPage({
-        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
-      }),
-    );
-
-    const resultSection = await screen.findByRole("region", { name: "모임 결과" });
-
-    expect(within(resultSection).getByText("결과 상태: NOT_RECORDED")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "성공" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "실패" })).not.toBeInTheDocument();
-  });
-
-  it("keeps an already recorded result in read-only mode even for the host", async () => {
-    mockCurrentUser(77);
-    mockCrewHub("LEADER");
-    vi.mocked(getMeetingDetail).mockResolvedValue(
-      makeMeetingDetail({
-        hostUserId: 77,
-        myParticipationStatus: "JOINED",
-        status: "COMPLETED",
-        result: "FAILURE",
-      }),
-    );
-
-    render(
-      await CrewMeetingDetailPage({
-        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
-      }),
-    );
-
-    const resultSection = await screen.findByRole("region", { name: "모임 결과" });
-
-    expect(within(resultSection).getByText("결과 상태: FAILURE")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "성공" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "실패" })).not.toBeInTheDocument();
-  });
-
-  it("shows a safe failure state and redirects non-members to the public crew introduction", async () => {
-    mockCurrentUser(44);
-    mockCrewHub();
-    vi.mocked(getMeetingDetail).mockRejectedValueOnce(new Error("boom"));
-
-    render(
-      await CrewMeetingDetailPage({
-        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
-      }),
-    );
-
-    expect(
-      await screen.findByText("모임 상세를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."),
-    ).toBeInTheDocument();
-
-    cleanup();
-    vi.clearAllMocks();
-    replaceMock.mockReset();
-
     const { OperationalError } = await import("@/shared/errors/operational");
 
     vi.mocked(getCrewHub).mockRejectedValue(
