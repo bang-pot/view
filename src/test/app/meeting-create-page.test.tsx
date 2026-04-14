@@ -27,8 +27,6 @@ vi.mock("@/shared/crew/client", () => ({
 
 vi.mock("@/shared/meeting/client", () => ({
   createMeeting: vi.fn(),
-  getMeetings: vi.fn(),
-  getMeetingDetail: vi.fn(),
 }));
 
 describe("MeetingCreatePage", () => {
@@ -100,10 +98,16 @@ describe("MeetingCreatePage", () => {
     vi.mocked(createMeeting).mockResolvedValue({
       meetingId: 99,
       crewId: 11,
-      themeName: "세븐클루스",
-      place: "강남점",
+      hostUserId: 1,
+      title: "금요일 한강 러닝",
+      themeName: "러닝",
+      place: "강남역",
       date: "2026-04-20",
       time: "19:30",
+      capacity: 4,
+      totalCost: 120000,
+      contactLink: "https://open.kakao.com/o/example",
+      description: "지각 없이 모여 주세요",
       status: "RECRUITING",
       result: "NOT_RECORDED",
     });
@@ -112,28 +116,30 @@ describe("MeetingCreatePage", () => {
 
     expect(await screen.findByRole("heading", { name: "모임 만들기" })).toBeInTheDocument();
 
+    fireEvent.change(screen.getByLabelText("제목"), { target: { value: "금요일 한강 러닝" } });
     fireEvent.change(screen.getByLabelText("날짜"), { target: { value: "2026-04-20" } });
     fireEvent.change(screen.getByLabelText("시간"), { target: { value: "19:30" } });
-    fireEvent.change(screen.getByLabelText("장소"), { target: { value: "강남점" } });
-    fireEvent.change(screen.getByLabelText("테마명"), { target: { value: "세븐클루스" } });
+    fireEvent.change(screen.getByLabelText("장소"), { target: { value: "강남역" } });
+    fireEvent.change(screen.getByLabelText("테마명"), { target: { value: "러닝" } });
     fireEvent.change(screen.getByLabelText("정원"), { target: { value: "4" } });
-    fireEvent.change(screen.getByLabelText("총 비용"), { target: { value: "120000" } });
-    fireEvent.change(screen.getByLabelText("예약 링크"), { target: { value: "https://example.com/reserve" } });
-    fireEvent.change(screen.getByLabelText("오픈채팅 링크"), { target: { value: "https://open.kakao.com/o/example" } });
-    fireEvent.change(screen.getByLabelText("설명"), { target: { value: "지각 없이 모여 주세요." } });
+    fireEvent.change(screen.getByLabelText("비용 안내 (총 비용)"), { target: { value: "120000" } });
+    fireEvent.change(screen.getByLabelText("연락 링크"), {
+      target: { value: "https://open.kakao.com/o/example" },
+    });
+    fireEvent.change(screen.getByLabelText("설명"), { target: { value: "지각 없이 모여 주세요" } });
     fireEvent.click(screen.getByRole("button", { name: "모임 생성" }));
 
     await waitFor(() => {
       expect(createMeeting).toHaveBeenCalledWith(11, {
+        title: "금요일 한강 러닝",
         date: "2026-04-20",
         time: "19:30",
-        place: "강남점",
-        themeName: "세븐클루스",
+        place: "강남역",
+        themeName: "러닝",
         capacity: 4,
         totalCost: 120000,
-        reservationLink: "https://example.com/reserve",
-        openChatLink: "https://open.kakao.com/o/example",
-        description: "지각 없이 모여 주세요.",
+        contactLink: "https://open.kakao.com/o/example",
+        description: "지각 없이 모여 주세요",
       });
     });
 

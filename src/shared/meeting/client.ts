@@ -10,6 +10,8 @@ import type {
   MeetingResult,
   MeetingResultRecordResponse,
   MeetingStatusUpdateResponse,
+  UpdateMeetingInput,
+  UpdateMeetingResponse,
 } from "@/shared/meeting/types";
 
 function getApiBaseUrl(): string {
@@ -67,6 +69,29 @@ export async function getMeetingDetail(
     {
       code: "MEETING_DETAIL_REQUEST_FAILED",
       message: "모임 상세를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function updateMeeting(
+  crewId: number,
+  meetingId: number,
+  input: UpdateMeetingInput,
+): Promise<UpdateMeetingResponse> {
+  return requestJson<UpdateMeetingResponse>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/meetings/${meetingId}`,
+    {
+      method: "PATCH",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    },
+    {
+      code: "MEETING_UPDATE_FAILED",
+      message: "모임 정보를 수정하지 못했습니다. 입력값을 다시 확인해 주세요.",
     },
   );
 }

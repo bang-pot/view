@@ -9,30 +9,37 @@ export type MeetingResult = "NOT_RECORDED" | "SUCCESS" | "FAILURE";
 export type MeetingParticipationStatus = "NOT_JOINED" | "JOINED";
 
 export type CreateMeetingInput = {
+  title: string;
   date: string;
   time: string;
   place: string;
   themeName: string;
   capacity: number;
   totalCost: number | null;
-  reservationLink: string | null;
-  openChatLink: string | null;
+  contactLink: string | null;
   description: string | null;
 };
 
 export type CreateMeetingResponse = {
   meetingId: number;
   crewId: number;
+  hostUserId: number;
+  title: string;
   themeName: string;
   place: string;
   date: string;
   time: string;
+  capacity: number;
+  totalCost: number | null;
+  contactLink: string | null;
+  description: string | null;
   status: MeetingStatus;
   result: MeetingResult;
 };
 
 export type MeetingListItem = {
   meetingId: number;
+  title?: string;
   themeName: string;
   place: string;
   date: string;
@@ -46,18 +53,47 @@ export type MeetingDetail = {
   meetingId: number;
   crewId: number;
   hostUserId: number;
+  title: string;
   themeName: string;
   place: string;
   date: string;
   time: string;
   capacity: number;
   totalCost: number | null;
-  reservationLink: string | null;
-  openChatLink: string | null;
+  contactLink: string | null;
   description: string | null;
   status: MeetingStatus;
   result: MeetingResult;
   myParticipationStatus: MeetingParticipationStatus;
+};
+
+export type UpdateMeetingInput = {
+  title: string;
+  themeName: string;
+  place: string;
+  date: string;
+  time: string;
+  capacity: number;
+  description: string | null;
+  totalCost: number | null;
+  contactLink: string | null;
+};
+
+export type UpdateMeetingResponse = {
+  meetingId: number;
+  crewId: number;
+  hostUserId: number;
+  title: string;
+  themeName: string;
+  place: string;
+  date: string;
+  time: string;
+  capacity: number;
+  totalCost: number | null;
+  contactLink: string | null;
+  description: string | null;
+  status: MeetingStatus;
+  result: MeetingResult;
 };
 
 export type JoinMeetingResponse = {
