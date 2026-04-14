@@ -70,6 +70,10 @@ export type CrewRemoveMemberResponse = {
   removedUserId: number;
 };
 
+export type CrewDeleteResponse = {
+  crewId: number;
+};
+
 export type CrewMemberRole = "LEADER" | "MEMBER";
 
 export type CrewMember = {

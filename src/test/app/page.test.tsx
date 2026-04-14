@@ -82,4 +82,19 @@ describe("Home page", () => {
 
     expect(await screen.findByText("크루를 탈퇴했습니다.")).toBeInTheDocument();
   });
+
+  it("shows a crew delete success message after the redirect back home", async () => {
+    vi.mocked(getMe).mockResolvedValue({
+      authStatus: "FULL",
+      completionRequired: false,
+      redirectTo: null,
+      requiredTermsVersion: "2026-03-25",
+      user: { id: 1, nickname: "bangpot" },
+      requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
+    });
+
+    render(await Home({ searchParams: Promise.resolve({ notice: "crew-deleted" }) }));
+
+    expect(await screen.findByText("크루를 삭제했습니다.")).toBeInTheDocument();
+  });
 });

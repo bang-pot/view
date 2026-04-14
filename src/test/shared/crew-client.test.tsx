@@ -5,6 +5,7 @@ import {
   createCrew,
   createCrewInvite,
   createCrewJoinRequest,
+  deleteCrew,
   removeCrewMember,
   transferCrewLeadership,
   leaveCrew,
@@ -418,6 +419,39 @@ describe("crew client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
+      }),
+    );
+  });
+
+  it("posts a crew delete request with the crew name confirmation body", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          crewId: 11,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await deleteCrew(11, "Night runners");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/delete",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          crewName: "Night runners",
+        }),
       }),
     );
   });
