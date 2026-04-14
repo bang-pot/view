@@ -211,9 +211,9 @@ export function ArchiveMeetingsPageClient() {
                   <Link href={`/crews/${item.crewId}/meetings/${item.meetingId}`}>
                     모임 다시 보기
                   </Link>
-                  <button type="button" disabled>
-                    기록 준비중
-                  </button>
+                  <Link href={`/crews/${item.crewId}/meetings/${item.meetingId}/log`}>
+                    방탈로그 작성·수정
+                  </Link>
                 </div>
               </li>
             ))}

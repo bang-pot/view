@@ -2,9 +2,9 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ArchiveMeetingsPage from "@/app/archive/meetings/page";
+import { getArchiveMeetings } from "@/shared/archive/client";
 import { getMe } from "@/shared/auth/client";
 import { OperationalError } from "@/shared/errors/operational";
-import { getArchiveMeetings } from "@/shared/archive/client";
 
 const replaceMock = vi.fn();
 
@@ -49,7 +49,7 @@ describe("ArchiveMeetingsPage", () => {
           meetingId: 101,
           crewId: 11,
           crewName: "미드나잇 러너스",
-          themeName: "사라진 서재",
+          themeName: "브레이크아웃",
           place: "강남 이스케이프",
           date: "2026-04-10",
           result: "SUCCESS",
@@ -66,13 +66,16 @@ describe("ArchiveMeetingsPage", () => {
     render(await ArchiveMeetingsPage());
 
     expect(await screen.findByRole("heading", { name: "완료된 모임 아카이브" })).toBeInTheDocument();
-    expect(screen.getByText("사라진 서재")).toBeInTheDocument();
+    expect(screen.getByText("브레이크아웃")).toBeInTheDocument();
     expect(screen.getByText("미드나잇 러너스")).toBeInTheDocument();
     expect(screen.getByText("강남 이스케이프")).toBeInTheDocument();
     expect(screen.getByText("2026-04-10")).toBeInTheDocument();
     expect(screen.getByText("결과 성공")).toBeInTheDocument();
     expect(screen.getByText("대표 이미지 준비 중")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "기록 준비중" })).toBeDisabled();
+    expect(screen.getByRole("link", { name: "방탈로그 작성·수정" })).toHaveAttribute(
+      "href",
+      "/crews/11/meetings/101/log",
+    );
     expect(getArchiveMeetings).toHaveBeenCalledWith({
       page: 0,
       size: 20,
@@ -113,7 +116,7 @@ describe("ArchiveMeetingsPage", () => {
           meetingId: 101,
           crewId: 11,
           crewName: "미드나잇 러너스",
-          themeName: "사라진 서재",
+          themeName: "브레이크아웃",
           place: "강남 이스케이프",
           date: "2026-04-10",
           result: "SUCCESS",
@@ -137,8 +140,8 @@ describe("ArchiveMeetingsPage", () => {
         {
           meetingId: 102,
           crewId: 12,
-          crewName: "방탈출 야행",
-          themeName: "유령 호텔",
+          crewName: "방탈출 원정대",
+          themeName: "고스트 호텔",
           place: "홍대 이스케이프",
           date: "2026-04-11",
           result: "FAILURE",
@@ -154,7 +157,7 @@ describe("ArchiveMeetingsPage", () => {
     fireEvent.click(await screen.findByRole("button", { name: "더 보기" }));
 
     await waitFor(() => {
-      expect(screen.getByText("유령 호텔")).toBeInTheDocument();
+      expect(screen.getByText("고스트 호텔")).toBeInTheDocument();
     });
     expect(getArchiveMeetings).toHaveBeenCalledWith({
       page: 1,

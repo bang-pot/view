@@ -6,7 +6,12 @@ export type MeetingStatus =
 
 export type MeetingResult = "NOT_RECORDED" | "SUCCESS" | "FAILURE";
 
-export type MeetingParticipationStatus = "NOT_JOINED" | "JOINED";
+export type MeetingParticipationStatus =
+  | "NOT_JOINED"
+  | "JOINED"
+  | "LEFT"
+  | "PENDING"
+  | "APPROVED";
 
 export type CreateMeetingInput = {
   title: string;

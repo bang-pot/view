@@ -864,4 +864,58 @@ npm.cmd run build
 - 빈 상태, 로딩 상태, 에러 상태 문구가 깨지지 않는 것을 확인했습니다.
 - CTA는 `기록 준비중`으로만 노출되고, 실제 로그 작성 / 수정 / 삭제로 확장되지 않는 것을 확인했습니다.
 
+## Gallery / Log Round 02 방탈로그 작성 / 수정 / 삭제
+
+- `/crews/{crewId}/meetings/{meetingId}/log`
+  - 완료된 모임의 host 또는 `JOINED` / `PENDING` / `APPROVED` 참여 이력이 있는 사용자만 방탈로그를 작성할 수 있도록 연결했습니다.
+  - `GET /api/meetings/{meetingId}/logs/me`가 404를 주면 아직 내 로그가 없는 상태로 해석해 작성 모드로 진입합니다.
+  - 이미 내 로그가 있으면 `GET /api/logs/{logId}`로 본문과 사진 메타데이터를 불러와 수정 모드로 진입합니다.
+- meeting 상세 / archive CTA
+  - meeting 상세에서는 완료된 모임 기준으로 내 로그가 없으면 `방탈로그 작성하기`, 있으면 `방탈로그 수정하기` 링크를 노출합니다.
+  - archive 카드에서는 `방탈로그 작성·수정` 링크로 같은 경로를 재사용합니다.
+- 작성 / 수정 공용 폼
+  - 본문은 필수이며 최대 1000자 제한과 현재 글자 수를 함께 보여줍니다.
+  - 사진은 파일 선택 UI로 받고, 선택 직후 `POST /api/uploads/log-photos`를 호출합니다.
+  - 업로드가 끝난 사진만 `photos[{ url, sizeBytes }]`로 저장 / 수정 payload에 포함합니다.
+  - 사진 제약:
+    - 최대 5장
+    - `jpg` / `jpeg` / `png`
+    - 한 장당 5MB 이하
+- 저장 / 삭제 후 흐름
+  - 저장 / 수정 성공 시 `/logs/{logId}` 상세 화면으로 이동합니다.
+  - 삭제 성공 시 같은 편집 화면에서 다시 작성 가능한 create 상태로 돌아갑니다.
+- `/logs/{logId}`
+  - meeting 제목, 테마명, 장소, 날짜, 작성자 닉네임, 작성/수정 시각, 본문, 사진 목록을 읽기 전용으로 보여줍니다.
+  - 사진이 없으면 `등록된 사진이 없어요.` fallback 문구를 보여줍니다.
+- 범위 제한
+  - 이번 라운드는 작성 / 수정 / 삭제 / 상세 조회까지만 엽니다.
+  - 리더 운영 삭제, 알림, 댓글, 좋아요, 전체 피드 고도화는 아직 열지 않습니다.
+
+### Gallery / Log Round 02 자동 검증
+
+- `npm.cmd run test -- src/test/shared/log-client.test.tsx src/test/app/meeting-log-editor-page.test.tsx src/test/app/log-detail-page.test.tsx src/test/app/meeting-detail-page.test.tsx src/test/app/archive-meetings-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+- 모두 통과했습니다.
+
+### Gallery / Log Round 02 수동 검증
+
+- 완료된 모임 참여자가 meeting 상세와 archive에서 방탈로그 작성 / 수정 진입을 할 수 있는 것을 확인했습니다.
+- 한 참여자가 같은 meeting에 로그 1개만 작성하고, 저장 / 수정 후 `/logs/{logId}` 상세 화면으로 이동하는 것을 확인했습니다.
+- 작성자 본인만 수정 / 삭제할 수 있고, 삭제 후에는 다시 작성 가능한 상태로 돌아가는 것을 확인했습니다.
+- 사진은 파일 선택 후 업로드되고, 업로드가 끝난 사진만 저장되는 것을 확인했습니다.
+- 사진 개수 / 확장자 / 용량 제약이 UI에서도 동작하는 것을 확인했습니다.
+- 사진이 없는 상세 fallback, 비로그인 / 비멤버 차단, 미완료 모임 작성 차단이 깨지지 않는 것을 확인했습니다.
+
+### Gallery / Log Round 02 정합성 보정 메모
+
+- backend 현재 계약 기준으로 로그 상세 응답의 `photos`는 `string[]`로 소비합니다.
+- editor 내부에서는 기존 사진과 새 업로드 사진을 분리 관리합니다.
+  - 기존 사진: `kind: "existing", url`
+  - 새 업로드 사진: `kind: "uploaded", url, sizeBytes`
+- 수정 저장 시 기존 사진은 유실을 막기 위해 프론트 호환용 `sizeBytes: 1`을 채워 payload에 다시 포함합니다.
+- 이 값은 backend 상세 응답과 수정 payload shape 차이를 메우기 위한 임시 workaround입니다.
+
 
