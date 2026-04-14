@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   getExploreFilters,
+  getExploreMeetingCreateCrews,
   getExploreThemeDetail,
   getExploreThemes,
 } from "@/shared/explore/client";
@@ -99,7 +100,7 @@ describe("explore client", () => {
       new Response(
         JSON.stringify({
           themeId: 7,
-          themeName: "심야 추적",
+          themeName: "사라진 서재",
           storeId: 3,
           storeName: "강남 이스케이프",
           regionLabel: "서울 강남",
@@ -125,6 +126,38 @@ describe("explore client", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/backend/api/explore/themes/7",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("loads the logged-in user's crews for meeting creation", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          crews: [
+            {
+              crewId: 11,
+              crewName: "미드나잇 러너스",
+            },
+          ],
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getExploreMeetingCreateCrews();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/explore/meeting-create/crews",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",

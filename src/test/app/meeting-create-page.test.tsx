@@ -174,4 +174,46 @@ describe("MeetingCreatePage", () => {
       expect(replaceMock).toHaveBeenCalledWith("/crews/public/11");
     });
   });
+
+  it("prefills meeting defaults from explore theme query params", async () => {
+    vi.mocked(getMe).mockResolvedValue({
+      authStatus: "FULL",
+      completionRequired: false,
+      redirectTo: null,
+      requiredTermsVersion: "2026-03-25",
+      user: { id: 1, nickname: "bangpot" },
+      requiredTermsAcceptedAt: "2026-04-08T00:00:00Z",
+    });
+    vi.mocked(getCrewHub).mockResolvedValue({
+      crewId: 11,
+      name: "Night runners",
+      description: "Private crew for late runners",
+      visibility: "PRIVATE",
+      imageUrl: null,
+      myRole: "MEMBER",
+      hasNotice: false,
+      pendingJoinRequestCount: 0,
+    });
+
+    render(
+      await CrewMeetingCreatePage({
+        params: Promise.resolve({ crewId: "11" }),
+        searchParams: Promise.resolve({
+          themeName: "사라진 서재",
+          storeName: "강남 이스케이프",
+          regionLabel: "서울 강남",
+          genre: "추리",
+          difficulty: "보통",
+          runningTimeMinutes: "70",
+        }),
+      } as never),
+    );
+
+    expect(await screen.findByRole("heading", { name: "모임 만들기" })).toBeInTheDocument();
+    expect(screen.getByLabelText("테마명")).toHaveValue("사라진 서재");
+    expect(screen.getByLabelText("장소")).toHaveValue("서울 강남 · 강남 이스케이프");
+    expect(screen.getByLabelText("설명")).toHaveValue(
+      "매장: 강남 이스케이프\n지역: 서울 강남\n장르: 추리\n난이도: 보통\n플레이 시간: 70분",
+    );
+  });
 });
