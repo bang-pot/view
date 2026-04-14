@@ -2,6 +2,7 @@ import { requestJson } from "@/shared/api/client";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
 import type {
   ExploreFiltersResponse,
+  ExploreThemeDetail,
   ExploreThemesQuery,
   ExploreThemesResponse,
 } from "@/shared/explore/types";
@@ -67,6 +68,24 @@ export async function getExploreThemes(
     {
       code: "EXPLORE_THEMES_LOAD_FAILED",
       userMessage: "탐색 결과를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getExploreThemeDetail(themeId: number): Promise<ExploreThemeDetail> {
+  const { apiBaseUrl } = getPublicRuntimeConfig();
+
+  return requestJson<ExploreThemeDetail>(
+    apiBaseUrl,
+    `/api/explore/themes/${themeId}`,
+    {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "EXPLORE_THEME_DETAIL_LOAD_FAILED",
+      userMessage: "테마 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

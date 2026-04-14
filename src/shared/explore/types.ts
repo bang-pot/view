@@ -43,3 +43,18 @@ export type ExploreThemesQuery = {
   page: number;
   size: number;
 };
+
+export type ExploreThemeDetail = {
+  themeId: number;
+  themeName: string;
+  storeId: number;
+  storeName: string;
+  regionLabel: string;
+  genre: string | null;
+  posterImageUrl: string | null;
+  difficulty: string | null;
+  runningTimeMinutes: number | null;
+  description: string | null;
+  externalLink: string | null;
+  relatedThemes: ExploreThemeCard[];
+};
