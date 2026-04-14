@@ -619,3 +619,48 @@ npm.cmd run build
 - 일반 크루원에게는 `퇴출` 버튼이 노출되지 않는 것을 확인했습니다.
 - 퇴출된 사용자는 이후 내부 크루 허브와 같은 크루 meeting 경로에 더 이상 접근하지 못하는 것을 확인했습니다.
 
+## Crew Round 11D 크루 삭제
+
+- `/crews/{crewId}/settings`
+  - 현재 크루장만 하단의 `크루 삭제` 위험 영역을 봅니다.
+  - 일반 크루원은 기존 탈퇴 섹션만 보고, 크루 삭제 UI는 보지 않습니다.
+- 삭제 확인 흐름
+  - `현재 크루명` 입력란에 실제 크루명을 다시 입력해야만 `크루 삭제` 버튼이 활성화됩니다.
+  - 삭제 버튼 클릭 시 브라우저 확인 모달로 한 번 더 확인합니다.
+  - 화면에는 아래 안내를 항상 같이 보여줍니다.
+    - `다른 크루원이 남아 있으면 삭제할 수 없어요`
+    - `진행 중이거나 모집 중인 모임이 남아 있으면 삭제할 수 없어요`
+- 크루 삭제 요청
+  - `POST /api/crews/{crewId}/delete`
+  - body: `{ crewName }`
+  - 성공 시 `/`로 이동하고 홈에서 `크루를 삭제했습니다.` 피드백을 보여줍니다.
+- 실패 안내
+  - `CREW_DELETE_NOT_ALLOWED_WITH_ACTIVE_MEMBERS`
+    - `다른 크루원이 남아 있어 삭제할 수 없어요`
+  - `CREW_DELETE_NOT_ALLOWED_WITH_ACTIVE_MEETINGS`
+    - `진행 중이거나 모집 중인 모임이 남아 있어 삭제할 수 없어요`
+  - `CREW_DELETE_NAME_MISMATCH`
+    - `크루명이 일치하지 않아요`
+  - `AUTH_ACCESS_DENIED`
+    - `현재 크루장만 삭제할 수 있어요.`
+- 접근 권한 회수
+  - 삭제 후에는 backend가 `DELETED` 크루를 일반 consumer에서 숨기므로, 내부 허브 / 공개 소개 / 멤버 목록 / 정책 화면 어디에서도 더 이상 살아있는 크루처럼 보이지 않습니다.
+
+### Crew Round 11D 자동 검증
+
+- `npm.cmd run test -- src/test/shared/crew-client.test.tsx src/test/app/crew-settings-page.test.tsx src/test/app/page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+- 모두 통과했습니다.
+
+### Crew Round 11D 수동 검증
+
+- 현재 크루장이 settings 화면에서 크루명 재입력 후 삭제를 실행할 수 있는 것을 확인했습니다.
+- 크루명 불일치 시 삭제 버튼이 활성화되지 않는 것을 확인했습니다.
+- 다른 크루원이 남아 있거나 미완료 모임이 남아 있는 경우 자연스러운 차단 문구가 보이는 것을 확인했습니다.
+- 삭제 성공 후 홈으로 이동하고 `크루를 삭제했습니다.` 피드백이 노출되는 것을 확인했습니다.
+- 삭제 후 같은 크루의 내부 허브 / 공개 소개 / 멤버 / 정책 경로에 더 이상 접근되지 않는 것을 확인했습니다.
+
+

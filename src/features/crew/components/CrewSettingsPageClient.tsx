@@ -11,7 +11,7 @@ import {
   isOperationalError,
   toOperationalError,
 } from "@/shared/errors/operational";
-import { getCrewHub, leaveCrew, updateCrewVisibility } from "@/shared/crew/client";
+import { deleteCrew, getCrewHub, leaveCrew, updateCrewVisibility } from "@/shared/crew/client";
 import type { CrewHubResponse, CrewVisibility } from "@/shared/crew/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
@@ -45,15 +45,40 @@ function getLeaveErrorMessage(error: unknown): string {
   return getUserMessage(error, "크루를 탈퇴하지 못했습니다. 잠시 후 다시 시도해 주세요.");
 }
 
+function getDeleteErrorMessage(error: unknown): string {
+  if (isOperationalError(error)) {
+    if (error.code === "CREW_DELETE_NOT_ALLOWED_WITH_ACTIVE_MEMBERS") {
+      return "다른 크루원이 남아 있어 삭제할 수 없어요";
+    }
+
+    if (error.code === "CREW_DELETE_NOT_ALLOWED_WITH_ACTIVE_MEETINGS") {
+      return "진행 중이거나 모집 중인 모임이 남아 있어 삭제할 수 없어요";
+    }
+
+    if (error.code === "CREW_DELETE_NAME_MISMATCH") {
+      return "크루명이 일치하지 않아요";
+    }
+
+    if (error.code === "AUTH_ACCESS_DENIED") {
+      return "현재 크루장만 삭제할 수 있어요.";
+    }
+  }
+
+  return getUserMessage(error, "크루를 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+}
+
 export function CrewSettingsPageClient({ crewId }: CrewSettingsPageClientProps) {
   const router = useRouter();
   const [crew, setCrew] = useState<CrewHubResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [visibilityErrorMessage, setVisibilityErrorMessage] = useState<string | null>(null);
   const [leaveErrorMessage, setLeaveErrorMessage] = useState<string | null>(null);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteCrewName, setDeleteCrewName] = useState("");
 
   const crewIdNumber = Number(crewId);
   const hasValidCrewId = Number.isFinite(crewIdNumber);
@@ -190,6 +215,33 @@ export function CrewSettingsPageClient({ crewId }: CrewSettingsPageClientProps) 
     }
   }
 
+  async function handleDelete() {
+    if (!crew || crew.myRole !== "LEADER" || isDeleting || deleteCrewName !== crew.name) {
+      return;
+    }
+
+    const shouldDelete = window.confirm("정말 크루를 삭제할까요?");
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteErrorMessage(null);
+
+    try {
+      await deleteCrew(crew.crewId, deleteCrewName);
+      router.replace("/?notice=crew-deleted");
+    } catch (error) {
+      reportOperationalError("crew.delete_failed", error, {
+        route,
+      });
+      setDeleteErrorMessage(getDeleteErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   if (!hasValidCrewId) {
     return (
       <main>
@@ -223,6 +275,7 @@ export function CrewSettingsPageClient({ crewId }: CrewSettingsPageClientProps) 
 
   const isLeader = crew.myRole === "LEADER";
   const isPublic = crew.visibility === "PUBLIC";
+  const canDeleteCrew = isLeader && deleteCrewName === crew.name && !isDeleting;
 
   return (
     <main>
@@ -265,6 +318,29 @@ export function CrewSettingsPageClient({ crewId }: CrewSettingsPageClientProps) 
           </>
         )}
       </section>
+
+      {isLeader ? (
+        <section aria-label="크루 삭제">
+          <h2>크루 삭제</h2>
+          <p>다른 크루원이 남아 있으면 삭제할 수 없어요</p>
+          <p>진행 중이거나 모집 중인 모임이 남아 있으면 삭제할 수 없어요</p>
+          <label>
+            <span>현재 크루명</span>
+            <input
+              type="text"
+              aria-label="현재 크루명"
+              value={deleteCrewName}
+              onChange={(event) => {
+                setDeleteCrewName(event.target.value);
+              }}
+            />
+          </label>
+          {deleteErrorMessage ? <p>{deleteErrorMessage}</p> : null}
+          <button type="button" onClick={handleDelete} disabled={!canDeleteCrew}>
+            {isDeleting ? "크루 삭제 중..." : "크루 삭제"}
+          </button>
+        </section>
+      ) : null}
 
       <Link href={hubPath}>크루 허브로 돌아가기</Link>
     </main>

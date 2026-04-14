@@ -16,6 +16,7 @@ import type {
   CrewJoinRequestRejectResponse,
   CrewJoinRequestResponse,
   CrewLeaveResponse,
+  CrewDeleteResponse,
   CrewRemoveMemberResponse,
   CrewTransferLeadershipResponse,
   CrewJoinViewResponse,
@@ -128,6 +129,30 @@ export async function leaveCrew(crewId: number): Promise<CrewLeaveResponse> {
     {
       code: "CREW_LEAVE_FAILED",
       message: "크루를 탈퇴하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function deleteCrew(
+  crewId: number,
+  crewName: string,
+): Promise<CrewDeleteResponse> {
+  return requestJson<CrewDeleteResponse>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/delete`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        crewName,
+      }),
+    },
+    {
+      code: "CREW_DELETE_FAILED",
+      message: "크루를 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

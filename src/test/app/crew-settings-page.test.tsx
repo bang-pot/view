@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import CrewSettingsPage from "@/app/crews/[crewId]/settings/page";
 import { getMe } from "@/shared/auth/client";
-import { getCrewHub, leaveCrew, updateCrewVisibility } from "@/shared/crew/client";
+import { deleteCrew, getCrewHub, leaveCrew, updateCrewVisibility } from "@/shared/crew/client";
 
 const replaceMock = vi.fn();
 const routerMock = {
@@ -26,6 +26,7 @@ vi.mock("@/shared/crew/client", () => ({
   getPublicCrews: vi.fn(),
   getPublicCrewJoinView: vi.fn(),
   getCrewHub: vi.fn(),
+  deleteCrew: vi.fn(),
   leaveCrew: vi.fn(),
   updateCrewVisibility: vi.fn(),
   getCrewMembers: vi.fn(),
@@ -223,6 +224,98 @@ describe("CrewSettingsPage", () => {
 
     expect(await screen.findByText("크루장은 위임 전 탈퇴할 수 없어요.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "크루 탈퇴" })).not.toBeInTheDocument();
+  });
+
+  it("lets the leader delete the crew only after re-entering the exact crew name", async () => {
+    vi.mocked(getMe).mockResolvedValue({
+      authStatus: "FULL",
+      completionRequired: false,
+      redirectTo: null,
+      requiredTermsVersion: "2026-03-25",
+      user: { id: 1, nickname: "leader-one" },
+      requiredTermsAcceptedAt: "2026-03-25T00:00:00Z",
+    });
+    vi.mocked(getCrewHub).mockResolvedValue({
+      crewId: 11,
+      name: "Night runners",
+      description: "Private crew for late runners",
+      visibility: "PUBLIC",
+      imageUrl: null,
+      myRole: "LEADER",
+      hasNotice: false,
+      pendingJoinRequestCount: 0,
+    });
+    vi.mocked(deleteCrew).mockResolvedValue({
+      crewId: 11,
+    });
+
+    render(await CrewSettingsPage({ params: Promise.resolve({ crewId: "11" }) }));
+
+    expect(
+      await screen.findByText("다른 크루원이 남아 있으면 삭제할 수 없어요"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("진행 중이거나 모집 중인 모임이 남아 있으면 삭제할 수 없어요"),
+    ).toBeInTheDocument();
+
+    const deleteButton = screen.getByRole("button", { name: "크루 삭제" });
+    expect(deleteButton).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("현재 크루명"), {
+      target: { value: "Night runners" },
+    });
+
+    expect(deleteButton).toBeEnabled();
+
+    fireEvent.click(deleteButton);
+
+    await waitFor(() => {
+      expect(deleteCrew).toHaveBeenCalledWith(11, "Night runners");
+    });
+    expect(replaceMock).toHaveBeenCalledWith("/?notice=crew-deleted");
+  });
+
+  it("shows the translated delete failure messages for leaders", async () => {
+    const { OperationalError } = await import("@/shared/errors/operational");
+
+    vi.mocked(getMe).mockResolvedValue({
+      authStatus: "FULL",
+      completionRequired: false,
+      redirectTo: null,
+      requiredTermsVersion: "2026-03-25",
+      user: { id: 1, nickname: "leader-one" },
+      requiredTermsAcceptedAt: "2026-03-25T00:00:00Z",
+    });
+    vi.mocked(getCrewHub).mockResolvedValue({
+      crewId: 11,
+      name: "Night runners",
+      description: "Private crew for late runners",
+      visibility: "PUBLIC",
+      imageUrl: null,
+      myRole: "LEADER",
+      hasNotice: false,
+      pendingJoinRequestCount: 0,
+    });
+    vi.mocked(deleteCrew).mockRejectedValue(
+      new OperationalError({
+        code: "CREW_DELETE_NOT_ALLOWED_WITH_ACTIVE_MEETINGS",
+        message: "delete blocked",
+        requestId: "req-crew-delete-1",
+        status: 409,
+      }),
+    );
+
+    render(await CrewSettingsPage({ params: Promise.resolve({ crewId: "11" }) }));
+
+    expect(await screen.findByRole("heading", { name: "크루 설정" })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("현재 크루명"), {
+      target: { value: "Night runners" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "크루 삭제" }));
+
+    expect(
+      await screen.findByText("진행 중이거나 모집 중인 모임이 남아 있어 삭제할 수 없어요"),
+    ).toBeInTheDocument();
   });
 
   it("redirects non-members back to the public crew introduction", async () => {
