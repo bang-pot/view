@@ -53,6 +53,9 @@ export function FullUserAuthMenu({ route }: FullUserAuthMenuProps) {
           <Link href="/crews/new">Create crew</Link>
         </li>
         <li>
+          <Link href="/archive/meetings">완료된 모임 아카이브</Link>
+        </li>
+        <li>
           <Link href="/profile">Profile</Link>
         </li>
         <li>

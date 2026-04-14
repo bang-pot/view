@@ -826,4 +826,42 @@ npm.cmd run build
 - 생성 화면에서 자동 채움 값이 기본값일 뿐, 사용자가 직접 수정 가능한 것을 확인했습니다.
 - 비로그인 사용자는 `/login`으로 이동하고, 소속 크루가 없는 사용자는 `먼저 크루를 만들거나 가입해야 모임을 만들 수 있어요.` 안내만 보는 것을 확인했습니다.
 
+## Gallery / Log Round 01 완료된 모임 아카이브 입구
+
+- `/archive/meetings`
+  - 로그인 사용자 전용 `완료된 모임 아카이브` 화면을 추가했습니다.
+  - `GET /api/archive/meetings`를 `page`, `size` 기준으로 연결했습니다.
+  - 비로그인 사용자는 `/login?redirectTo=/archive/meetings`로 이동합니다.
+- 아카이브 화면
+  - 본인과 관련된 `COMPLETED` 모임을 카드형 목록으로 보여줍니다.
+  - 카드에는 대표 이미지 또는 placeholder, 테마명, 크루명, 장소, 날짜, 결과를 표시합니다.
+  - CTA는 이번 라운드에서 실제 로그 작성으로 연결하지 않고 `기록 준비중` 비활성 버튼으로만 노출합니다.
+  - 보조 링크로 기존 meeting 상세를 다시 볼 수 있도록 `모임 다시 보기`를 제공합니다.
+- fallback / 상태 처리
+  - `posterImageUrl`가 없으면 `대표 이미지 준비 중` placeholder UI를 보여줍니다.
+  - 초기 로딩, 추가 로딩, 빈 상태, 에러 상태를 각각 분리해 처리합니다.
+  - 빈 상태 문구는 `아직 완료된 모임 기록이 없어요`를 사용합니다.
+  - 에러 문구는 `아카이브 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.`를 사용합니다.
+- 추가 로딩
+  - 이번 라운드는 `pageInfo.hasNext` 기반 `더 보기` 버튼으로 다음 페이지를 불러옵니다.
+  - 기본 `size`는 20으로 고정했습니다.
+
+### Gallery / Log Round 01 자동 검증
+
+- `npm.cmd run test -- src/test/shared/archive-client.test.tsx src/test/app/archive-meetings-page.test.tsx src/test/app/page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+- 모두 통과했습니다.
+
+### Gallery / Log Round 01 수동 검증
+
+- 로그인 사용자가 `/archive/meetings`에 접근해 완료된 모임 아카이브 목록을 볼 수 있는 것을 확인했습니다.
+- 카드에 대표 이미지 또는 placeholder, 테마명, 크루명, 장소, 날짜, 결과가 자연스럽게 보이는 것을 확인했습니다.
+- `posterImageUrl`가 없는 경우 `대표 이미지 준비 중` fallback UI가 깨지지 않는 것을 확인했습니다.
+- `더 보기` 버튼으로 `pageInfo.hasNext` 기반 추가 로딩이 동작하는 것을 확인했습니다.
+- 빈 상태, 로딩 상태, 에러 상태 문구가 깨지지 않는 것을 확인했습니다.
+- CTA는 `기록 준비중`으로만 노출되고, 실제 로그 작성 / 수정 / 삭제로 확장되지 않는 것을 확인했습니다.
+
 

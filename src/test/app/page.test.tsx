@@ -69,6 +69,10 @@ describe("Home page", () => {
       "href",
       "/profile",
     );
+    expect(screen.getByRole("link", { name: "완료된 모임 아카이브" })).toHaveAttribute(
+      "href",
+      "/archive/meetings",
+    );
     expect(screen.getByRole("button", { name: "Logout" })).toBeInTheDocument();
   });
 
