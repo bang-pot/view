@@ -24,7 +24,7 @@ describe("Home page", () => {
     vi.mocked(logout).mockResolvedValue(undefined);
   });
 
-  it("renders the frontend bootstrap heading", async () => {
+  it("renders the public home entry in Korean and hides the internal demo link", async () => {
     vi.mocked(getMe).mockResolvedValue({
       authStatus: "GUEST",
       completionRequired: false,
@@ -36,13 +36,17 @@ describe("Home page", () => {
 
     render(await Home({ searchParams: Promise.resolve({}) }));
 
+    expect(screen.getByRole("heading", { name: "BangPot" })).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "BangPot frontend bootstrap" }),
+      screen.getByText("방탈출 크루를 찾고, 모임을 만들고, 함께 기록해 보세요."),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Public crews" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "로그인" })).toHaveAttribute("href", "/login");
+    expect(screen.getByRole("link", { name: "탐색하기" })).toHaveAttribute("href", "/explore");
+    expect(screen.getByRole("link", { name: "공개 크루 둘러보기" })).toHaveAttribute(
       "href",
       "/crews/public",
     );
+    expect(screen.queryByRole("link", { name: "Protected demo" })).not.toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.queryByRole("link", { name: "Profile" })).not.toBeInTheDocument();

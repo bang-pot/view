@@ -38,19 +38,19 @@ export function HomePageClient({ notice = null }: HomePageClientProps) {
 
   return (
     <main>
-      <h1>BangPot frontend bootstrap</h1>
-      <p>Round 1 auth flow and Common Ops frontend baseline are ready.</p>
+      <h1>BangPot</h1>
+      <p>방탈출 크루를 찾고, 모임을 만들고, 함께 기록해 보세요.</p>
       {notice === "crew-left" ? <p>크루를 탈퇴했습니다.</p> : null}
       {notice === "crew-deleted" ? <p>크루를 삭제했습니다.</p> : null}
       <ul>
         <li>
-          <Link href="/login">Login</Link>
+          <Link href="/login">로그인</Link>
         </li>
         <li>
-          <Link href="/protected-demo">Protected demo</Link>
+          <Link href="/explore">탐색하기</Link>
         </li>
         <li>
-          <Link href="/crews/public">Public crews</Link>
+          <Link href="/crews/public">공개 크루 둘러보기</Link>
         </li>
         {me?.authStatus === "FULL" ? (
           <li>
