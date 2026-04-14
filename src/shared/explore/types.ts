@@ -58,3 +58,12 @@ export type ExploreThemeDetail = {
   externalLink: string | null;
   relatedThemes: ExploreThemeCard[];
 };
+
+export type ExploreMeetingCreateCrew = {
+  crewId: number;
+  crewName: string;
+};
+
+export type ExploreMeetingCreateCrewsResponse = {
+  crews: ExploreMeetingCreateCrew[];
+};

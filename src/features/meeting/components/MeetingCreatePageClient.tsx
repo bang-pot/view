@@ -16,6 +16,14 @@ import { MeetingEditorForm, type MeetingEditorFormValues } from "./MeetingEditor
 
 type MeetingCreatePageClientProps = {
   crewId: string;
+  initialExploreDefaults?: {
+    themeName?: string;
+    storeName?: string;
+    regionLabel?: string;
+    genre?: string;
+    difficulty?: string;
+    runningTimeMinutes?: string;
+  };
 };
 
 const EMPTY_VALUES: MeetingEditorFormValues = {
@@ -30,14 +38,63 @@ const EMPTY_VALUES: MeetingEditorFormValues = {
   description: "",
 };
 
+function buildExplorePrefillDescription(defaults: NonNullable<MeetingCreatePageClientProps["initialExploreDefaults"]>): string {
+  const lines: string[] = [];
+
+  if (defaults.storeName) {
+    lines.push(`매장: ${defaults.storeName}`);
+  }
+
+  if (defaults.regionLabel) {
+    lines.push(`지역: ${defaults.regionLabel}`);
+  }
+
+  if (defaults.genre) {
+    lines.push(`장르: ${defaults.genre}`);
+  }
+
+  if (defaults.difficulty) {
+    lines.push(`난이도: ${defaults.difficulty}`);
+  }
+
+  if (defaults.runningTimeMinutes) {
+    lines.push(`플레이 시간: ${defaults.runningTimeMinutes}분`);
+  }
+
+  return lines.join("\n");
+}
+
+function buildInitialValues(
+  defaults?: MeetingCreatePageClientProps["initialExploreDefaults"],
+): MeetingEditorFormValues {
+  if (!defaults) {
+    return EMPTY_VALUES;
+  }
+
+  const placeParts = [defaults.regionLabel, defaults.storeName].filter(Boolean);
+  const description = buildExplorePrefillDescription(defaults);
+
+  return {
+    ...EMPTY_VALUES,
+    themeName: defaults.themeName ?? "",
+    place: placeParts.join(" · "),
+    description,
+  };
+}
+
 function buildPublicCrewPath(crewId: string): string {
   return `/crews/public/${crewId}`;
 }
 
-export function MeetingCreatePageClient({ crewId }: MeetingCreatePageClientProps) {
+export function MeetingCreatePageClient({
+  crewId,
+  initialExploreDefaults,
+}: MeetingCreatePageClientProps) {
   const router = useRouter();
   const [crewName, setCrewName] = useState<string | null>(null);
-  const [values, setValues] = useState<MeetingEditorFormValues>(EMPTY_VALUES);
+  const [values, setValues] = useState<MeetingEditorFormValues>(() =>
+    buildInitialValues(initialExploreDefaults),
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);

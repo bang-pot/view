@@ -788,4 +788,42 @@ npm.cmd run build
 - 같은 매장의 다른 테마가 최대 4개까지 노출되고, 추천 카드 클릭 시 해당 상세로 다시 이동하는 것을 확인했습니다.
 - 포스터, 소개글, 외부 링크, 메타 정보가 비어 있을 때 fallback UI가 깨지지 않는 것을 확인했습니다.
 
+## Explore Round 02B 탐색 상세에서 모임 생성 연결
+
+- `/explore/themes/{themeId}`
+  - 공개 상세에서 `이 테마로 모임 만들기` 버튼을 활성화했습니다.
+  - 버튼 클릭 시 먼저 `GET /api/explore/meeting-create/crews`를 호출해 현재 로그인 사용자의 소속 크루 목록을 읽습니다.
+  - 비로그인 사용자는 `/login`으로 이동합니다.
+  - 소속 크루가 없으면 `먼저 크루를 만들거나 가입해야 모임을 만들 수 있어요.` 안내만 보여주고 생성으로 진행하지 않습니다.
+- 크루 선택 단계
+  - 소속 크루가 1개여도 항상 선택 단계를 보여줍니다.
+  - 라디오 목록에서 크루를 고른 뒤 `선택한 크루로 모임 만들기`를 눌러 다음 단계로 이동합니다.
+- 모임 생성 자동 채움
+  - 탐색 상세 응답에서 `themeName`, `storeName`, `regionLabel`, `genre`, `difficulty`, `runningTimeMinutes`를 추출해 query string으로 전달합니다.
+  - `/crews/{crewId}/meetings/new`에서는 이 값을 기본값으로만 채우고, 사용자는 여전히 수정할 수 있습니다.
+  - 자동 채움 규칙:
+    - `테마명` <- `themeName`
+    - `장소` <- `regionLabel · storeName`
+    - `설명` <- 매장 / 지역 / 장르 / 난이도 / 플레이 시간을 줄바꿈 요약으로 구성
+- 범위 제한
+  - 이번 라운드는 탐색 상세에서 모임 생성 연결까지만 엽니다.
+  - 로그인 후 자동 복귀, 찜 토글, 리뷰/기록, 추천 고도화는 아직 열지 않습니다.
+
+### Explore Round 02B 자동 검증
+
+- `npm.cmd run test -- src/test/shared/explore-client.test.tsx src/test/app/explore-theme-detail-page.test.tsx src/test/app/meeting-create-page.test.tsx`
+- `npm.cmd run test -- src/test/shared/explore-client.test.tsx src/test/app/explore-page.test.tsx src/test/app/explore-theme-detail-page.test.tsx src/test/app/meeting-create-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run build`
+
+- 모두 통과했습니다.
+
+### Explore Round 02B 수동 검증
+
+- 로그인 사용자가 공개 테마 상세의 `이 테마로 모임 만들기`를 눌렀을 때 먼저 크루 선택 단계를 보는 것을 확인했습니다.
+- 소속 크루가 1개여도 선택 단계를 유지하고, 선택 후 `/crews/{crewId}/meetings/new`로 이동하는 것을 확인했습니다.
+- 탐색 상세의 `themeName`, `storeName`, `regionLabel`, `genre`, `difficulty`, `runningTimeMinutes`가 모임 생성 기본값으로 자동 채워지는 것을 확인했습니다.
+- 생성 화면에서 자동 채움 값이 기본값일 뿐, 사용자가 직접 수정 가능한 것을 확인했습니다.
+- 비로그인 사용자는 `/login`으로 이동하고, 소속 크루가 없는 사용자는 `먼저 크루를 만들거나 가입해야 모임을 만들 수 있어요.` 안내만 보는 것을 확인했습니다.
+
 

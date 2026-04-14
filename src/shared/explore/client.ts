@@ -2,6 +2,7 @@ import { requestJson } from "@/shared/api/client";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
 import type {
   ExploreFiltersResponse,
+  ExploreMeetingCreateCrewsResponse,
   ExploreThemeDetail,
   ExploreThemesQuery,
   ExploreThemesResponse,
@@ -86,6 +87,24 @@ export async function getExploreThemeDetail(themeId: number): Promise<ExploreThe
     {
       code: "EXPLORE_THEME_DETAIL_LOAD_FAILED",
       userMessage: "테마 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getExploreMeetingCreateCrews(): Promise<ExploreMeetingCreateCrewsResponse> {
+  const { apiBaseUrl } = getPublicRuntimeConfig();
+
+  return requestJson<ExploreMeetingCreateCrewsResponse>(
+    apiBaseUrl,
+    "/api/explore/meeting-create/crews",
+    {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "EXPLORE_MEETING_CREATE_CREWS_LOAD_FAILED",
+      userMessage: "크루 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

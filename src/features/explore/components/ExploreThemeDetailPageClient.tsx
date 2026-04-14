@@ -1,11 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
-import { getUserMessage } from "@/shared/errors/operational";
-import { getExploreThemeDetail } from "@/shared/explore/client";
-import type { ExploreThemeDetail } from "@/shared/explore/types";
+import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
+import {
+  getExploreMeetingCreateCrews,
+  getExploreThemeDetail,
+} from "@/shared/explore/client";
+import type {
+  ExploreMeetingCreateCrew,
+  ExploreThemeDetail,
+} from "@/shared/explore/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
 import { ExploreThemeCard } from "./ExploreThemeCard";
@@ -32,13 +39,44 @@ function shouldCollapseDescription(description: string | null): boolean {
   return description.length > DESCRIPTION_PREVIEW_LENGTH;
 }
 
+function buildMeetingCreatePath(
+  crewId: number,
+  detail: ExploreThemeDetail,
+): string {
+  const params = new URLSearchParams();
+
+  params.set("themeName", detail.themeName);
+  params.set("storeName", detail.storeName);
+  params.set("regionLabel", detail.regionLabel);
+
+  if (detail.genre) {
+    params.set("genre", detail.genre);
+  }
+
+  if (detail.difficulty) {
+    params.set("difficulty", detail.difficulty);
+  }
+
+  if (detail.runningTimeMinutes !== null) {
+    params.set("runningTimeMinutes", String(detail.runningTimeMinutes));
+  }
+
+  return `/crews/${crewId}/meetings/new?${params.toString()}`;
+}
+
 export function ExploreThemeDetailPageClient({
   themeId,
 }: ExploreThemeDetailPageClientProps) {
+  const router = useRouter();
   const [detail, setDetail] = useState<ExploreThemeDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [crews, setCrews] = useState<ExploreMeetingCreateCrew[]>([]);
+  const [isCrewLoading, setIsCrewLoading] = useState(false);
+  const [isCrewPickerOpen, setIsCrewPickerOpen] = useState(false);
+  const [crewErrorMessage, setCrewErrorMessage] = useState<string | null>(null);
+  const [selectedCrewId, setSelectedCrewId] = useState<string>("");
 
   useEffect(() => {
     let isMounted = true;
@@ -82,6 +120,61 @@ export function ExploreThemeDetailPageClient({
     : isDescriptionExpanded || !shouldCollapseDescription(detail.description)
       ? detail.description
       : `${detail.description.slice(0, DESCRIPTION_PREVIEW_LENGTH)}...`;
+
+  const canStartMeetingCreate = !isLoading && !errorMessage && detail !== null;
+  const hasCrews = crews.length > 0;
+  const noCrews = isCrewPickerOpen && !isCrewLoading && crews.length === 0 && !crewErrorMessage;
+  const selectedCrew = useMemo(
+    () => crews.find((crew) => String(crew.crewId) === selectedCrewId) ?? null,
+    [crews, selectedCrewId],
+  );
+
+  async function handleOpenCrewPicker() {
+    if (!detail || isCrewLoading) {
+      return;
+    }
+
+    setCrewErrorMessage(null);
+    setIsCrewLoading(true);
+
+    try {
+      const response = await getExploreMeetingCreateCrews();
+
+      setCrews(response.crews);
+      setSelectedCrewId(response.crews[0] ? String(response.crews[0].crewId) : "");
+      setIsCrewPickerOpen(true);
+    } catch (error) {
+      reportOperationalError("explore.meeting_create_crews_load_failed", error, {
+        level: "warn",
+        route: `/explore/themes/${themeId}`,
+      });
+
+      if (isOperationalError(error) && error.code === "AUTH_UNAUTHENTICATED") {
+        router.push("/login");
+        return;
+      }
+
+      setCrewErrorMessage(
+        getUserMessage(
+          error,
+          "크루 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+        ),
+      );
+      setIsCrewPickerOpen(true);
+      setCrews([]);
+      setSelectedCrewId("");
+    } finally {
+      setIsCrewLoading(false);
+    }
+  }
+
+  function handleStartMeetingCreate() {
+    if (!detail || !selectedCrew) {
+      return;
+    }
+
+    router.push(buildMeetingCreatePath(selectedCrew.crewId, detail));
+  }
 
   return (
     <main>
@@ -142,6 +235,22 @@ export function ExploreThemeDetailPageClient({
                 </span>
               </div>
 
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+                <button type="button" onClick={handleOpenCrewPicker} disabled={!canStartMeetingCreate}>
+                  이 테마로 모임 만들기
+                </button>
+                {detail.externalLink ? (
+                  <a
+                    href={detail.externalLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="외부 예약 페이지 열기"
+                  >
+                    외부 예약 페이지 열기
+                  </a>
+                ) : null}
+              </div>
+
               <section aria-label="테마 소개" style={{ display: "grid", gap: 8 }}>
                 <h2>테마 소개</h2>
                 <p>{descriptionText}</p>
@@ -157,21 +266,50 @@ export function ExploreThemeDetailPageClient({
                   </button>
                 ) : null}
               </section>
-
-              {detail.externalLink ? (
-                <p>
-                  <a
-                    href={detail.externalLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="외부 예약 페이지 열기"
-                  >
-                    외부 예약 페이지 열기
-                  </a>
-                </p>
-              ) : null}
             </div>
           </section>
+
+          {isCrewLoading ? <p>크루 목록을 불러오는 중입니다.</p> : null}
+          {isCrewPickerOpen ? (
+            <section aria-label="모임 만들기 크루 선택" style={{ display: "grid", gap: 12, marginBottom: 32 }}>
+              <h2>모임 만들기 크루 선택</h2>
+              <p>어느 크루에서 이 테마로 모임을 만들지 먼저 선택해 주세요.</p>
+              {crewErrorMessage ? <p>{crewErrorMessage}</p> : null}
+              {noCrews ? <p>먼저 크루를 만들거나 가입해야 모임을 만들 수 있어요.</p> : null}
+              {hasCrews ? (
+                <>
+                  <fieldset style={{ display: "grid", gap: 8 }}>
+                    <legend>크루 목록</legend>
+                    {crews.map((crew) => (
+                      <label
+                        key={crew.crewId}
+                        style={{ display: "flex", alignItems: "center", gap: 8 }}
+                      >
+                        <input
+                          type="radio"
+                          name="meeting-create-crew"
+                          value={crew.crewId}
+                          checked={selectedCrewId === String(crew.crewId)}
+                          onChange={(event) => {
+                            setSelectedCrewId(event.target.value);
+                          }}
+                        />
+                        <span>{crew.crewName}</span>
+                      </label>
+                    ))}
+                  </fieldset>
+                  <button
+                    type="button"
+                    onClick={handleStartMeetingCreate}
+                    disabled={!selectedCrew}
+                    style={{ width: "fit-content" }}
+                  >
+                    선택한 크루로 모임 만들기
+                  </button>
+                </>
+              ) : null}
+            </section>
+          ) : null}
 
           <section aria-label="같은 매장의 다른 테마" style={{ display: "grid", gap: 16 }}>
             <h2>같은 매장의 다른 테마</h2>
