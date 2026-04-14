@@ -161,7 +161,7 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
         setErrorMessage(
           getUserMessage(
             error,
-            "탐색 결과를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+            "탐색 결과를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
           ),
         );
       });
@@ -292,7 +292,7 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
             onChange={(event) => {
               setDraftQuery(event.target.value);
             }}
-            placeholder="지역, 매장명, 테마명을 검색해 보세요"
+            placeholder="지역, 매장명, 테마명을 검색해 보세요."
             style={{ padding: 12 }}
           />
         </label>

@@ -60,7 +60,7 @@ describe("ExplorePage", () => {
       regions: [
         {
           name: "서울",
-          districts: ["강남", "홍대"],
+          districts: ["강남", "마포"],
         },
         {
           name: "경기",
@@ -87,7 +87,7 @@ describe("ExplorePage", () => {
           genre: "추리",
           posterImageUrl: null,
           difficulty: "보통",
-          activityLabel: "연출 중심",
+          activityLabel: "연출 중간",
           recommendedPlayers: "2-4명",
           runningTimeMinutes: 60,
           favoriteCount: 12,
@@ -257,8 +257,8 @@ describe("ExplorePage", () => {
             themeId: 2,
             themeName: "두 번째 테마",
             storeId: 11,
-            storeName: "홍대 이스케이프",
-            regionLabel: "서울 홍대",
+            storeName: "마포 이스케이프",
+            regionLabel: "서울 마포",
             genre: "공포",
             posterImageUrl: null,
             difficulty: null,
@@ -281,7 +281,8 @@ describe("ExplorePage", () => {
 
     observerInstances[0]?.trigger(true);
 
-    expect(await screen.findByText("두 번째 테마")).toBeInTheDocument();
+    await screen.findByText("두 번째 테마");
+
     expect(getExploreThemes).toHaveBeenNthCalledWith(2, {
       q: "",
       genres: [],
@@ -302,7 +303,7 @@ describe("ExplorePage", () => {
       },
     });
 
-    render(await ExplorePage({ searchParams: Promise.resolve({}) }));
+    render(await ExplorePage({ searchParams: Promise.resolve({ q: "없는 테마" }) }));
 
     expect(await screen.findByText("검색 조건을 바꿔서 다시 찾아보세요.")).toBeInTheDocument();
 
@@ -321,7 +322,7 @@ describe("ExplorePage", () => {
     render(await ExplorePage({ searchParams: Promise.resolve({}) }));
 
     expect(
-      await screen.findByText("탐색 결과를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."),
+      await screen.findByText("탐색 결과를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
     ).toBeInTheDocument();
   });
 });
