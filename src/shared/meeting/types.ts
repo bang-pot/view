@@ -120,3 +120,30 @@ export type MeetingResultRecordResponse = {
   meetingId: number;
   result: Exclude<MeetingResult, "NOT_RECORDED">;
 };
+
+export type MeetingHistoryLogStatus = "HAS_LOG" | "NO_LOG";
+
+export type CrewMeetingHistoryItem = {
+  meetingId: number;
+  meetingTitle: string;
+  themeName: string;
+  place: string;
+  date: string;
+  result: Exclude<MeetingResult, "NOT_RECORDED">;
+  myLogStatus: MeetingHistoryLogStatus;
+  logId: number | null;
+};
+
+export type CrewMeetingHistoryQuery = {
+  page: number;
+  size: number;
+};
+
+export type CrewMeetingHistoryResponse = {
+  items: CrewMeetingHistoryItem[];
+  pageInfo: {
+    page: number;
+    size: number;
+    hasNext: boolean;
+  };
+};
