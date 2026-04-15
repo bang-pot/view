@@ -119,21 +119,6 @@ export async function getMyMeetingLog(meetingId: number): Promise<MeetingLogMeRe
   );
 }
 
-export async function getMeetingLogDetail(logId: number): Promise<MeetingLogDetail> {
-  return requestJson<MeetingLogDetail>(
-    getApiBaseUrl(),
-    `/api/logs/${logId}`,
-    {
-      credentials: "include",
-      cache: "no-store",
-    },
-    {
-      code: "LOG_DETAIL_REQUEST_FAILED",
-      message: "방탈로그 상세를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
-    },
-  );
-}
-
 export async function getCrewLogDetail(
   crewId: number,
   logId: number,

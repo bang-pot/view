@@ -34,7 +34,6 @@ vi.mock("@/shared/log/client", () => ({
   createMeetingLog: vi.fn(),
   updateMeetingLog: vi.fn(),
   getMyMeetingLog: vi.fn(),
-  getMeetingLogDetail: vi.fn(),
   uploadLogPhoto: vi.fn(),
 }));
 

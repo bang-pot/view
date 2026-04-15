@@ -30,7 +30,6 @@ vi.mock("@/shared/crew/client", () => ({
 
 vi.mock("@/shared/log/client", () => ({
   getCrewLogDetail: vi.fn(),
-  getMeetingLogDetail: vi.fn(),
   getMyMeetingLog: vi.fn(),
   deleteMeetingLog: vi.fn(),
 }));
