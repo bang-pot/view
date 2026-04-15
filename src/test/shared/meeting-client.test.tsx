@@ -6,7 +6,6 @@ import {
   closeMeetingRecruitment,
   completeMeeting,
   createMeeting,
-  getCrewMeetingHistory,
   getMeetingDetail,
   getMeetings,
   joinMeeting,
@@ -421,39 +420,4 @@ describe("meeting client", () => {
     );
   });
 
-  it("loads completed meeting history for a crew", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          items: [],
-          pageInfo: {
-            page: 0,
-            size: 20,
-            hasNext: false,
-          },
-        }),
-        {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      ),
-    );
-    vi.stubGlobal("fetch", fetchMock);
-
-    await getCrewMeetingHistory(11, {
-      page: 0,
-      size: 20,
-    });
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/backend/api/crews/11/history/meetings?page=0&size=20",
-      expect.objectContaining({
-        method: "GET",
-        credentials: "include",
-        cache: "no-store",
-      }),
-    );
-  });
 });
