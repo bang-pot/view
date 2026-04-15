@@ -4,6 +4,8 @@ import type {
   CancelMeetingJoinResponse,
   CreateMeetingInput,
   CreateMeetingResponse,
+  CrewMeetingHistoryQuery,
+  CrewMeetingHistoryResponse,
   JoinMeetingResponse,
   MeetingDetail,
   MeetingListItem,
@@ -232,6 +234,29 @@ export async function recordMeetingResult(
     {
       code: "MEETING_RESULT_RECORD_FAILED",
       message: "모임 결과를 기록하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getCrewMeetingHistory(
+  crewId: number,
+  query: CrewMeetingHistoryQuery,
+): Promise<CrewMeetingHistoryResponse> {
+  const params = new URLSearchParams();
+  params.set("page", String(query.page));
+  params.set("size", String(query.size));
+
+  return requestJson<CrewMeetingHistoryResponse>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/history/meetings?${params.toString()}`,
+    {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "CREW_MEETING_HISTORY_LOAD_FAILED",
+      message: "완료된 모임 히스토리를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

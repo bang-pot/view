@@ -31,6 +31,7 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
   const hasValidCrewId = Number.isFinite(crewIdNumber);
   const publicCrewPath = useMemo(() => buildPublicCrewPath(crewId), [crewId]);
   const meetingsPath = useMemo(() => `/crews/${crewId}/meetings`, [crewId]);
+  const meetingHistoryPath = useMemo(() => `/crews/${crewId}/history/meetings`, [crewId]);
   const logsPath = useMemo(() => `/crews/${crewId}/logs`, [crewId]);
   const policiesPath = useMemo(() => `/crews/${crewId}/policies`, [crewId]);
   const membersPath = useMemo(() => `/crews/${crewId}/members`, [crewId]);
@@ -129,6 +130,9 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
             </li>
             <li>
               <Link href={meetingsPath}>모임</Link>
+            </li>
+            <li>
+              <Link href={meetingHistoryPath}>완료 히스토리</Link>
             </li>
             <li>
               <Link href={logsPath}>방탈로그</Link>
