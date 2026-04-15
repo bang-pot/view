@@ -4,8 +4,6 @@ import type {
   CancelMeetingJoinResponse,
   CreateMeetingInput,
   CreateMeetingResponse,
-  CrewMeetingHistoryQuery,
-  CrewMeetingHistoryResponse,
   JoinMeetingResponse,
   MeetingDetail,
   MeetingListItem,
@@ -37,7 +35,7 @@ export async function createMeeting(
     },
     {
       code: "MEETING_CREATE_FAILED",
-      message: "모임 생성을 완료하지 못했습니다. 입력값을 다시 확인해 주세요.",
+      message: "紐⑥엫 ?앹꽦???꾨즺?섏? 紐삵뻽?듬땲?? ?낅젰媛믪쓣 ?ㅼ떆 ?뺤씤??二쇱꽭??",
     },
   );
 }
@@ -52,7 +50,7 @@ export async function getMeetings(crewId: number): Promise<MeetingListItem[]> {
     },
     {
       code: "MEETING_LIST_REQUEST_FAILED",
-      message: "모임 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      message: "紐⑥엫 紐⑸줉??遺덈윭?ㅼ? 紐삵뻽?듬땲?? ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??",
     },
   );
 }
@@ -70,7 +68,7 @@ export async function getMeetingDetail(
     },
     {
       code: "MEETING_DETAIL_REQUEST_FAILED",
-      message: "모임 상세를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      message: "紐⑥엫 ?곸꽭瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲?? ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??",
     },
   );
 }
@@ -93,7 +91,7 @@ export async function updateMeeting(
     },
     {
       code: "MEETING_UPDATE_FAILED",
-      message: "모임 정보를 수정하지 못했습니다. 입력값을 다시 확인해 주세요.",
+      message: "紐⑥엫 ?뺣낫瑜??섏젙?섏? 紐삵뻽?듬땲?? ?낅젰媛믪쓣 ?ㅼ떆 ?뺤씤??二쇱꽭??",
     },
   );
 }
@@ -114,7 +112,7 @@ export async function joinMeeting(
     },
     {
       code: "MEETING_JOIN_FAILED",
-      message: "즉시 참여를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      message: "利됱떆 李몄뿬瑜?泥섎━?섏? 紐삵뻽?듬땲?? ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??",
     },
   );
 }
@@ -132,7 +130,7 @@ export async function cancelMeetingJoin(
     },
     {
       code: "MEETING_CANCEL_JOIN_FAILED",
-      message: "참여취소를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      message: "李몄뿬痍⑥냼瑜?泥섎━?섏? 紐삵뻽?듬땲?? ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??",
     },
   );
 }
@@ -170,7 +168,7 @@ export async function closeMeetingRecruitment(
     meetingId,
     "close-recruitment",
     "MEETING_CLOSE_RECRUITMENT_FAILED",
-    "모집마감을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    "紐⑥쭛留덇컧??泥섎━?섏? 紐삵뻽?듬땲?? ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??",
   );
 }
 
@@ -183,7 +181,7 @@ export async function reopenMeetingRecruitment(
     meetingId,
     "reopen-recruitment",
     "MEETING_REOPEN_RECRUITMENT_FAILED",
-    "수동 오픈을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    "?섎룞 ?ㅽ뵂??泥섎━?섏? 紐삵뻽?듬땲?? ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??",
   );
 }
 
@@ -196,7 +194,7 @@ export async function cancelMeeting(
     meetingId,
     "cancel",
     "MEETING_CANCEL_FAILED",
-    "모임 취소를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    "紐⑥엫 痍⑥냼瑜?泥섎━?섏? 紐삵뻽?듬땲?? ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??",
   );
 }
 
@@ -209,7 +207,7 @@ export async function completeMeeting(
     meetingId,
     "complete",
     "MEETING_COMPLETE_FAILED",
-    "모임 종료를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    "紐⑥엫 醫낅즺瑜?泥섎━?섏? 紐삵뻽?듬땲?? ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??",
   );
 }
 
@@ -233,30 +231,7 @@ export async function recordMeetingResult(
     },
     {
       code: "MEETING_RESULT_RECORD_FAILED",
-      message: "모임 결과를 기록하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-    },
-  );
-}
-
-export async function getCrewMeetingHistory(
-  crewId: number,
-  query: CrewMeetingHistoryQuery,
-): Promise<CrewMeetingHistoryResponse> {
-  const params = new URLSearchParams();
-  params.set("page", String(query.page));
-  params.set("size", String(query.size));
-
-  return requestJson<CrewMeetingHistoryResponse>(
-    getApiBaseUrl(),
-    `/api/crews/${crewId}/history/meetings?${params.toString()}`,
-    {
-      method: "GET",
-      credentials: "include",
-      cache: "no-store",
-    },
-    {
-      code: "CREW_MEETING_HISTORY_LOAD_FAILED",
-      message: "완료된 모임 히스토리를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+      message: "紐⑥엫 寃곌낵瑜?湲곕줉?섏? 紐삵뻽?듬땲?? ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??",
     },
   );
 }

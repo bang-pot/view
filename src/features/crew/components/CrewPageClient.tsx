@@ -31,7 +31,6 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
   const hasValidCrewId = Number.isFinite(crewIdNumber);
   const publicCrewPath = useMemo(() => buildPublicCrewPath(crewId), [crewId]);
   const meetingsPath = useMemo(() => `/crews/${crewId}/meetings`, [crewId]);
-  const meetingHistoryPath = useMemo(() => `/crews/${crewId}/history/meetings`, [crewId]);
   const logsPath = useMemo(() => `/crews/${crewId}/logs`, [crewId]);
   const policiesPath = useMemo(() => `/crews/${crewId}/policies`, [crewId]);
   const membersPath = useMemo(() => `/crews/${crewId}/members`, [crewId]);
@@ -96,7 +95,7 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
   if (isLoading) {
     return (
       <main>
-        <p>크루 내부 공간을 불러오고 있습니다.</p>
+        <p>크루 허브 공간을 불러오고 있습니다.</p>
       </main>
     );
   }
@@ -132,9 +131,6 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
               <Link href={meetingsPath}>모임</Link>
             </li>
             <li>
-              <Link href={meetingHistoryPath}>완료 히스토리</Link>
-            </li>
-            <li>
               <Link href={logsPath}>방탈로그</Link>
             </li>
             <li>
@@ -163,7 +159,7 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
 
       <section aria-label="본문 캔버스">
         <h2>본문 캔버스</h2>
-        <p>선택한 크루 콘텐츠는 다음 라운드에서 연결됩니다.</p>
+        <p>선택한 크루 콘텐츠는 다음 라운드에 연결됩니다.</p>
       </section>
     </main>
   );
