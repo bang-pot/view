@@ -13,8 +13,7 @@ import {
   getMeetingLogDetail,
   getMyMeetingLog,
 } from "@/shared/log/client";
-import { markMeetingLogDeleted } from "@/shared/log/deleted-session";
-import type { MeetingLogDetail, MeetingLogSummary } from "@/shared/log/types";
+import type { MeetingLogDetail, MeetingLogMeResponse } from "@/shared/log/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
 type MeetingLogDetailPageClientProps = {
@@ -36,7 +35,7 @@ export function MeetingLogDetailPageClient({
 }: MeetingLogDetailPageClientProps) {
   const router = useRouter();
   const [log, setLog] = useState<MeetingLogDetail | null>(null);
-  const [myLogSummary, setMyLogSummary] = useState<MeetingLogSummary | null>(null);
+  const [myMeetingLog, setMyMeetingLog] = useState<MeetingLogMeResponse | null>(null);
   const [crewRole, setCrewRole] = useState<string | null>(null);
   const [currentUserNickname, setCurrentUserNickname] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -93,10 +92,10 @@ export function MeetingLogDetailPageClient({
             return;
           }
 
-          let nextMyLogSummary: MeetingLogSummary | null = null;
+          let nextMyMeetingLog: MeetingLogMeResponse | null = null;
 
           try {
-            nextMyLogSummary = await getMyMeetingLog(detail.meetingId);
+            nextMyMeetingLog = await getMyMeetingLog(detail.meetingId);
           } catch (error) {
             reportOperationalError("log.detail.my_log_lookup_failed", error, {
               level: "warn",
@@ -109,7 +108,7 @@ export function MeetingLogDetailPageClient({
           }
 
           setCrewRole(crew.myRole ?? null);
-          setMyLogSummary(nextMyLogSummary);
+          setMyMeetingLog(nextMyMeetingLog);
           setLog(detail);
         } else {
           const detail = await getMeetingLogDetail(logIdNumber);
@@ -227,7 +226,6 @@ export function MeetingLogDetailPageClient({
         isLeaderDelete ? trimmedDeleteReason : undefined,
       );
 
-      markMeetingLogDeleted(log.meetingId);
       router.push(`${feedPath}?notice=${getDeleteSuccessNotice(response.deletedBy)}`);
     } catch (error) {
       reportOperationalError("log.detail.delete_failed", error, {
@@ -278,7 +276,8 @@ export function MeetingLogDetailPageClient({
   const selectedPhoto =
     selectedPhotoIndex != null ? log.photos[selectedPhotoIndex] : null;
   const isAuthor =
-    myLogSummary?.logId === logIdNumber || currentUserNickname === log.authorNickname;
+    (myMeetingLog?.status === "EXISTS" && myMeetingLog.logId === logIdNumber) ||
+    currentUserNickname === log.authorNickname;
   const canDeleteAsLeader = Boolean(crewId && crewRole === "LEADER" && !isAuthor);
   const canDeleteLog = Boolean(crewId && (isAuthor || canDeleteAsLeader));
   const selectedPhotoLabel =

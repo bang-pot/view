@@ -12,10 +12,37 @@ export type CreateMeetingLogInput = {
 
 export type UpdateMeetingLogInput = CreateMeetingLogInput;
 
-export type MeetingLogSummary = {
-  logId: number;
+export type MeetingLogMeStatus =
+  | "EXISTS"
+  | "NOT_WRITTEN"
+  | "DELETED_BLOCKED";
+
+type MeetingLogMeMetadata = {
   meetingId: number;
+  meetingTitle: string | null;
+  themeName: string | null;
+  place: string | null;
+  date: string | null;
+  authorNickname: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 };
+
+export type ExistingMeetingLog = MeetingLogMeMetadata & {
+  status: "EXISTS";
+  logId: number;
+  body: string;
+  photos: string[];
+};
+
+export type MissingMeetingLog = MeetingLogMeMetadata & {
+  status: "NOT_WRITTEN" | "DELETED_BLOCKED";
+  logId: null;
+  body: null;
+  photos: string[];
+};
+
+export type MeetingLogMeResponse = ExistingMeetingLog | MissingMeetingLog;
 
 export type CrewLogFeedItem = {
   logId: number;

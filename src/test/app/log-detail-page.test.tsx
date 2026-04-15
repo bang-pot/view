@@ -80,12 +80,50 @@ function mockCrewLogDetail() {
   });
 }
 
+function makeNotWrittenLog() {
+  return {
+    status: "NOT_WRITTEN" as const,
+    logId: null,
+    meetingId: 99,
+    meetingTitle: null,
+    themeName: null,
+    place: null,
+    date: null,
+    authorNickname: null,
+    createdAt: null,
+    updatedAt: null,
+    body: null,
+    photos: [],
+  };
+}
+
+function makeExistingLog() {
+  return {
+    status: "EXISTS" as const,
+    logId: 501,
+    meetingId: 99,
+    meetingTitle: "금요일 방탈출 번개",
+    themeName: "미스터리 룸",
+    place: "강남 이스케이프",
+    date: "2026-04-10",
+    authorNickname: "bangpot",
+    createdAt: "2026-04-11T10:00:00Z",
+    updatedAt: "2026-04-11T11:00:00Z",
+    body: "정말 재미있었던 모임이었어요.",
+    photos: [
+      "https://cdn.example.com/log-1.jpg",
+      "https://cdn.example.com/log-2.jpg",
+      "https://cdn.example.com/log-3.jpg",
+      "https://cdn.example.com/log-4.jpg",
+    ],
+  };
+}
+
 describe("CrewLogDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     replaceMock.mockReset();
     pushMock.mockReset();
-    window.sessionStorage.clear();
   });
 
   afterEach(() => {
@@ -96,7 +134,7 @@ describe("CrewLogDetailPage", () => {
     mockFullUser();
     mockCrew("MEMBER");
     mockCrewLogDetail();
-    vi.mocked(getMyMeetingLog).mockResolvedValue({ logId: 501, meetingId: 99 });
+    vi.mocked(getMyMeetingLog).mockResolvedValue(makeExistingLog());
 
     render(
       await CrewLogDetailPage({
@@ -122,7 +160,7 @@ describe("CrewLogDetailPage", () => {
     mockFullUser();
     mockCrew("MEMBER");
     mockCrewLogDetail();
-    vi.mocked(getMyMeetingLog).mockResolvedValue({ logId: 501, meetingId: 99 });
+    vi.mocked(getMyMeetingLog).mockResolvedValue(makeExistingLog());
     vi.mocked(deleteMeetingLog).mockResolvedValue({ logId: 501, deletedBy: "AUTHOR" });
 
     render(
@@ -142,7 +180,6 @@ describe("CrewLogDetailPage", () => {
     });
 
     expect(pushMock).toHaveBeenCalledWith("/crews/11/logs?notice=deleted-own-log");
-    expect(window.sessionStorage.getItem("bangpot.deleted-log-meetings")).toContain("99");
   });
 
   it("requires a delete reason when the crew leader deletes another member log", async () => {
@@ -158,10 +195,10 @@ describe("CrewLogDetailPage", () => {
       authorNickname: "other-member",
       createdAt: "2026-04-11T10:00:00Z",
       updatedAt: "2026-04-11T11:00:00Z",
-      body: "리더가 읽는 타인 로그입니다.",
+      body: "리더가 읽는 다른 사람 로그입니다.",
       photos: [],
     });
-    vi.mocked(getMyMeetingLog).mockResolvedValue(null);
+    vi.mocked(getMyMeetingLog).mockResolvedValue(makeNotWrittenLog());
     vi.mocked(deleteMeetingLog).mockResolvedValue({ logId: 501, deletedBy: "LEADER" });
 
     render(
@@ -208,7 +245,7 @@ describe("CrewLogDetailPage", () => {
       body: "사진 없는 로그예요.",
       photos: [],
     });
-    vi.mocked(getMyMeetingLog).mockResolvedValue(null);
+    vi.mocked(getMyMeetingLog).mockResolvedValue(makeNotWrittenLog());
 
     render(
       await CrewLogDetailPage({

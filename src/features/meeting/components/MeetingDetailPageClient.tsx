@@ -28,8 +28,7 @@ import {
 } from "@/shared/meeting/presentation";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 import { getMyMeetingLog } from "@/shared/log/client";
-import { hasDeletedMeetingLog } from "@/shared/log/deleted-session";
-import type { MeetingLogSummary } from "@/shared/log/types";
+import type { MeetingLogMeResponse } from "@/shared/log/types";
 
 type MeetingDetailPageClientProps = {
   crewId: string;
@@ -121,7 +120,7 @@ export function MeetingDetailPageClient({
   const [crewName, setCrewName] = useState<string | null>(null);
   const [crewRole, setCrewRole] = useState<string | null>(null);
   const [meeting, setMeeting] = useState<MeetingDetail | null>(null);
-  const [myLogSummary, setMyLogSummary] = useState<MeetingLogSummary | null>(null);
+  const [myMeetingLog, setMyMeetingLog] = useState<MeetingLogMeResponse | null>(null);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [joinErrorMessage, setJoinErrorMessage] = useState<string | null>(null);
@@ -164,11 +163,11 @@ export function MeetingDetailPageClient({
           return;
         }
 
-        let nextLogSummary: MeetingLogSummary | null = null;
+        let nextMyMeetingLog: MeetingLogMeResponse | null = null;
 
         if (detail.status === "COMPLETED") {
           try {
-            nextLogSummary = await getMyMeetingLog(meetingIdNumber);
+            nextMyMeetingLog = await getMyMeetingLog(meetingIdNumber);
           } catch (error) {
             reportOperationalError("meeting.detail_log_lookup_failed", error, {
               level: "warn",
@@ -185,7 +184,7 @@ export function MeetingDetailPageClient({
         setCrewName(crew.name);
         setCrewRole(crew.myRole ?? null);
         setMeeting(detail);
-        setMyLogSummary(nextLogSummary);
+        setMyMeetingLog(nextMyMeetingLog);
         setErrorMessage(null);
         setIsLoading(false);
       } catch (error) {
@@ -433,10 +432,11 @@ export function MeetingDetailPageClient({
     isMeetingHost &&
     meeting.status === "COMPLETED" &&
     meeting.result === "NOT_RECORDED";
-  const isDeletedLogWriteBlocked = hasDeletedMeetingLog(meeting.meetingId);
-  const canOpenLogEntry =
-    !isDeletedLogWriteBlocked &&
-    (canWriteMeetingLog(meeting, currentUserId) || myLogSummary !== null);
+  const myLogStatus = myMeetingLog?.status ?? null;
+  const hasExistingLog = myLogStatus === "EXISTS";
+  const canWriteNewLog =
+    myLogStatus === "NOT_WRITTEN" && canWriteMeetingLog(meeting, currentUserId);
+  const isDeletedLogWriteBlocked = myLogStatus === "DELETED_BLOCKED";
   const perPersonCost = getPerPersonCost(meeting.totalCost, meeting.capacity);
 
   return (
@@ -534,12 +534,17 @@ export function MeetingDetailPageClient({
 
       <section aria-label="모임 상세 정보">
         <h2>{meeting.title}</h2>
-        {canOpenLogEntry ? (
+        {hasExistingLog ? (
           <Link href={`/crews/${crewId}/meetings/${meetingId}/log`}>
-            {myLogSummary ? "방탈로그 수정하기" : "방탈로그 작성하기"}
+            방탈로그 수정하기
           </Link>
         ) : null}
-        {!canOpenLogEntry && isDeletedLogWriteBlocked ? (
+        {canWriteNewLog ? (
+          <Link href={`/crews/${crewId}/meetings/${meetingId}/log`}>
+            방탈로그 작성하기
+          </Link>
+        ) : null}
+        {isDeletedLogWriteBlocked ? (
           <p>삭제된 방탈로그가 있어 다시 작성할 수 없어요.</p>
         ) : null}
         <p>테마명: {meeting.themeName}</p>
