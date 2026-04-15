@@ -12,6 +12,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({
     replace: replaceMock,
   }),
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 vi.mock("@/shared/auth/client", () => ({

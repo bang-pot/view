@@ -50,6 +50,7 @@ export type SaveMeetingLogResponse = {
 
 export type DeleteMeetingLogResponse = {
   logId: number;
+  deletedBy: "AUTHOR" | "LEADER";
 };
 
 export type MeetingLogDetail = {

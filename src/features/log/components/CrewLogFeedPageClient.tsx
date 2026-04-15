@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { getMe } from "@/shared/auth/client";
@@ -48,6 +48,7 @@ function getExcerpt(excerpt: string): string {
 
 export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const hasBootstrappedRef = useRef(false);
   const [items, setItems] = useState<CrewLogFeedItem[]>([]);
   const [page, setPage] = useState(0);
@@ -60,6 +61,11 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
   const hasValidCrewId = Number.isFinite(crewIdNumber);
   const routePath = `/crews/${crewId}/logs`;
   const publicCrewPath = buildPublicCrewPath(crewId);
+  const notice = searchParams.get("notice");
+  const noticeMessage =
+    notice === "deleted-own-log" || notice === "deleted-crew-log"
+      ? "방탈로그를 삭제했어요."
+      : null;
 
   useEffect(() => {
     if (!hasValidCrewId || hasBootstrappedRef.current) {
@@ -179,6 +185,7 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
       <h1>크루 방탈로그</h1>
       <p>크루원이 남긴 기록을 최신 작성순으로 다시 읽어보세요.</p>
 
+      {noticeMessage ? <p>{noticeMessage}</p> : null}
       {errorMessage ? <p>{errorMessage}</p> : null}
       {!errorMessage && items.length === 0 ? <p>아직 등록된 방탈로그가 없어요.</p> : null}
 

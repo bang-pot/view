@@ -28,6 +28,7 @@ import {
 } from "@/shared/meeting/presentation";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 import { getMyMeetingLog } from "@/shared/log/client";
+import { hasDeletedMeetingLog } from "@/shared/log/deleted-session";
 import type { MeetingLogSummary } from "@/shared/log/types";
 
 type MeetingDetailPageClientProps = {
@@ -432,7 +433,10 @@ export function MeetingDetailPageClient({
     isMeetingHost &&
     meeting.status === "COMPLETED" &&
     meeting.result === "NOT_RECORDED";
-  const canOpenLogEntry = canWriteMeetingLog(meeting, currentUserId) || myLogSummary !== null;
+  const isDeletedLogWriteBlocked = hasDeletedMeetingLog(meeting.meetingId);
+  const canOpenLogEntry =
+    !isDeletedLogWriteBlocked &&
+    (canWriteMeetingLog(meeting, currentUserId) || myLogSummary !== null);
   const perPersonCost = getPerPersonCost(meeting.totalCost, meeting.capacity);
 
   return (
@@ -534,6 +538,9 @@ export function MeetingDetailPageClient({
           <Link href={`/crews/${crewId}/meetings/${meetingId}/log`}>
             {myLogSummary ? "방탈로그 수정하기" : "방탈로그 작성하기"}
           </Link>
+        ) : null}
+        {!canOpenLogEntry && isDeletedLogWriteBlocked ? (
+          <p>삭제된 방탈로그가 있어 다시 작성할 수 없어요.</p>
         ) : null}
         <p>테마명: {meeting.themeName}</p>
         <p>모임 ID: {meeting.meetingId}</p>

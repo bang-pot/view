@@ -13,12 +13,12 @@ import type { MeetingDetail } from "@/shared/meeting/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 import {
   createMeetingLog,
-  deleteMeetingLog,
   getMeetingLogDetail,
   getMyMeetingLog,
   uploadLogPhoto,
   updateMeetingLog,
 } from "@/shared/log/client";
+import { hasDeletedMeetingLog } from "@/shared/log/deleted-session";
 import type { LogPhotoInput, MeetingLogSummary } from "@/shared/log/types";
 
 type MeetingLogEditorPageClientProps = {
@@ -185,7 +185,6 @@ export function MeetingLogEditorPageClient({
   const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   const crewIdNumber = Number(crewId);
@@ -200,6 +199,7 @@ export function MeetingLogEditorPageClient({
 
   const isEditMode = myLogSummary !== null;
   const canCreate = meeting ? isCreateAllowed(meeting, currentUserId) : false;
+  const isRecreateBlocked = hasValidIds && hasDeletedMeetingLog(meetingIdNumber);
 
   useEffect(() => {
     if (!hasValidIds) {
@@ -457,7 +457,7 @@ export function MeetingLogEditorPageClient({
         logId: response.logId,
         meetingId: response.meetingId,
       });
-      push(`/logs/${response.logId}`);
+      push(`/crews/${crewId}/logs/${response.logId}`);
     } catch (error) {
       reportOperationalError("log.editor.submit_failed", error, {
         level: "warn",
@@ -468,34 +468,6 @@ export function MeetingLogEditorPageClient({
       );
     } finally {
       setIsSubmitting(false);
-    }
-  }
-
-  async function handleDelete() {
-    if (!myLogSummary) {
-      return;
-    }
-
-    setIsDeleting(true);
-    setErrorMessage(null);
-    setPhotoErrorMessage(null);
-
-    try {
-      await deleteMeetingLog(myLogSummary.logId);
-      setMyLogSummary(null);
-      setBody("");
-      setPhotoFields([]);
-      setNoticeMessage("방탈로그를 삭제했어요. 다시 작성할 수 있어요.");
-    } catch (error) {
-      reportOperationalError("log.editor.delete_failed", error, {
-        level: "warn",
-        route: routePath,
-      });
-      setErrorMessage(
-        getUserMessage(error, "방탈로그를 삭제하지 못했어요. 잠시 후 다시 시도해 주세요."),
-      );
-    } finally {
-      setIsDeleting(false);
     }
   }
 
@@ -525,11 +497,15 @@ export function MeetingLogEditorPageClient({
     );
   }
 
-  if (!isEditMode && !canCreate) {
+  if (!isEditMode && (isRecreateBlocked || !canCreate)) {
     return (
       <main>
         <h1>방탈로그 작성하기</h1>
-        <p>이 모임은 지금 방탈로그를 작성할 수 없어요.</p>
+        <p>
+          {isRecreateBlocked
+            ? "이 모임은 삭제된 방탈로그가 있어 다시 작성할 수 없어요."
+            : "이 모임은 지금 방탈로그를 작성할 수 없어요."}
+        </p>
         <Link href={meetingPath}>모임 상세로 돌아가기</Link>
       </main>
     );
@@ -629,11 +605,6 @@ export function MeetingLogEditorPageClient({
                 ? "방탈로그 수정"
                 : "방탈로그 저장"}
           </button>
-          {isEditMode ? (
-            <button type="button" onClick={() => void handleDelete()} disabled={isDeleting}>
-              {isDeleting ? "삭제 중..." : "방탈로그 삭제"}
-            </button>
-          ) : null}
         </div>
       </form>
     </main>

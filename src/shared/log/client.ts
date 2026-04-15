@@ -80,13 +80,23 @@ export async function updateMeetingLog(
   );
 }
 
-export async function deleteMeetingLog(logId: number): Promise<DeleteMeetingLogResponse> {
+export async function deleteMeetingLog(
+  crewId: number,
+  logId: number,
+  deleteReason?: string,
+): Promise<DeleteMeetingLogResponse> {
   return requestJson<DeleteMeetingLogResponse>(
     getApiBaseUrl(),
-    `/api/logs/${logId}`,
+    `/api/crews/${crewId}/logs/${logId}`,
     {
       method: "DELETE",
       credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        deleteReason: deleteReason ?? null,
+      }),
     },
     {
       code: "LOG_DELETE_FAILED",

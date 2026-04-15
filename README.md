@@ -1001,5 +1001,45 @@ npm.cmd run build
 - 비로그인 사용자는 로그인 유도 흐름으로, 크루원이 아닌 사용자는 `/crews/public/{crewId}`로 분기되는 것을 확인했습니다.
 - 작성 / 수정 / 삭제 신규 확장, 운영 삭제, 알림, 댓글, 좋아요 UI가 노출되지 않는 것을 확인했습니다.
 
+## Gallery / Log Round 05 작성자 삭제 + 크루장 운영 삭제
+
+- `/crews/{crewId}/logs/{logId}`
+  - 로그 상세 화면에 삭제 진입점을 추가합니다.
+  - 작성자 본인은 단순 확인 모달로 자기 로그를 삭제할 수 있습니다.
+  - 현재 크루 리더가 작성자가 아닐 때는 운영 삭제 모달을 통해 다른 크루원 로그를 삭제할 수 있습니다.
+  - 크루장 운영 삭제는 `deleteReason` 입력이 필수입니다.
+- 삭제 API
+  - `DELETE /api/crews/{crewId}/logs/{logId}`를 사용합니다.
+  - 요청 body는 `{ deleteReason }` 형식입니다.
+  - 작성자 본인 삭제는 `deleteReason` 없이 호출하고, 크루장 삭제는 입력값을 함께 보냅니다.
+- 삭제 성공 후 흐름
+  - 삭제 성공 시 상세 화면에 남지 않고 `/crews/{crewId}/logs?notice=...` 피드로 이동합니다.
+  - 피드에서는 `방탈로그를 삭제했어요.` 안내 문구만 짧게 보여줍니다.
+- 삭제 후 재작성 불가 정책
+  - 현재 backend는 `GET /api/meetings/{meetingId}/logs/me`에서 삭제된 로그와 처음부터 없던 로그를 구분해주지 않습니다.
+  - 그래서 프론트는 같은 세션 안에서 삭제가 발생한 meetingId를 `sessionStorage`에 기록하고, meeting 상세와 archive에서 다시 작성 CTA를 즉시 열지 않는 보수적 흐름을 사용합니다.
+  - 표시 문구:
+    - meeting 상세: `삭제된 방탈로그가 있어 다시 작성할 수 없어요.`
+    - archive: `삭제된 방탈로그는 다시 작성할 수 없어요.`
+- 범위 제한
+  - 이번 라운드는 삭제만 다룹니다.
+  - 작성/수정/읽기 기본 흐름은 유지하고, 알림 연동, 댓글/좋아요, 신고는 열지 않습니다.
+
+### Gallery / Log Round 05 자동 검증
+
+- `npm.cmd run test -- src/test/shared/log-client.test.tsx src/test/app/log-detail-page.test.tsx src/test/app/meeting-log-editor-page.test.tsx src/test/app/meeting-detail-page.test.tsx src/test/app/archive-meetings-page.test.tsx src/test/app/crew-log-feed-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+### Gallery / Log Round 05 수동 검증
+
+- 작성자 본인으로 crew-scoped 로그 상세에 진입했을 때 `삭제` 버튼이 보이고, 확인 후 삭제 성공 시 크루 로그 피드로 이동하는 것을 확인했습니다.
+- 크루장으로 다른 크루원 로그 상세에 진입했을 때 `삭제` 버튼이 보이고, 삭제 사유를 입력해야만 운영 삭제가 가능한 것을 확인했습니다.
+- 일반 크루원은 다른 사람 로그 상세에서 삭제 버튼을 볼 수 없는 것을 확인했습니다.
+- 삭제 성공 후 피드에서 `방탈로그를 삭제했어요.` 안내 문구가 보이는 것을 확인했습니다.
+- 삭제가 발생한 같은 세션에서 meeting 상세와 archive의 재작성 CTA가 즉시 다시 열리지 않는 것을 확인했습니다.
+- 알림 연동, 댓글/좋아요, 신고 UI가 노출되지 않는 것을 확인했습니다.
+
 
 

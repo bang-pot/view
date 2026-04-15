@@ -7,7 +7,6 @@ import { OperationalError } from "@/shared/errors/operational";
 import { getMeetingDetail } from "@/shared/meeting/client";
 import {
   createMeetingLog,
-  deleteMeetingLog,
   getMeetingLogDetail,
   getMyMeetingLog,
   uploadLogPhoto,
@@ -35,7 +34,6 @@ vi.mock("@/shared/meeting/client", () => ({
 vi.mock("@/shared/log/client", () => ({
   createMeetingLog: vi.fn(),
   updateMeetingLog: vi.fn(),
-  deleteMeetingLog: vi.fn(),
   getMyMeetingLog: vi.fn(),
   getMeetingLogDetail: vi.fn(),
   uploadLogPhoto: vi.fn(),
@@ -89,6 +87,7 @@ describe("MeetingLogEditorPage", () => {
     vi.clearAllMocks();
     replaceMock.mockReset();
     pushMock.mockReset();
+    window.sessionStorage.clear();
   });
 
   afterEach(() => {
@@ -118,7 +117,7 @@ describe("MeetingLogEditorPage", () => {
     });
   });
 
-  it("creates a new log and routes to the log detail", async () => {
+  it("creates a new log and routes to the crew-scoped log detail", async () => {
     mockFullUser();
     mockCompletedMeeting();
     vi.mocked(getMyMeetingLog).mockResolvedValue(null);
@@ -153,10 +152,10 @@ describe("MeetingLogEditorPage", () => {
       });
     });
 
-    expect(pushMock).toHaveBeenCalledWith("/logs/501");
+    expect(pushMock).toHaveBeenCalledWith("/crews/11/logs/501");
   });
 
-  it("loads an existing log for editing and supports delete", async () => {
+  it("loads an existing log for editing and keeps existing photos in the update payload", async () => {
     mockFullUser();
     mockCompletedMeeting();
     vi.mocked(getMyMeetingLog).mockResolvedValue({ logId: 501, meetingId: 99 });
@@ -174,7 +173,6 @@ describe("MeetingLogEditorPage", () => {
       photos: ["https://cdn.example.com/log-1.png"],
     });
     vi.mocked(updateMeetingLog).mockResolvedValue({ logId: 501, meetingId: 99 });
-    vi.mocked(deleteMeetingLog).mockResolvedValue({ logId: 501 });
 
     render(
       await MeetingLogEditorPage({
@@ -186,27 +184,18 @@ describe("MeetingLogEditorPage", () => {
     expect(screen.getByLabelText("후기 본문")).toHaveValue("기존 로그예요.");
     expect(screen.getByText("기존 사진")).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("후기 본문"), {
-      target: { value: "수정된 로그예요." },
+      target: { value: "수정한 로그예요." },
     });
     fireEvent.click(screen.getByRole("button", { name: "방탈로그 수정" }));
 
     await waitFor(() => {
       expect(updateMeetingLog).toHaveBeenCalledWith(501, {
-        body: "수정된 로그예요.",
+        body: "수정한 로그예요.",
         photos: [{ url: "https://cdn.example.com/log-1.png", sizeBytes: 1 }],
       });
     });
 
-    expect(pushMock).toHaveBeenCalledWith("/logs/501");
-
-    pushMock.mockReset();
-    fireEvent.click(screen.getByRole("button", { name: "방탈로그 삭제" }));
-
-    await waitFor(() => {
-      expect(deleteMeetingLog).toHaveBeenCalledWith(501);
-    });
-
-    expect(await screen.findByRole("heading", { name: "방탈로그 작성하기" })).toBeInTheDocument();
+    expect(pushMock).toHaveBeenCalledWith("/crews/11/logs/501");
   });
 
   it("shows a validation message when a photo violates the constraints", async () => {
@@ -283,6 +272,24 @@ describe("MeetingLogEditorPage", () => {
     );
 
     expect(await screen.findByText("이 모임은 지금 방탈로그를 작성할 수 없어요.")).toBeInTheDocument();
+  });
+
+  it("blocks recreating a deleted log in the same session", async () => {
+    window.sessionStorage.setItem("bangpot.deleted-log-meetings", JSON.stringify([99]));
+
+    mockFullUser();
+    mockCompletedMeeting();
+    vi.mocked(getMyMeetingLog).mockResolvedValue(null);
+
+    render(
+      await MeetingLogEditorPage({
+        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
+      }),
+    );
+
+    expect(
+      await screen.findByText("이 모임은 삭제된 방탈로그가 있어 다시 작성할 수 없어요."),
+    ).toBeInTheDocument();
   });
 
   it("redirects non-members to the public crew introduction", async () => {

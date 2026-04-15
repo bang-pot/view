@@ -104,22 +104,48 @@ describe("log client", () => {
     );
   });
 
-  it("deletes an authored meeting log", async () => {
+  it("deletes an authored meeting log through the crew-scoped endpoint", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ logId: 501 }), {
+      new Response(JSON.stringify({ logId: 501, deletedBy: "AUTHOR" }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       }),
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    await deleteMeetingLog(501);
+    await deleteMeetingLog(11, 501);
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "/backend/api/logs/501",
+      "/backend/api/crews/11/logs/501",
       expect.objectContaining({
         method: "DELETE",
         credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deleteReason: null }),
+      }),
+    );
+  });
+
+  it("includes a delete reason when the crew leader deletes a log", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ logId: 501, deletedBy: "LEADER" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await deleteMeetingLog(11, 501, "스포일러 포함 후기라 운영 삭제합니다.");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/logs/501",
+      expect.objectContaining({
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          deleteReason: "스포일러 포함 후기라 운영 삭제합니다.",
+        }),
       }),
     );
   });

@@ -28,6 +28,7 @@ describe("ArchiveMeetingsPage", () => {
     vi.mocked(getMe).mockReset();
     vi.mocked(getArchiveMeetings).mockReset();
     replaceMock.mockReset();
+    window.sessionStorage.clear();
   });
 
   afterEach(() => {
@@ -48,7 +49,7 @@ describe("ArchiveMeetingsPage", () => {
         {
           meetingId: 101,
           crewId: 11,
-          crewName: "미드나잇 러너스",
+          crewName: "미드나잇 러너즈",
           themeName: "브레이크아웃",
           place: "강남 이스케이프",
           date: "2026-04-10",
@@ -67,7 +68,7 @@ describe("ArchiveMeetingsPage", () => {
 
     expect(await screen.findByRole("heading", { name: "완료된 모임 아카이브" })).toBeInTheDocument();
     expect(screen.getByText("브레이크아웃")).toBeInTheDocument();
-    expect(screen.getByText("미드나잇 러너스")).toBeInTheDocument();
+    expect(screen.getByText("미드나잇 러너즈")).toBeInTheDocument();
     expect(screen.getByText("강남 이스케이프")).toBeInTheDocument();
     expect(screen.getByText("2026-04-10")).toBeInTheDocument();
     expect(screen.getByText("결과 성공")).toBeInTheDocument();
@@ -115,7 +116,7 @@ describe("ArchiveMeetingsPage", () => {
         {
           meetingId: 101,
           crewId: 11,
-          crewName: "미드나잇 러너스",
+          crewName: "미드나잇 러너즈",
           themeName: "브레이크아웃",
           place: "강남 이스케이프",
           date: "2026-04-10",
@@ -215,5 +216,43 @@ describe("ArchiveMeetingsPage", () => {
     expect(
       await screen.findByText("아카이브 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
     ).toBeInTheDocument();
+  });
+
+  it("blocks the write link when the log was deleted in the same session", async () => {
+    window.sessionStorage.setItem("bangpot.deleted-log-meetings", JSON.stringify([101]));
+
+    vi.mocked(getMe).mockResolvedValue({
+      authStatus: "FULL",
+      completionRequired: false,
+      redirectTo: null,
+      requiredTermsVersion: "2026-03-25",
+      user: { id: 1, nickname: "bangpot" },
+      requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
+    });
+    vi.mocked(getArchiveMeetings).mockResolvedValue({
+      items: [
+        {
+          meetingId: 101,
+          crewId: 11,
+          crewName: "미드나잇 러너즈",
+          themeName: "브레이크아웃",
+          place: "강남 이스케이프",
+          date: "2026-04-10",
+          result: "SUCCESS",
+          posterImageUrl: null,
+        },
+      ],
+      pageInfo: {
+        page: 0,
+        size: 20,
+        hasNext: false,
+      },
+    });
+
+    render(await ArchiveMeetingsPage());
+
+    expect(await screen.findByRole("heading", { name: "완료된 모임 아카이브" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "방탈로그 작성·수정" })).not.toBeInTheDocument();
+    expect(screen.getByText("삭제된 방탈로그는 다시 작성할 수 없어요.")).toBeInTheDocument();
   });
 });
