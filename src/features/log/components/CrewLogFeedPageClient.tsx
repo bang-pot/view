@@ -21,6 +21,10 @@ function buildPublicCrewPath(crewId: string): string {
   return `/crews/public/${crewId}`;
 }
 
+function buildCrewLogDetailPath(crewId: string, logId: number): string {
+  return `/crews/${crewId}/logs/${logId}`;
+}
+
 function mergeItems(
   previousItems: CrewLogFeedItem[],
   nextItems: CrewLogFeedItem[],
@@ -36,6 +40,10 @@ function mergeItems(
   }
 
   return merged;
+}
+
+function getExcerpt(excerpt: string): string {
+  return excerpt.trim() || "후기 요약이 아직 없습니다.";
 }
 
 export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
@@ -88,6 +96,7 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
         setItems(response.items);
         setPage(response.pageInfo.page);
         setHasNext(response.pageInfo.hasNext);
+        setErrorMessage(null);
         setIsLoading(false);
       } catch (error) {
         const shouldRedirect =
@@ -108,7 +117,7 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
         }
 
         setErrorMessage(
-          getUserMessage(error, "방탈로그 피드를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
+          getUserMessage(error, "크루 방탈로그 피드를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
         );
         setIsLoading(false);
       }
@@ -140,7 +149,7 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
         route: routePath,
       });
       setErrorMessage(
-        getUserMessage(error, "방탈로그 피드를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
+        getUserMessage(error, "크루 방탈로그 피드를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
       );
     } finally {
       setIsLoadingMore(false);
@@ -151,7 +160,7 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
     return (
       <main>
         <h1>크루 방탈로그</h1>
-        <p>잘못된 크루 경로입니다.</p>
+        <p>올바른 크루 경로가 아닙니다.</p>
       </main>
     );
   }
@@ -160,7 +169,7 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
     return (
       <main>
         <h1>크루 방탈로그</h1>
-        <p>방탈로그 피드를 불러오는 중입니다.</p>
+        <p>크루 방탈로그 피드를 불러오는 중입니다.</p>
       </main>
     );
   }
@@ -182,17 +191,17 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
               margin: 0,
               padding: 0,
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
               gap: 16,
             }}
           >
             {items.map((item) => (
               <li key={item.logId}>
                 <Link
-                  href={`/logs/${item.logId}`}
+                  href={buildCrewLogDetailPath(crewId, item.logId)}
                   style={{
                     display: "grid",
-                    gap: 12,
+                    gridTemplateColumns: "minmax(160px, 220px) 1fr",
+                    gap: 16,
                     border: "1px solid #d9d9d9",
                     borderRadius: 16,
                     padding: 16,
@@ -204,10 +213,11 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={item.coverPhotoUrl}
-                      alt={`${item.themeName} 대표 사진`}
+                      alt={`${item.meetingTitle} 대표 사진`}
                       style={{
                         width: "100%",
-                        aspectRatio: "4 / 5",
+                        height: "100%",
+                        minHeight: 180,
                         objectFit: "cover",
                         borderRadius: 12,
                       }}
@@ -215,27 +225,27 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
                   ) : (
                     <div
                       style={{
-                        width: "100%",
-                        aspectRatio: "4 / 5",
+                        minHeight: 180,
                         borderRadius: 12,
                         background: "#f5f5f5",
                         color: "#666",
                         display: "grid",
                         placeItems: "center",
+                        textAlign: "center",
+                        padding: 12,
                       }}
                     >
                       대표 사진 준비 중
                     </div>
                   )}
 
-                  <div style={{ display: "grid", gap: 6 }}>
-                    <strong>{item.excerpt}</strong>
+                  <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
+                    <strong>{getExcerpt(item.excerpt)}</strong>
                     <span>작성자 {item.authorNickname}</span>
                     <span>모임 {item.meetingTitle}</span>
-                    <span>테마 {item.themeName}</span>
-                    <span>모임 날짜 {item.date}</span>
+                    <span>모임 날짜 {item.meetingDate}</span>
                     <span>기록 시간 {item.createdAt}</span>
-                    <span>사진 {item.photoCount}장</span>
+                    {item.extraPhotoCount > 0 ? <span>+ {item.extraPhotoCount}장</span> : null}
                   </div>
                 </Link>
               </li>
@@ -252,7 +262,7 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
               {isLoadingMore ? "더 불러오는 중..." : "더 보기"}
             </button>
           ) : (
-            <p>여기까지 모두 확인했어요.</p>
+            <p>여기까지 모두 읽었어요.</p>
           )}
         </>
       ) : null}

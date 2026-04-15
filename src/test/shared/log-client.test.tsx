@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createMeetingLog,
   deleteMeetingLog,
+  getCrewLogDetail,
   getCrewLogFeed,
   getMeetingLogDetail,
   getMyMeetingLog,
@@ -90,7 +91,7 @@ describe("log client", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    await updateMeetingLog(501, { body: "수정한 방탈로그예요.", photos: [] });
+    await updateMeetingLog(501, { body: "수정된 방탈로그예요.", photos: [] });
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/backend/api/logs/501",
@@ -98,7 +99,7 @@ describe("log client", () => {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: "수정한 방탈로그예요.", photos: [] }),
+        body: JSON.stringify({ body: "수정된 방탈로그예요.", photos: [] }),
       }),
     );
   });
@@ -143,7 +144,7 @@ describe("log client", () => {
     await expect(getMyMeetingLog(99)).resolves.toBeNull();
   });
 
-  it("loads the current user's meeting log summary and log detail", async () => {
+  it("loads the current user's meeting log summary and standalone log detail", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(
@@ -202,15 +203,13 @@ describe("log client", () => {
             {
               logId: 700,
               meetingId: 99,
-              crewId: 11,
               authorNickname: "bangpot",
               meetingTitle: "금요일 방탈출 번개",
-              themeName: "미스터리 룸",
-              date: "2026-04-10",
+              meetingDate: "2026-04-10",
               createdAt: "2026-04-11T10:00:00Z",
-              excerpt: "정말 몰입감이 좋았던 기록이에요.",
+              excerpt: "정답 모여쓰기 감각이 좋았던 기록이에요.",
               coverPhotoUrl: "https://cdn.example.com/log-cover.jpg",
-              photoCount: 3,
+              extraPhotoCount: 2,
             },
           ],
           pageInfo: {
@@ -231,8 +230,8 @@ describe("log client", () => {
       items: [
         expect.objectContaining({
           logId: 700,
-          excerpt: "정말 몰입감이 좋았던 기록이에요.",
-          photoCount: 3,
+          excerpt: "정답 모여쓰기 감각이 좋았던 기록이에요.",
+          extraPhotoCount: 2,
         }),
       ],
       pageInfo: {
@@ -245,6 +244,42 @@ describe("log client", () => {
     expect(fetchMock).toHaveBeenCalledWith(
       "/backend/api/crews/11/logs?page=0&size=20",
       expect.objectContaining({ method: "GET", credentials: "include", cache: "no-store" }),
+    );
+  });
+
+  it("loads a crew-scoped log detail", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          logId: 700,
+          meetingId: 99,
+          meetingTitle: "금요일 방탈출 번개",
+          themeName: "미스터리 룸",
+          place: "강남 이스케이프",
+          date: "2026-04-10",
+          authorNickname: "bangpot",
+          createdAt: "2026-04-11T10:00:00Z",
+          updatedAt: "2026-04-11T11:00:00Z",
+          body: "정말 재미있었어요.",
+          photos: ["https://cdn.example.com/log-cover.jpg"],
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(getCrewLogDetail(11, 700)).resolves.toMatchObject({
+      logId: 700,
+      meetingId: 99,
+      meetingTitle: "금요일 방탈출 번개",
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/logs/700",
+      expect.objectContaining({ credentials: "include", cache: "no-store" }),
     );
   });
 });
