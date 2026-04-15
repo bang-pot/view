@@ -10,7 +10,6 @@ import { getUserMessage, isOperationalError } from "@/shared/errors/operational"
 import {
   deleteMeetingLog,
   getCrewLogDetail,
-  getMeetingLogDetail,
   getMyMeetingLog,
 } from "@/shared/log/client";
 import type { MeetingLogDetail, MeetingLogMeResponse } from "@/shared/log/types";
@@ -18,7 +17,7 @@ import { reportOperationalError } from "@/shared/monitoring/operations";
 
 type MeetingLogDetailPageClientProps = {
   logId: string;
-  crewId?: string;
+  crewId: string;
 };
 
 function buildPublicCrewPath(crewId: string): string {
@@ -47,16 +46,12 @@ export function MeetingLogDetailPageClient({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const logIdNumber = Number(logId);
-  const crewIdNumber = crewId ? Number(crewId) : null;
+  const crewIdNumber = Number(crewId);
   const hasValidLogId = Number.isFinite(logIdNumber);
-  const hasValidCrewId = crewId == null || Number.isFinite(crewIdNumber);
-  const isCrewScoped = crewId != null;
-  const routePath = useMemo(
-    () => (crewId ? `/crews/${crewId}/logs/${logId}` : `/logs/${logId}`),
-    [crewId, logId],
-  );
-  const feedPath = useMemo(() => (crewId ? `/crews/${crewId}/logs` : "/"), [crewId]);
-  const publicCrewPath = crewId ? buildPublicCrewPath(crewId) : null;
+  const hasValidCrewId = Number.isFinite(crewIdNumber);
+  const routePath = useMemo(() => `/crews/${crewId}/logs/${logId}`, [crewId, logId]);
+  const feedPath = useMemo(() => `/crews/${crewId}/logs`, [crewId]);
+  const publicCrewPath = buildPublicCrewPath(crewId);
 
   useEffect(() => {
     if (!hasValidLogId || !hasValidCrewId) {
@@ -82,50 +77,39 @@ export function MeetingLogDetailPageClient({
 
         setCurrentUserNickname(me.user?.nickname ?? null);
 
-        if (crewIdNumber) {
-          const [crew, detail] = await Promise.all([
-            getCrewHub(crewIdNumber),
-            getCrewLogDetail(crewIdNumber, logIdNumber),
-          ]);
+        const [crew, detail] = await Promise.all([
+          getCrewHub(crewIdNumber),
+          getCrewLogDetail(crewIdNumber, logIdNumber),
+        ]);
 
-          if (!isMounted) {
-            return;
-          }
-
-          let nextMyMeetingLog: MeetingLogMeResponse | null = null;
-
-          try {
-            nextMyMeetingLog = await getMyMeetingLog(detail.meetingId);
-          } catch (error) {
-            reportOperationalError("log.detail.my_log_lookup_failed", error, {
-              level: "warn",
-              route: routePath,
-            });
-          }
-
-          if (!isMounted) {
-            return;
-          }
-
-          setCrewRole(crew.myRole ?? null);
-          setMyMeetingLog(nextMyMeetingLog);
-          setLog(detail);
-        } else {
-          const detail = await getMeetingLogDetail(logIdNumber);
-
-          if (!isMounted) {
-            return;
-          }
-
-          setLog(detail);
+        if (!isMounted) {
+          return;
         }
+
+        let nextMyMeetingLog: MeetingLogMeResponse | null = null;
+
+        try {
+          nextMyMeetingLog = await getMyMeetingLog(detail.meetingId);
+        } catch (error) {
+          reportOperationalError("log.detail.my_log_lookup_failed", error, {
+            level: "warn",
+            route: routePath,
+          });
+        }
+
+        if (!isMounted) {
+          return;
+        }
+
+        setCrewRole(crew.myRole ?? null);
+        setMyMeetingLog(nextMyMeetingLog);
+        setLog(detail);
 
         setErrorMessage(null);
         setDeleteErrorMessage(null);
         setIsLoading(false);
       } catch (error) {
         const shouldRedirect =
-          isCrewScoped &&
           isOperationalError(error) &&
           error.code === "AUTH_ACCESS_DENIED" &&
           publicCrewPath;
@@ -166,7 +150,6 @@ export function MeetingLogDetailPageClient({
     crewIdNumber,
     hasValidCrewId,
     hasValidLogId,
-    isCrewScoped,
     logIdNumber,
     publicCrewPath,
     routePath,
@@ -243,7 +226,7 @@ export function MeetingLogDetailPageClient({
   if (!hasValidLogId || !hasValidCrewId) {
     return (
       <main>
-        <h1>{crewId ? "크루 방탈로그 상세" : "방탈로그 상세"}</h1>
+        <h1>크루 방탈로그 상세</h1>
         <p>올바른 방탈로그 경로가 아니에요.</p>
       </main>
     );
@@ -252,7 +235,7 @@ export function MeetingLogDetailPageClient({
   if (isLoading) {
     return (
       <main>
-        <p>{crewId ? "크루 방탈로그 상세를 불러오는 중입니다." : "방탈로그 상세를 불러오는 중입니다."}</p>
+        <p>크루 방탈로그 상세를 불러오는 중입니다.</p>
       </main>
     );
   }
@@ -260,13 +243,8 @@ export function MeetingLogDetailPageClient({
   if (!log) {
     return (
       <main>
-        <h1>{crewId ? "크루 방탈로그 상세" : "방탈로그 상세"}</h1>
-        <p>
-          {errorMessage ??
-            (crewId
-              ? "크루 방탈로그 상세를 불러오지 못했어요."
-              : "방탈로그 상세를 불러오지 못했어요.")}
-        </p>
+        <h1>크루 방탈로그 상세</h1>
+        <p>{errorMessage ?? "크루 방탈로그 상세를 불러오지 못했어요."}</p>
       </main>
     );
   }
@@ -278,14 +256,14 @@ export function MeetingLogDetailPageClient({
   const isAuthor =
     (myMeetingLog?.status === "EXISTS" && myMeetingLog.logId === logIdNumber) ||
     currentUserNickname === log.authorNickname;
-  const canDeleteAsLeader = Boolean(crewId && crewRole === "LEADER" && !isAuthor);
-  const canDeleteLog = Boolean(crewId && (isAuthor || canDeleteAsLeader));
+  const canDeleteAsLeader = crewRole === "LEADER" && !isAuthor;
+  const canDeleteLog = isAuthor || canDeleteAsLeader;
   const selectedPhotoLabel =
     selectedPhotoIndex == null ? `1 / ${log.photos.length}` : `${selectedPhotoIndex + 1} / ${log.photos.length}`;
 
   return (
     <main>
-      <h1>{crewId ? "크루 방탈로그 상세" : "방탈로그 상세"}</h1>
+      <h1>크루 방탈로그 상세</h1>
       <p>{log.meetingTitle}</p>
       <p>
         {log.themeName} / {log.place} / {log.date}

@@ -5,7 +5,6 @@ import {
   deleteMeetingLog,
   getCrewLogDetail,
   getCrewLogFeed,
-  getMeetingLogDetail,
   getMyMeetingLog,
   uploadLogPhoto,
   updateMeetingLog,
@@ -194,34 +193,13 @@ describe("log client", () => {
     });
   });
 
-  it("loads the current user's existing log status and standalone log detail", async () => {
+  it("loads the current user's existing log status", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
             status: "EXISTS",
-            logId: 501,
-            meetingId: 99,
-            meetingTitle: "금요일 방탈출 번개",
-            themeName: "미스터리 룸",
-            place: "강남 이스케이프",
-            date: "2026-04-10",
-            authorNickname: "bangpot",
-            createdAt: "2026-04-11T10:00:00Z",
-            updatedAt: "2026-04-11T11:00:00Z",
-            body: "정말 재미있었어요.",
-            photos: [],
-          }),
-          {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          },
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
             logId: 501,
             meetingId: 99,
             meetingTitle: "금요일 방탈출 번개",
@@ -247,20 +225,9 @@ describe("log client", () => {
       logId: 501,
       meetingId: 99,
     });
-    await expect(getMeetingLogDetail(501)).resolves.toMatchObject({
-      logId: 501,
-      meetingId: 99,
-      meetingTitle: "금요일 방탈출 번개",
-    });
 
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
+    expect(fetchMock).toHaveBeenCalledWith(
       "/backend/api/meetings/99/logs/me",
-      expect.objectContaining({ credentials: "include", cache: "no-store" }),
-    );
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
-      "/backend/api/logs/501",
       expect.objectContaining({ credentials: "include", cache: "no-store" }),
     );
   });
