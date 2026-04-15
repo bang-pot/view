@@ -64,12 +64,13 @@ describe("CrewPage", () => {
     expect(screen.getByRole("navigation", { name: "크루 네비게이션" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "홈" })).toHaveAttribute("href", "/crews/11");
     expect(screen.getByRole("link", { name: "모임" })).toHaveAttribute("href", "/crews/11/meetings");
+    expect(screen.getByRole("link", { name: "방탈로그" })).toHaveAttribute("href", "/crews/11/logs");
     expect(screen.getByRole("link", { name: "정책" })).toHaveAttribute("href", "/crews/11/policies");
     expect(screen.getByRole("link", { name: "크루원" })).toHaveAttribute("href", "/crews/11/members");
     expect(screen.getByRole("link", { name: "설정" })).toHaveAttribute("href", "/crews/11/settings");
     expect(screen.getByText("공지사항이 등록되어 있습니다.")).toBeInTheDocument();
-    expect(screen.getByText("가입 신청 대기: 2건")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "가입 신청 관리" })).toHaveAttribute(
+    expect(screen.getByText("가입 요청 대기: 2건")).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "가입 신청 관리" })).toHaveAttribute(
       "href",
       "/crews/11/join-requests",
     );
@@ -93,8 +94,9 @@ describe("CrewPage", () => {
     expect(await screen.findByRole("heading", { name: "Night runners" })).toBeInTheDocument();
     expect(screen.getByText("내 역할: MEMBER")).toBeInTheDocument();
     expect(screen.queryByText("공지사항이 등록되어 있습니다.")).not.toBeInTheDocument();
-    expect(screen.queryByText("가입 신청 대기: 0건")).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "가입 신청 관리" })).not.toBeInTheDocument();
+    expect(screen.queryByText("가입 요청 대기: 0건")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "가입 요청 관리" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "방탈로그" })).toHaveAttribute("href", "/crews/11/logs");
     expect(screen.getByRole("link", { name: "설정" })).toHaveAttribute("href", "/crews/11/settings");
     expect(screen.getByText("이 크루의 공통 안내는 아직 준비 중입니다.")).toBeInTheDocument();
   });
