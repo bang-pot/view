@@ -868,8 +868,11 @@ npm.cmd run build
 
 - `/crews/{crewId}/meetings/{meetingId}/log`
   - 완료된 모임의 host 또는 `JOINED` / `PENDING` / `APPROVED` 참여 이력이 있는 사용자만 방탈로그를 작성할 수 있도록 연결했습니다.
-  - `GET /api/meetings/{meetingId}/logs/me`가 404를 주면 아직 내 로그가 없는 상태로 해석해 작성 모드로 진입합니다.
-  - 이미 내 로그가 있으면 `GET /api/logs/{logId}`로 본문과 사진 메타데이터를 불러와 수정 모드로 진입합니다.
+  - `GET /api/meetings/{meetingId}/logs/me`의 `status`를 source of truth로 사용합니다.
+    - `EXISTS`: 기존 로그 수정 모드
+    - `NOT_WRITTEN`: 새 작성 모드
+    - `DELETED_BLOCKED`: 재작성 차단 안내
+  - 이미 내 로그가 있으면 `logs/me` 응답의 본문과 사진 메타데이터를 그대로 사용해 수정 모드로 진입합니다.
 - meeting 상세 / archive CTA
   - meeting 상세에서는 완료된 모임 기준으로 내 로그가 없으면 `방탈로그 작성하기`, 있으면 `방탈로그 수정하기` 링크를 노출합니다.
   - archive 카드에서는 `방탈로그 작성·수정` 링크로 같은 경로를 재사용합니다.
@@ -904,7 +907,7 @@ npm.cmd run build
 
 - 완료된 모임 참여자가 meeting 상세와 archive에서 방탈로그 작성 / 수정 진입을 할 수 있는 것을 확인했습니다.
 - 한 참여자가 같은 meeting에 로그 1개만 작성하고, 저장 / 수정 후 `/logs/{logId}` 상세 화면으로 이동하는 것을 확인했습니다.
-- 작성자 본인만 수정 / 삭제할 수 있고, 삭제 후에는 다시 작성 가능한 상태로 돌아가는 것을 확인했습니다.
+- 작성자 본인만 수정 / 삭제할 수 있고, 삭제 후에는 backend 상태값에 따라 재작성 불가가 유지되는 것을 확인했습니다.
 - 사진은 파일 선택 후 업로드되고, 업로드가 끝난 사진만 저장되는 것을 확인했습니다.
 - 사진 개수 / 확장자 / 용량 제약이 UI에서도 동작하는 것을 확인했습니다.
 - 사진이 없는 상세 fallback, 비로그인 / 비멤버 차단, 미완료 모임 작성 차단이 깨지지 않는 것을 확인했습니다.
@@ -1016,11 +1019,13 @@ npm.cmd run build
   - 삭제 성공 시 상세 화면에 남지 않고 `/crews/{crewId}/logs?notice=...` 피드로 이동합니다.
   - 피드에서는 `방탈로그를 삭제했어요.` 안내 문구만 짧게 보여줍니다.
 - 삭제 후 재작성 불가 정책
-  - 현재 backend는 `GET /api/meetings/{meetingId}/logs/me`에서 삭제된 로그와 처음부터 없던 로그를 구분해주지 않습니다.
-  - 그래서 프론트는 같은 세션 안에서 삭제가 발생한 meetingId를 `sessionStorage`에 기록하고, meeting 상세와 archive에서 다시 작성 CTA를 즉시 열지 않는 보수적 흐름을 사용합니다.
+  - frontend는 더 이상 `sessionStorage` workaround를 쓰지 않습니다.
+  - `GET /api/meetings/{meetingId}/logs/me`의 상태값을 그대로 사용합니다.
+    - `EXISTS`: 보기 / 수정 유지
+    - `NOT_WRITTEN`: 작성하기 노출
+    - `DELETED_BLOCKED`: 작성 CTA 숨김 + 재작성 불가 안내
   - 표시 문구:
     - meeting 상세: `삭제된 방탈로그가 있어 다시 작성할 수 없어요.`
-    - archive: `삭제된 방탈로그는 다시 작성할 수 없어요.`
 - 범위 제한
   - 이번 라운드는 삭제만 다룹니다.
   - 작성/수정/읽기 기본 흐름은 유지하고, 알림 연동, 댓글/좋아요, 신고는 열지 않습니다.
@@ -1038,7 +1043,8 @@ npm.cmd run build
 - 크루장으로 다른 크루원 로그 상세에 진입했을 때 `삭제` 버튼이 보이고, 삭제 사유를 입력해야만 운영 삭제가 가능한 것을 확인했습니다.
 - 일반 크루원은 다른 사람 로그 상세에서 삭제 버튼을 볼 수 없는 것을 확인했습니다.
 - 삭제 성공 후 피드에서 `방탈로그를 삭제했어요.` 안내 문구가 보이는 것을 확인했습니다.
-- 삭제가 발생한 같은 세션에서 meeting 상세와 archive의 재작성 CTA가 즉시 다시 열리지 않는 것을 확인했습니다.
+- `NOT_WRITTEN`, `EXISTS`, `DELETED_BLOCKED` 상태에 따라 meeting 상세와 log editor가 정확히 분기되는 것을 확인했습니다.
+- 삭제가 발생한 같은 세션뿐 아니라 새로고침과 브라우저 재시작 이후에도 `DELETED_BLOCKED` 상태가 유지되고, meeting 상세와 editor에서 재작성 CTA가 다시 열리지 않는 것을 확인했습니다.
 - 알림 연동, 댓글/좋아요, 신고 UI가 노출되지 않는 것을 확인했습니다.
 
 

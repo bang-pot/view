@@ -7,10 +7,9 @@ import { OperationalError } from "@/shared/errors/operational";
 import { getMeetingDetail } from "@/shared/meeting/client";
 import {
   createMeetingLog,
-  getMeetingLogDetail,
   getMyMeetingLog,
-  uploadLogPhoto,
   updateMeetingLog,
+  uploadLogPhoto,
 } from "@/shared/log/client";
 
 const replaceMock = vi.fn();
@@ -73,6 +72,57 @@ function mockCompletedMeeting(
   });
 }
 
+function makeNotWrittenLog() {
+  return {
+    status: "NOT_WRITTEN" as const,
+    logId: null,
+    meetingId: 99,
+    meetingTitle: null,
+    themeName: null,
+    place: null,
+    date: null,
+    authorNickname: null,
+    createdAt: null,
+    updatedAt: null,
+    body: null,
+    photos: [],
+  };
+}
+
+function makeDeletedBlockedLog() {
+  return {
+    status: "DELETED_BLOCKED" as const,
+    logId: null,
+    meetingId: 99,
+    meetingTitle: null,
+    themeName: null,
+    place: null,
+    date: null,
+    authorNickname: null,
+    createdAt: null,
+    updatedAt: null,
+    body: null,
+    photos: [],
+  };
+}
+
+function makeExistingLog() {
+  return {
+    status: "EXISTS" as const,
+    logId: 501,
+    meetingId: 99,
+    meetingTitle: "금요일 방탈출 번개",
+    themeName: "미스터리 룸",
+    place: "강남 이스케이프",
+    date: "2026-04-10",
+    authorNickname: "bangpot",
+    createdAt: "2026-04-11T10:00:00Z",
+    updatedAt: "2026-04-11T11:00:00Z",
+    body: "기존 로그예요.",
+    photos: ["https://cdn.example.com/log-1.png"],
+  };
+}
+
 function createImageFile(name: string, size: number, type: string) {
   const file = new File(["image"], name, { type });
   Object.defineProperty(file, "size", {
@@ -87,7 +137,6 @@ describe("MeetingLogEditorPage", () => {
     vi.clearAllMocks();
     replaceMock.mockReset();
     pushMock.mockReset();
-    window.sessionStorage.clear();
   });
 
   afterEach(() => {
@@ -117,10 +166,10 @@ describe("MeetingLogEditorPage", () => {
     });
   });
 
-  it("creates a new log and routes to the crew-scoped log detail", async () => {
+  it("opens create mode only when logs/me is NOT_WRITTEN", async () => {
     mockFullUser();
     mockCompletedMeeting();
-    vi.mocked(getMyMeetingLog).mockResolvedValue(null);
+    vi.mocked(getMyMeetingLog).mockResolvedValue(makeNotWrittenLog());
     vi.mocked(uploadLogPhoto).mockResolvedValue({
       url: "https://cdn.example.com/log-1.jpg",
       sizeBytes: 1024,
@@ -145,7 +194,6 @@ describe("MeetingLogEditorPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "방탈로그 저장" }));
 
     await waitFor(() => {
-      expect(uploadLogPhoto).toHaveBeenCalled();
       expect(createMeetingLog).toHaveBeenCalledWith(99, {
         body: "정말 재미있었던 모임이었어요.",
         photos: [{ url: "https://cdn.example.com/log-1.jpg", sizeBytes: 1024 }],
@@ -155,23 +203,10 @@ describe("MeetingLogEditorPage", () => {
     expect(pushMock).toHaveBeenCalledWith("/crews/11/logs/501");
   });
 
-  it("loads an existing log for editing and keeps existing photos in the update payload", async () => {
+  it("keeps edit mode when logs/me is EXISTS", async () => {
     mockFullUser();
     mockCompletedMeeting();
-    vi.mocked(getMyMeetingLog).mockResolvedValue({ logId: 501, meetingId: 99 });
-    vi.mocked(getMeetingLogDetail).mockResolvedValue({
-      logId: 501,
-      meetingId: 99,
-      meetingTitle: "금요일 방탈출 번개",
-      themeName: "미스터리 룸",
-      place: "강남 이스케이프",
-      date: "2026-04-10",
-      authorNickname: "bangpot",
-      createdAt: "2026-04-11T10:00:00Z",
-      updatedAt: "2026-04-11T11:00:00Z",
-      body: "기존 로그예요.",
-      photos: ["https://cdn.example.com/log-1.png"],
-    });
+    vi.mocked(getMyMeetingLog).mockResolvedValue(makeExistingLog());
     vi.mocked(updateMeetingLog).mockResolvedValue({ logId: 501, meetingId: 99 });
 
     render(
@@ -183,6 +218,7 @@ describe("MeetingLogEditorPage", () => {
     expect(await screen.findByRole("heading", { name: "방탈로그 수정하기" })).toBeInTheDocument();
     expect(screen.getByLabelText("후기 본문")).toHaveValue("기존 로그예요.");
     expect(screen.getByText("기존 사진")).toBeInTheDocument();
+
     fireEvent.change(screen.getByLabelText("후기 본문"), {
       target: { value: "수정한 로그예요." },
     });
@@ -198,10 +234,29 @@ describe("MeetingLogEditorPage", () => {
     expect(pushMock).toHaveBeenCalledWith("/crews/11/logs/501");
   });
 
+  it("blocks create mode when logs/me is DELETED_BLOCKED", async () => {
+    mockFullUser();
+    mockCompletedMeeting();
+    vi.mocked(getMyMeetingLog).mockResolvedValue(makeDeletedBlockedLog());
+
+    render(
+      await MeetingLogEditorPage({
+        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
+      }),
+    );
+
+    expect(
+      await screen.findByText("이 모임은 삭제된 방탈로그가 있어 다시 작성할 수 없어요."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "방탈로그 저장" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("shows a validation message when a photo violates the constraints", async () => {
     mockFullUser();
     mockCompletedMeeting();
-    vi.mocked(getMyMeetingLog).mockResolvedValue(null);
+    vi.mocked(getMyMeetingLog).mockResolvedValue(makeNotWrittenLog());
 
     render(
       await MeetingLogEditorPage({
@@ -228,7 +283,7 @@ describe("MeetingLogEditorPage", () => {
   it("shows an error when photo upload fails", async () => {
     mockFullUser();
     mockCompletedMeeting();
-    vi.mocked(getMyMeetingLog).mockResolvedValue(null);
+    vi.mocked(getMyMeetingLog).mockResolvedValue(makeNotWrittenLog());
     vi.mocked(uploadLogPhoto).mockRejectedValue(
       new OperationalError({
         code: "LOG_PHOTO_UPLOAD_FAILED",
@@ -263,7 +318,7 @@ describe("MeetingLogEditorPage", () => {
       hostUserId: 44,
       myParticipationStatus: "NOT_JOINED",
     });
-    vi.mocked(getMyMeetingLog).mockResolvedValue(null);
+    vi.mocked(getMyMeetingLog).mockResolvedValue(makeNotWrittenLog());
 
     render(
       await MeetingLogEditorPage({
@@ -272,24 +327,6 @@ describe("MeetingLogEditorPage", () => {
     );
 
     expect(await screen.findByText("이 모임은 지금 방탈로그를 작성할 수 없어요.")).toBeInTheDocument();
-  });
-
-  it("blocks recreating a deleted log in the same session", async () => {
-    window.sessionStorage.setItem("bangpot.deleted-log-meetings", JSON.stringify([99]));
-
-    mockFullUser();
-    mockCompletedMeeting();
-    vi.mocked(getMyMeetingLog).mockResolvedValue(null);
-
-    render(
-      await MeetingLogEditorPage({
-        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
-      }),
-    );
-
-    expect(
-      await screen.findByText("이 모임은 삭제된 방탈로그가 있어 다시 작성할 수 없어요."),
-    ).toBeInTheDocument();
   });
 
   it("redirects non-members to the public crew introduction", async () => {

@@ -93,12 +93,62 @@ function makeMeetingDetail(
   };
 }
 
+function makeNotWrittenLog() {
+  return {
+    status: "NOT_WRITTEN" as const,
+    logId: null,
+    meetingId: 99,
+    meetingTitle: null,
+    themeName: null,
+    place: null,
+    date: null,
+    authorNickname: null,
+    createdAt: null,
+    updatedAt: null,
+    body: null,
+    photos: [],
+  };
+}
+
+function makeDeletedBlockedLog() {
+  return {
+    status: "DELETED_BLOCKED" as const,
+    logId: null,
+    meetingId: 99,
+    meetingTitle: null,
+    themeName: null,
+    place: null,
+    date: null,
+    authorNickname: null,
+    createdAt: null,
+    updatedAt: null,
+    body: null,
+    photos: [],
+  };
+}
+
+function makeExistingLog() {
+  return {
+    status: "EXISTS" as const,
+    logId: 501,
+    meetingId: 99,
+    meetingTitle: "금요일 밤 방탈출 번개",
+    themeName: "미스터리 룸",
+    place: "강남 이스케이프",
+    date: "2026-04-20",
+    authorNickname: "tester",
+    createdAt: "2026-04-21T10:00:00Z",
+    updatedAt: "2026-04-21T11:00:00Z",
+    body: "이미 저장한 로그예요.",
+    photos: [],
+  };
+}
+
 describe("MeetingDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     replaceMock.mockReset();
-    vi.mocked(getMyMeetingLog).mockResolvedValue(null);
-    window.sessionStorage.clear();
+    vi.mocked(getMyMeetingLog).mockResolvedValue(makeNotWrittenLog());
   });
 
   afterEach(() => {
@@ -179,7 +229,7 @@ describe("MeetingDetailPage", () => {
     cleanup();
     vi.clearAllMocks();
     replaceMock.mockReset();
-    vi.mocked(getMyMeetingLog).mockResolvedValue(null);
+    vi.mocked(getMyMeetingLog).mockResolvedValue(makeNotWrittenLog());
 
     mockCurrentUser(1);
     mockCrew("LEADER");
@@ -325,7 +375,7 @@ describe("MeetingDetailPage", () => {
         result: "SUCCESS",
       }),
     );
-    vi.mocked(getMyMeetingLog).mockResolvedValue(null);
+    vi.mocked(getMyMeetingLog).mockResolvedValue(makeNotWrittenLog());
 
     render(
       await CrewMeetingDetailPage({
@@ -340,8 +390,6 @@ describe("MeetingDetailPage", () => {
   });
 
   it("blocks the write log entry when the log was deleted in the same session", async () => {
-    window.sessionStorage.setItem("bangpot.deleted-log-meetings", JSON.stringify([99]));
-
     mockCurrentUser(1);
     mockCrew("LEADER");
     vi.mocked(getMeetingDetail).mockResolvedValue(
@@ -350,7 +398,7 @@ describe("MeetingDetailPage", () => {
         result: "SUCCESS",
       }),
     );
-    vi.mocked(getMyMeetingLog).mockResolvedValue(null);
+    vi.mocked(getMyMeetingLog).mockResolvedValue(makeDeletedBlockedLog());
 
     render(
       await CrewMeetingDetailPage({
@@ -376,10 +424,7 @@ describe("MeetingDetailPage", () => {
         result: "SUCCESS",
       }),
     );
-    vi.mocked(getMyMeetingLog).mockResolvedValue({
-      logId: 501,
-      meetingId: 99,
-    });
+    vi.mocked(getMyMeetingLog).mockResolvedValue(makeExistingLog());
 
     render(
       await CrewMeetingDetailPage({

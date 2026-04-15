@@ -9,7 +9,6 @@ import type { ArchiveMeetingCard } from "@/shared/archive/types";
 import { getMe } from "@/shared/auth/client";
 import { resolveProtectedDestination } from "@/shared/auth/guards";
 import { getUserMessage } from "@/shared/errors/operational";
-import { hasDeletedMeetingLog } from "@/shared/log/deleted-session";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
 const ARCHIVE_PATH = "/archive/meetings";
@@ -212,13 +211,9 @@ export function ArchiveMeetingsPageClient() {
                   <Link href={`/crews/${item.crewId}/meetings/${item.meetingId}`}>
                     모임 다시 보기
                   </Link>
-                  {hasDeletedMeetingLog(item.meetingId) ? (
-                    <span>삭제된 방탈로그는 다시 작성할 수 없어요.</span>
-                  ) : (
-                    <Link href={`/crews/${item.crewId}/meetings/${item.meetingId}/log`}>
-                      방탈로그 작성·수정
-                    </Link>
-                  )}
+                  <Link href={`/crews/${item.crewId}/meetings/${item.meetingId}/log`}>
+                    방탈로그 작성·수정
+                  </Link>
                 </div>
               </li>
             ))}

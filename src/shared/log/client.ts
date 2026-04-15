@@ -1,16 +1,15 @@
 import { requestJson } from "@/shared/api/client";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
-import { isOperationalError } from "@/shared/errors/operational";
 import type {
   CreateMeetingLogInput,
   CrewLogFeedQuery,
   CrewLogFeedResponse,
   DeleteMeetingLogResponse,
   MeetingLogDetail,
-  MeetingLogSummary,
+  MeetingLogMeResponse,
   SaveMeetingLogResponse,
-  UploadLogPhotoResponse,
   UpdateMeetingLogInput,
+  UploadLogPhotoResponse,
 } from "@/shared/log/types";
 
 function getApiBaseUrl(): string {
@@ -105,27 +104,19 @@ export async function deleteMeetingLog(
   );
 }
 
-export async function getMyMeetingLog(meetingId: number): Promise<MeetingLogSummary | null> {
-  try {
-    return await requestJson<MeetingLogSummary>(
-      getApiBaseUrl(),
-      `/api/meetings/${meetingId}/logs/me`,
-      {
-        credentials: "include",
-        cache: "no-store",
-      },
-      {
-        code: "LOG_ME_REQUEST_FAILED",
-        message: "내 방탈로그를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
-      },
-    );
-  } catch (error) {
-    if (isOperationalError(error) && error.code === "LOG_NOT_FOUND") {
-      return null;
-    }
-
-    throw error;
-  }
+export async function getMyMeetingLog(meetingId: number): Promise<MeetingLogMeResponse> {
+  return requestJson<MeetingLogMeResponse>(
+    getApiBaseUrl(),
+    `/api/meetings/${meetingId}/logs/me`,
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "LOG_ME_REQUEST_FAILED",
+      message: "내 방탈로그를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
 }
 
 export async function getMeetingLogDetail(logId: number): Promise<MeetingLogDetail> {

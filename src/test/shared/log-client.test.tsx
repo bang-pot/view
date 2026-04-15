@@ -150,34 +150,74 @@ describe("log client", () => {
     );
   });
 
-  it("returns null when the current user has not written a log for the meeting yet", async () => {
+  it("returns a NOT_WRITTEN status when the current user has not written a log yet", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
-          code: "LOG_NOT_FOUND",
-          message: "로그를 찾을 수 없습니다.",
-          requestId: "req-log-not-found-1",
-          fieldErrors: [],
+          status: "NOT_WRITTEN",
+          logId: null,
         }),
         {
-          status: 404,
+          status: 200,
           headers: { "Content-Type": "application/json" },
         },
       ),
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    await expect(getMyMeetingLog(99)).resolves.toBeNull();
+    await expect(getMyMeetingLog(99)).resolves.toEqual({
+      status: "NOT_WRITTEN",
+      logId: null,
+    });
   });
 
-  it("loads the current user's meeting log summary and standalone log detail", async () => {
+  it("returns a DELETED_BLOCKED status for a deleted log", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          status: "DELETED_BLOCKED",
+          logId: null,
+          meetingId: 99,
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(getMyMeetingLog(99)).resolves.toEqual({
+      status: "DELETED_BLOCKED",
+      logId: null,
+      meetingId: 99,
+    });
+  });
+
+  it("loads the current user's existing log status and standalone log detail", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ logId: 501, meetingId: 99 }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        }),
+        new Response(
+          JSON.stringify({
+            status: "EXISTS",
+            logId: 501,
+            meetingId: 99,
+            meetingTitle: "금요일 방탈출 번개",
+            themeName: "미스터리 룸",
+            place: "강남 이스케이프",
+            date: "2026-04-10",
+            authorNickname: "bangpot",
+            createdAt: "2026-04-11T10:00:00Z",
+            updatedAt: "2026-04-11T11:00:00Z",
+            body: "정말 재미있었어요.",
+            photos: [],
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
       )
       .mockResolvedValueOnce(
         new Response(
@@ -202,7 +242,11 @@ describe("log client", () => {
       );
     vi.stubGlobal("fetch", fetchMock);
 
-    await expect(getMyMeetingLog(99)).resolves.toEqual({ logId: 501, meetingId: 99 });
+    await expect(getMyMeetingLog(99)).resolves.toMatchObject({
+      status: "EXISTS",
+      logId: 501,
+      meetingId: 99,
+    });
     await expect(getMeetingLogDetail(501)).resolves.toMatchObject({
       logId: 501,
       meetingId: 99,
@@ -233,7 +277,7 @@ describe("log client", () => {
               meetingTitle: "금요일 방탈출 번개",
               meetingDate: "2026-04-10",
               createdAt: "2026-04-11T10:00:00Z",
-              excerpt: "정답 모여쓰기 감각이 좋았던 기록이에요.",
+              excerpt: "정답 모여가는 감각이 좋았던 기록이에요.",
               coverPhotoUrl: "https://cdn.example.com/log-cover.jpg",
               extraPhotoCount: 2,
             },
@@ -256,7 +300,7 @@ describe("log client", () => {
       items: [
         expect.objectContaining({
           logId: 700,
-          excerpt: "정답 모여쓰기 감각이 좋았던 기록이에요.",
+          excerpt: "정답 모여가는 감각이 좋았던 기록이에요.",
           extraPhotoCount: 2,
         }),
       ],

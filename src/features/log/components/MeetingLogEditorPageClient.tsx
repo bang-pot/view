@@ -13,13 +13,11 @@ import type { MeetingDetail } from "@/shared/meeting/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 import {
   createMeetingLog,
-  getMeetingLogDetail,
   getMyMeetingLog,
   uploadLogPhoto,
   updateMeetingLog,
 } from "@/shared/log/client";
-import { hasDeletedMeetingLog } from "@/shared/log/deleted-session";
-import type { LogPhotoInput, MeetingLogSummary } from "@/shared/log/types";
+import type { LogPhotoInput, MeetingLogMeResponse } from "@/shared/log/types";
 
 type MeetingLogEditorPageClientProps = {
   crewId: string;
@@ -177,7 +175,7 @@ export function MeetingLogEditorPageClient({
   const router = useRouter();
   const { replace, push } = router;
   const [meeting, setMeeting] = useState<MeetingDetail | null>(null);
-  const [myLogSummary, setMyLogSummary] = useState<MeetingLogSummary | null>(null);
+  const [myMeetingLog, setMyMeetingLog] = useState<MeetingLogMeResponse | null>(null);
   const [body, setBody] = useState("");
   const [photoFields, setPhotoFields] = useState<PhotoField[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -197,9 +195,10 @@ export function MeetingLogEditorPageClient({
   const publicCrewPath = useMemo(() => buildPublicCrewPath(crewId), [crewId]);
   const meetingPath = useMemo(() => `/crews/${crewId}/meetings/${meetingId}`, [crewId, meetingId]);
 
-  const isEditMode = myLogSummary !== null;
+  const isEditMode = myMeetingLog?.status === "EXISTS";
   const canCreate = meeting ? isCreateAllowed(meeting, currentUserId) : false;
-  const isRecreateBlocked = hasValidIds && hasDeletedMeetingLog(meetingIdNumber);
+  const isRecreateBlocked = myMeetingLog?.status === "DELETED_BLOCKED";
+  const canStartCreateMode = myMeetingLog?.status === "NOT_WRITTEN" && canCreate;
 
   useEffect(() => {
     if (!hasValidIds) {
@@ -232,23 +231,17 @@ export function MeetingLogEditorPageClient({
         setCurrentUserId(me.user?.id ?? null);
         setMeeting(detail);
 
-        const summary = await getMyMeetingLog(meetingIdNumber);
+        const nextMyMeetingLog = await getMyMeetingLog(meetingIdNumber);
 
         if (!isMounted) {
           return;
         }
 
-        setMyLogSummary(summary);
+        setMyMeetingLog(nextMyMeetingLog);
 
-        if (summary) {
-          const logDetail = await getMeetingLogDetail(summary.logId);
-
-          if (!isMounted) {
-            return;
-          }
-
-          setBody(logDetail.body);
-          setPhotoFields(buildPhotoFields(logDetail.photos));
+        if (nextMyMeetingLog.status === "EXISTS") {
+          setBody(nextMyMeetingLog.body);
+          setPhotoFields(buildPhotoFields(nextMyMeetingLog.photos));
         } else {
           setBody("");
           setPhotoFields([]);
@@ -440,23 +433,51 @@ export function MeetingLogEditorPageClient({
       return;
     }
 
+    if (!meeting) {
+      setErrorMessage("모임 정보를 다시 불러와 주세요.");
+      return;
+    }
+
+    const currentMeeting = meeting;
+
     setIsSubmitting(true);
 
     try {
-      const response = isEditMode && myLogSummary
-        ? await updateMeetingLog(myLogSummary.logId, {
+      const response =
+        isEditMode && myMeetingLog?.status === "EXISTS"
+          ? await updateMeetingLog(myMeetingLog.logId, {
             body: trimmedBody,
             photos: validation.photos,
           })
-        : await createMeetingLog(meetingIdNumber, {
-            body: trimmedBody,
-            photos: validation.photos,
-          });
+          : await createMeetingLog(meetingIdNumber, {
+              body: trimmedBody,
+              photos: validation.photos,
+            });
 
-      setMyLogSummary({
-        logId: response.logId,
-        meetingId: response.meetingId,
-      });
+      setMyMeetingLog((currentLog) =>
+        currentLog && currentLog.status === "EXISTS"
+          ? {
+              ...currentLog,
+              logId: response.logId,
+              meetingId: response.meetingId,
+              body: trimmedBody,
+              photos: validation.photos.map((photo) => photo.url),
+            }
+          : {
+              status: "EXISTS",
+              logId: response.logId,
+              meetingId: response.meetingId,
+              meetingTitle: currentMeeting.title,
+              themeName: currentMeeting.themeName,
+              place: currentMeeting.place,
+              date: currentMeeting.date,
+              authorNickname: null,
+              createdAt: null,
+              updatedAt: null,
+              body: trimmedBody,
+              photos: validation.photos.map((photo) => photo.url),
+            },
+      );
       push(`/crews/${crewId}/logs/${response.logId}`);
     } catch (error) {
       reportOperationalError("log.editor.submit_failed", error, {
@@ -497,7 +518,7 @@ export function MeetingLogEditorPageClient({
     );
   }
 
-  if (!isEditMode && (isRecreateBlocked || !canCreate)) {
+  if (!isEditMode && (isRecreateBlocked || !canStartCreateMode)) {
     return (
       <main>
         <h1>방탈로그 작성하기</h1>
