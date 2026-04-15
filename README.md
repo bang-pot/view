@@ -918,4 +918,41 @@ npm.cmd run build
 - 수정 저장 시 기존 사진은 유실을 막기 위해 프론트 호환용 `sizeBytes: 1`을 채워 payload에 다시 포함합니다.
 - 이 값은 backend 상세 응답과 수정 payload shape 차이를 메우기 위한 임시 workaround입니다.
 
+## Gallery / Log Round 03 방탈로그 피드 / 소비 화면 고도화
+
+- `/crews/{crewId}/logs`
+  - 로그인한 현재 크루 ACTIVE 멤버만 접근할 수 있는 크루별 방탈로그 피드 화면을 추가했습니다.
+  - `GET /api/crews/{crewId}/logs`를 `page`, `size` 기준으로 연결했습니다.
+  - 비로그인 사용자는 `/login?redirectTo=/crews/{crewId}/logs`로 이동합니다.
+  - 크루원이 아닌 사용자는 `/crews/public/{crewId}`로 되돌립니다.
+- 피드 화면
+  - 최신 작성순 카드형 목록으로 방탈로그를 보여줍니다.
+  - 카드에는 대표사진 또는 placeholder, 후기 요약, 작성자 닉네임, 모임 제목, 테마명, 날짜, 기록 시간, 사진 개수를 표시합니다.
+  - `coverPhotoUrl`이 없으면 `대표 사진 준비 중` fallback UI를 보여줍니다.
+  - 카드를 누르면 기존 `/logs/{logId}` 상세 화면으로 이동합니다.
+- 추가 로딩
+  - 이번 라운드는 `pageInfo.hasNext` 기반 `더 보기` 버튼으로 다음 페이지를 불러옵니다.
+  - 기본 `size`는 20으로 고정했습니다.
+- 범위 제한
+  - 이번 라운드는 피드형 목록과 읽기 소비 화면까지만 엽니다.
+  - 작성/수정/삭제, 운영 삭제, 알림 연동, 댓글/좋아요는 아직 열지 않습니다.
+
+### Gallery / Log Round 03 자동 검증
+
+- `npm.cmd run test -- src/test/shared/log-client.test.tsx src/test/app/crew-page.test.tsx src/test/app/crew-log-feed-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+### Gallery / Log Round 03 수동 검증
+
+- 로그인한 ACTIVE 크루원으로 `/crews/{crewId}/logs`에 진입했을 때 피드 화면이 정상적으로 열리는 것을 확인했습니다.
+- 카드에 대표사진 또는 placeholder, 후기 요약, 작성자 닉네임, 모임 제목, 테마명, 날짜, 작성 시각, 사진 개수가 표시되는 것을 확인했습니다.
+- `coverPhotoUrl`이 없는 카드에서 `대표 사진 준비 중` fallback UI가 보이는 것을 확인했습니다.
+- `더 보기` 버튼으로 다음 페이지를 이어서 불러올 수 있고, 마지막 페이지에서는 `여기까지 모두 읽었어요.` 문구가 보이는 것을 확인했습니다.
+- 카드 클릭 시 기존 `/logs/{logId}` 상세 화면으로 정상 이동하는 것을 확인했습니다.
+- 비로그인 사용자는 로그인 유도 흐름으로, 크루원이 아닌 사용자는 `/crews/public/{crewId}`로 분기되는 것을 확인했습니다.
+- 크루 허브 내비게이션의 `방탈로그` 링크로 피드 화면에 진입할 수 있는 것을 확인했습니다.
+- 작성/수정/삭제, 운영 삭제, 알림, 댓글, 좋아요 UI가 노출되지 않는 것을 확인했습니다.
+
 

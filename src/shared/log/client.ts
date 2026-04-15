@@ -3,6 +3,8 @@ import { getPublicRuntimeConfig } from "@/shared/config/public";
 import { isOperationalError } from "@/shared/errors/operational";
 import type {
   CreateMeetingLogInput,
+  CrewLogFeedQuery,
+  CrewLogFeedResponse,
   DeleteMeetingLogResponse,
   MeetingLogDetail,
   MeetingLogSummary,
@@ -127,6 +129,29 @@ export async function getMeetingLogDetail(logId: number): Promise<MeetingLogDeta
     {
       code: "LOG_DETAIL_REQUEST_FAILED",
       message: "방탈로그 상세를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getCrewLogFeed(
+  crewId: number,
+  query: CrewLogFeedQuery,
+): Promise<CrewLogFeedResponse> {
+  const params = new URLSearchParams();
+  params.set("page", String(query.page));
+  params.set("size", String(query.size));
+
+  return requestJson<CrewLogFeedResponse>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/logs?${params.toString()}`,
+    {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "CREW_LOG_FEED_LOAD_FAILED",
+      message: "방탈로그 피드를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

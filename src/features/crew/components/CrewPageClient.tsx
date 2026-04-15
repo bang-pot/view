@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
 import { getCrewHub } from "@/shared/crew/client";
 import type { CrewHubResponse } from "@/shared/crew/types";
+import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
 type CrewPageClientProps = {
@@ -31,6 +31,7 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
   const hasValidCrewId = Number.isFinite(crewIdNumber);
   const publicCrewPath = useMemo(() => buildPublicCrewPath(crewId), [crewId]);
   const meetingsPath = useMemo(() => `/crews/${crewId}/meetings`, [crewId]);
+  const logsPath = useMemo(() => `/crews/${crewId}/logs`, [crewId]);
   const policiesPath = useMemo(() => `/crews/${crewId}/policies`, [crewId]);
   const membersPath = useMemo(() => `/crews/${crewId}/members`, [crewId]);
   const settingsPath = useMemo(() => `/crews/${crewId}/settings`, [crewId]);
@@ -130,6 +131,9 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
               <Link href={meetingsPath}>모임</Link>
             </li>
             <li>
+              <Link href={logsPath}>방탈로그</Link>
+            </li>
+            <li>
               <Link href={policiesPath}>정책</Link>
             </li>
             <li>
@@ -146,7 +150,7 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
         {crew.hasNotice ? <p>공지사항이 등록되어 있습니다.</p> : null}
         {leader && typeof crew.pendingJoinRequestCount === "number" ? (
           <>
-            <p>가입 신청 대기: {crew.pendingJoinRequestCount}건</p>
+            <p>가입 요청 대기: {crew.pendingJoinRequestCount}건</p>
             <Link href={manageJoinRequestsPath}>가입 신청 관리</Link>
           </>
         ) : null}

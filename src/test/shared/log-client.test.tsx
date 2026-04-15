@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createMeetingLog,
   deleteMeetingLog,
+  getCrewLogFeed,
   getMeetingLogDetail,
   getMyMeetingLog,
   uploadLogPhoto,
@@ -190,6 +191,60 @@ describe("log client", () => {
       2,
       "/backend/api/logs/501",
       expect.objectContaining({ credentials: "include", cache: "no-store" }),
+    );
+  });
+
+  it("loads a crew log feed page", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          items: [
+            {
+              logId: 700,
+              meetingId: 99,
+              crewId: 11,
+              authorNickname: "bangpot",
+              meetingTitle: "금요일 방탈출 번개",
+              themeName: "미스터리 룸",
+              date: "2026-04-10",
+              createdAt: "2026-04-11T10:00:00Z",
+              excerpt: "정말 몰입감이 좋았던 기록이에요.",
+              coverPhotoUrl: "https://cdn.example.com/log-cover.jpg",
+              photoCount: 3,
+            },
+          ],
+          pageInfo: {
+            page: 0,
+            size: 20,
+            hasNext: true,
+          },
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(getCrewLogFeed(11, { page: 0, size: 20 })).resolves.toMatchObject({
+      items: [
+        expect.objectContaining({
+          logId: 700,
+          excerpt: "정말 몰입감이 좋았던 기록이에요.",
+          photoCount: 3,
+        }),
+      ],
+      pageInfo: {
+        page: 0,
+        size: 20,
+        hasNext: true,
+      },
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/logs?page=0&size=20",
+      expect.objectContaining({ method: "GET", credentials: "include", cache: "no-store" }),
     );
   });
 });

@@ -17,6 +17,34 @@ export type MeetingLogSummary = {
   meetingId: number;
 };
 
+export type CrewLogFeedItem = {
+  logId: number;
+  meetingId: number;
+  crewId: number;
+  authorNickname: string;
+  meetingTitle: string;
+  themeName: string;
+  date: string;
+  createdAt: string;
+  excerpt: string;
+  coverPhotoUrl: string | null;
+  photoCount: number;
+};
+
+export type CrewLogFeedQuery = {
+  page: number;
+  size: number;
+};
+
+export type CrewLogFeedResponse = {
+  items: CrewLogFeedItem[];
+  pageInfo: {
+    page: number;
+    size: number;
+    hasNext: boolean;
+  };
+};
+
 export type SaveMeetingLogResponse = {
   logId: number;
   meetingId: number;
