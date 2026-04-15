@@ -32,7 +32,7 @@ describe("CrewLogFeedPage", () => {
     cleanup();
   });
 
-  it("renders crew log feed cards for an active member", async () => {
+  it("renders crew-scoped log feed cards for an active member", async () => {
     vi.mocked(getMe).mockResolvedValue({
       authStatus: "FULL",
       completionRequired: false,
@@ -46,15 +46,13 @@ describe("CrewLogFeedPage", () => {
         {
           logId: 501,
           meetingId: 99,
-          crewId: 11,
           authorNickname: "bangpot",
           meetingTitle: "금요일 방탈출 번개",
-          themeName: "미스터리 룸",
-          date: "2026-04-10",
+          meetingDate: "2026-04-10",
           createdAt: "2026-04-11T10:00:00Z",
-          excerpt: "정말 몰입감이 좋았던 기록이에요.",
+          excerpt: "정답 모여쓰기 감각이 좋았던 기록이에요.",
           coverPhotoUrl: null,
-          photoCount: 3,
+          extraPhotoCount: 2,
         },
       ],
       pageInfo: {
@@ -71,20 +69,18 @@ describe("CrewLogFeedPage", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "크루 방탈로그" })).toBeInTheDocument();
-    expect(screen.getByText("정말 몰입감이 좋았던 기록이에요.")).toBeInTheDocument();
+    expect(screen.getByText("정답 모여쓰기 감각이 좋았던 기록이에요.")).toBeInTheDocument();
     expect(screen.getByText("작성자 bangpot")).toBeInTheDocument();
     expect(screen.getByText("모임 금요일 방탈출 번개")).toBeInTheDocument();
-    expect(screen.getByText("테마 미스터리 룸")).toBeInTheDocument();
-    expect(screen.getByText("사진 3장")).toBeInTheDocument();
+    expect(screen.getByText("모임 날짜 2026-04-10")).toBeInTheDocument();
+    expect(screen.getByText("기록 시간 2026-04-11T10:00:00Z")).toBeInTheDocument();
+    expect(screen.getByText("+ 2장")).toBeInTheDocument();
     expect(screen.getByText("대표 사진 준비 중")).toBeInTheDocument();
     expect(
       screen.getByRole("link", {
-        name: /정말 몰입감이 좋았던 기록이에요\./,
+        name: /정답 모여쓰기 감각이 좋았던 기록이에요./,
       }),
-    ).toHaveAttribute(
-      "href",
-      "/logs/501",
-    );
+    ).toHaveAttribute("href", "/crews/11/logs/501");
   });
 
   it("redirects guests to login before loading the feed", async () => {
@@ -124,15 +120,13 @@ describe("CrewLogFeedPage", () => {
         {
           logId: 501,
           meetingId: 99,
-          crewId: 11,
           authorNickname: "bangpot",
           meetingTitle: "금요일 방탈출 번개",
-          themeName: "미스터리 룸",
-          date: "2026-04-10",
+          meetingDate: "2026-04-10",
           createdAt: "2026-04-11T10:00:00Z",
-          excerpt: "정말 몰입감이 좋았던 기록이에요.",
+          excerpt: "정답 모여쓰기 감각이 좋았던 기록이에요.",
           coverPhotoUrl: null,
-          photoCount: 3,
+          extraPhotoCount: 2,
         },
       ],
       pageInfo: {
@@ -146,15 +140,13 @@ describe("CrewLogFeedPage", () => {
         {
           logId: 502,
           meetingId: 100,
-          crewId: 11,
           authorNickname: "runner",
           meetingTitle: "토요일 심야 번개",
-          themeName: "고스트 호텔",
-          date: "2026-04-12",
+          meetingDate: "2026-04-12",
           createdAt: "2026-04-12T10:00:00Z",
-          excerpt: "사진이 정말 잘 나온 기록이에요.",
+          excerpt: "사진보다 현장이 더 좋았던 기록이에요.",
           coverPhotoUrl: "https://cdn.example.com/log-cover.jpg",
-          photoCount: 1,
+          extraPhotoCount: 0,
         },
       ],
       pageInfo: {
@@ -174,7 +166,7 @@ describe("CrewLogFeedPage", () => {
     fireEvent.click(await screen.findByRole("button", { name: "더 보기" }));
 
     await waitFor(() => {
-      expect(screen.getByText("사진이 정말 잘 나온 기록이에요.")).toBeInTheDocument();
+      expect(screen.getByText("사진보다 현장이 더 좋았던 기록이에요.")).toBeInTheDocument();
     });
 
     expect(getCrewLogFeed).toHaveBeenLastCalledWith(11, { page: 1, size: 20 });
@@ -221,7 +213,7 @@ describe("CrewLogFeedPage", () => {
     vi.mocked(getCrewLogFeed).mockRejectedValueOnce(
       new OperationalError({
         code: "CREW_LOG_FEED_LOAD_FAILED",
-        userMessage: "방탈로그 피드를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+        userMessage: "크루 방탈로그 피드를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
         status: 500,
       }),
     );
@@ -233,7 +225,7 @@ describe("CrewLogFeedPage", () => {
     );
 
     expect(
-      await screen.findByText("방탈로그 피드를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
+      await screen.findByText("크루 방탈로그 피드를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
     ).toBeInTheDocument();
   });
 

@@ -20,15 +20,13 @@ export type MeetingLogSummary = {
 export type CrewLogFeedItem = {
   logId: number;
   meetingId: number;
-  crewId: number;
   authorNickname: string;
   meetingTitle: string;
-  themeName: string;
-  date: string;
+  meetingDate: string;
   createdAt: string;
   excerpt: string;
   coverPhotoUrl: string | null;
-  photoCount: number;
+  extraPhotoCount: number;
 };
 
 export type CrewLogFeedQuery = {

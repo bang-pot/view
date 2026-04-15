@@ -955,5 +955,51 @@ npm.cmd run build
 - 크루 허브 내비게이션의 `방탈로그` 링크로 피드 화면에 진입할 수 있는 것을 확인했습니다.
 - 작성/수정/삭제, 운영 삭제, 알림, 댓글, 좋아요 UI가 노출되지 않는 것을 확인했습니다.
 
+## Gallery / Log Round 04 크루 내부 방탈로그 피드 + 상세 읽기
+
+- `/crews/{crewId}/logs`
+  - 로그인한 현재 크루 ACTIVE 멤버만 접근할 수 있는 크루 내부 방탈로그 피드 화면을 유지합니다.
+  - `GET /api/crews/{crewId}/logs`를 `page`, `size` 기준으로 연결합니다.
+  - 카드에는 대표사진 또는 placeholder, 후기 요약, 작성자 닉네임, 모임 제목, 모임 날짜, 기록 시간, 추가 사진 수를 표시합니다.
+  - 카드를 누르면 crew-scoped 상세 `/crews/{crewId}/logs/{logId}`로 이동합니다.
+- `/crews/{crewId}/logs/{logId}`
+  - `GET /api/crews/{crewId}/logs/{logId}`를 사용해 크루 문맥 안에서 방탈로그를 읽습니다.
+  - 작성자 닉네임, 모임 제목, 테마명, 장소, 날짜, 기록 시간, 수정 시간, 후기 본문 전체를 읽을 수 있습니다.
+  - 사진이 있으면 기본 3장 미리보기, 가로 스크롤, 클릭 라이트박스, 좌우 이동, `현재 / 전체` 표시를 제공합니다.
+  - 사진이 없으면 사진 영역은 숨깁니다.
+- fallback / 상태 처리
+  - 피드 로딩: `크루 방탈로그 피드를 불러오는 중입니다.`
+  - 피드 빈 상태: `아직 등록된 방탈로그가 없어요.`
+  - 피드 에러: `크루 방탈로그 피드를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.`
+  - 대표 사진 없음: `대표 사진 준비 중`
+  - 후기 요약 없음: `후기 요약이 아직 없습니다.`
+- 추가 로딩
+  - `pageInfo.hasNext` 기반 `더 보기` 버튼으로 다음 페이지를 불러옵니다.
+  - 기본 `size`는 20으로 고정합니다.
+- 범위 제한
+  - 이번 라운드는 목록 피드 + 상세 읽기까지만 엽니다.
+  - 작성/수정/삭제 신규 확장, 운영 삭제, 삭제 사유, 알림, 댓글, 좋아요는 아직 열지 않습니다.
+
+### Gallery / Log Round 04 자동 검증
+
+- `npm.cmd run test -- src/test/shared/log-client.test.tsx src/test/app/crew-log-feed-page.test.tsx src/test/app/log-detail-page.test.tsx`
+- `npm.cmd run test -- src/test/shared/log-client.test.tsx src/test/app/meeting-log-editor-page.test.tsx src/test/app/log-detail-page.test.tsx src/test/app/crew-log-feed-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+### Gallery / Log Round 04 수동 검증
+
+- 로그인한 ACTIVE 크루원으로 `/crews/{crewId}/logs`에 진입했을 때 피드 화면이 정상적으로 열리는 것을 확인했습니다.
+- 카드에 대표 사진 또는 placeholder, 후기 요약, 작성자 닉네임, 모임 제목, 모임 날짜, 기록 시간, 추가 사진 수가 표시되는 것을 확인했습니다.
+- `coverPhotoUrl`이 없는 카드에서 `대표 사진 준비 중` fallback UI가 보이는 것을 확인했습니다.
+- 카드 클릭 시 `/crews/{crewId}/logs/{logId}` 상세로 이동하는 것을 확인했습니다.
+- 상세에서 작성자 닉네임, 모임 제목, 모임 날짜, 기록 시간, 후기 본문 전체, 사진 목록이 정상적으로 보이는 것을 확인했습니다.
+- 사진이 있는 로그에서 3장 미리보기, 가로 스크롤, 클릭 라이트박스, 좌우 이동, `현재 / 전체` 표시가 동작하는 것을 확인했습니다.
+- 사진이 없는 로그에서는 사진 영역이 숨겨지는 것을 확인했습니다.
+- `더 보기` 버튼으로 다음 페이지를 이어서 불러올 수 있고, 마지막 페이지에서 `여기까지 모두 읽었어요.` 문구가 보이는 것을 확인했습니다.
+- 비로그인 사용자는 로그인 유도 흐름으로, 크루원이 아닌 사용자는 `/crews/public/{crewId}`로 분기되는 것을 확인했습니다.
+- 작성 / 수정 / 삭제 신규 확장, 운영 삭제, 알림, 댓글, 좋아요 UI가 노출되지 않는 것을 확인했습니다.
+
 
 

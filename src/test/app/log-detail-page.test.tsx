@@ -1,9 +1,9 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import MeetingLogDetailPage from "@/app/logs/[logId]/page";
+import CrewLogDetailPage from "@/app/crews/[crewId]/logs/[logId]/page";
 import { getMe } from "@/shared/auth/client";
-import { getMeetingLogDetail } from "@/shared/log/client";
+import { getCrewLogDetail } from "@/shared/log/client";
 
 const replaceMock = vi.fn();
 
@@ -18,10 +18,10 @@ vi.mock("@/shared/auth/client", () => ({
 }));
 
 vi.mock("@/shared/log/client", () => ({
-  getMeetingLogDetail: vi.fn(),
+  getCrewLogDetail: vi.fn(),
 }));
 
-describe("MeetingLogDetailPage", () => {
+describe("CrewLogDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     replaceMock.mockReset();
@@ -31,7 +31,7 @@ describe("MeetingLogDetailPage", () => {
     cleanup();
   });
 
-  it("renders the saved log detail for a signed-in user", async () => {
+  it("renders the saved crew-scoped log detail for a signed-in member", async () => {
     vi.mocked(getMe).mockResolvedValue({
       authStatus: "FULL",
       completionRequired: false,
@@ -40,7 +40,7 @@ describe("MeetingLogDetailPage", () => {
       user: { id: 1, nickname: "bangpot" },
       requiredTermsAcceptedAt: "2026-04-08T00:00:00Z",
     });
-    vi.mocked(getMeetingLogDetail).mockResolvedValue({
+    vi.mocked(getCrewLogDetail).mockResolvedValue({
       logId: 501,
       meetingId: 99,
       meetingTitle: "금요일 방탈출 번개",
@@ -54,21 +54,31 @@ describe("MeetingLogDetailPage", () => {
       photos: [
         "https://cdn.example.com/log-1.jpg",
         "https://cdn.example.com/log-2.jpg",
+        "https://cdn.example.com/log-3.jpg",
+        "https://cdn.example.com/log-4.jpg",
       ],
     });
+
     render(
-      await MeetingLogDetailPage({
-        params: Promise.resolve({ logId: "501" }),
+      await CrewLogDetailPage({
+        params: Promise.resolve({ crewId: "11", logId: "501" }),
       }),
     );
 
-    expect(await screen.findByRole("heading", { name: "방탈로그 상세" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "크루 방탈로그 상세" })).toBeInTheDocument();
     expect(screen.getByText("금요일 방탈출 번개")).toBeInTheDocument();
     expect(screen.getByText("정말 재미있었던 모임이었어요.")).toBeInTheDocument();
-    expect(screen.getAllByRole("img")).toHaveLength(2);
+    expect(screen.getByText("1 / 4")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /사진 \d 보기/ })).toHaveLength(3);
+
+    fireEvent.click(screen.getByRole("button", { name: "사진 2 보기" }));
+
+    const dialog = await screen.findByRole("dialog", { name: "방탈로그 사진 크게 보기" });
+    expect(dialog).toBeInTheDocument();
+    expect(screen.getAllByText("2 / 4")).toHaveLength(2);
   });
 
-  it("shows a missing-photo fallback when no image exists", async () => {
+  it("hides the photo section when no photo exists", async () => {
     vi.mocked(getMe).mockResolvedValue({
       authStatus: "FULL",
       completionRequired: false,
@@ -77,7 +87,7 @@ describe("MeetingLogDetailPage", () => {
       user: { id: 4, nickname: "guest" },
       requiredTermsAcceptedAt: "2026-04-08T00:00:00Z",
     });
-    vi.mocked(getMeetingLogDetail).mockResolvedValue({
+    vi.mocked(getCrewLogDetail).mockResolvedValue({
       logId: 501,
       meetingId: 99,
       meetingTitle: "금요일 방탈출 번개",
@@ -90,14 +100,15 @@ describe("MeetingLogDetailPage", () => {
       body: "사진 없는 로그예요.",
       photos: [],
     });
+
     render(
-      await MeetingLogDetailPage({
-        params: Promise.resolve({ logId: "501" }),
+      await CrewLogDetailPage({
+        params: Promise.resolve({ crewId: "11", logId: "501" }),
       }),
     );
 
-    expect(await screen.findByRole("heading", { name: "방탈로그 상세" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "크루 방탈로그 상세" })).toBeInTheDocument();
     expect(screen.getByText("사진 없는 로그예요.")).toBeInTheDocument();
-    expect(screen.getByText("등록된 사진이 없어요.")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "사진" })).not.toBeInTheDocument();
   });
 });

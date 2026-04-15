@@ -133,6 +133,24 @@ export async function getMeetingLogDetail(logId: number): Promise<MeetingLogDeta
   );
 }
 
+export async function getCrewLogDetail(
+  crewId: number,
+  logId: number,
+): Promise<MeetingLogDetail> {
+  return requestJson<MeetingLogDetail>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/logs/${logId}`,
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "CREW_LOG_DETAIL_REQUEST_FAILED",
+      message: "크루 방탈로그 상세를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
 export async function getCrewLogFeed(
   crewId: number,
   query: CrewLogFeedQuery,
