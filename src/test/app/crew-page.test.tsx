@@ -65,6 +65,7 @@ describe("CrewPage", () => {
     expect(screen.getByRole("link", { name: "홈" })).toHaveAttribute("href", "/crews/11");
     expect(screen.getByRole("link", { name: "모임" })).toHaveAttribute("href", "/crews/11/meetings");
     expect(screen.getByRole("link", { name: "방탈로그" })).toHaveAttribute("href", "/crews/11/logs");
+    expect(screen.getByRole("link", { name: "사진첩" })).toHaveAttribute("href", "/crews/11/gallery");
     expect(screen.getByRole("link", { name: "정책" })).toHaveAttribute("href", "/crews/11/policies");
     expect(screen.getByRole("link", { name: "크루원" })).toHaveAttribute("href", "/crews/11/members");
     expect(screen.getByRole("link", { name: "설정" })).toHaveAttribute("href", "/crews/11/settings");
@@ -99,6 +100,7 @@ describe("CrewPage", () => {
     expect(screen.queryByText((text) => text.includes("가입 요청 대기: 0건"))).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "가입 신청 관리" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "방탈로그" })).toHaveAttribute("href", "/crews/11/logs");
+    expect(screen.getByRole("link", { name: "사진첩" })).toHaveAttribute("href", "/crews/11/gallery");
     expect(screen.getByRole("link", { name: "설정" })).toHaveAttribute("href", "/crews/11/settings");
     expect(
       screen.getByText((text) => text.includes("이 크루의 공통 안내는 아직 준비 중입니다.")),
