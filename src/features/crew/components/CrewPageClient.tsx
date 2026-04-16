@@ -32,6 +32,7 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
   const publicCrewPath = useMemo(() => buildPublicCrewPath(crewId), [crewId]);
   const meetingsPath = useMemo(() => `/crews/${crewId}/meetings`, [crewId]);
   const logsPath = useMemo(() => `/crews/${crewId}/logs`, [crewId]);
+  const galleryPath = useMemo(() => `/crews/${crewId}/gallery`, [crewId]);
   const policiesPath = useMemo(() => `/crews/${crewId}/policies`, [crewId]);
   const membersPath = useMemo(() => `/crews/${crewId}/members`, [crewId]);
   const settingsPath = useMemo(() => `/crews/${crewId}/settings`, [crewId]);
@@ -132,6 +133,9 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
             </li>
             <li>
               <Link href={logsPath}>방탈로그</Link>
+            </li>
+            <li>
+              <Link href={galleryPath}>사진첩</Link>
             </li>
             <li>
               <Link href={policiesPath}>정책</Link>
