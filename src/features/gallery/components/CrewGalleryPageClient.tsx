@@ -177,7 +177,7 @@ export function CrewGalleryPageClient({ crewId }: CrewGalleryPageClientProps) {
       {errorMessage ? <p>{errorMessage}</p> : null}
       {!errorMessage && items.length === 0 ? <p>아직 사진이 없네요.</p> : null}
 
-      {!errorMessage && items.length > 0 ? (
+      {items.length > 0 ? (
         <>
           <ul
             aria-label="크루 사진첩 목록"

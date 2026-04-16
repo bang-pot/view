@@ -170,6 +170,55 @@ describe("CrewGalleryPage", () => {
     expect(getCrewGallery).toHaveBeenLastCalledWith(11, { page: 1, size: 20 });
   });
 
+  it("keeps already loaded cards visible when load more fails", async () => {
+    vi.mocked(getMe).mockResolvedValue({
+      authStatus: "FULL",
+      completionRequired: false,
+      redirectTo: null,
+      requiredTermsVersion: "2026-03-25",
+      user: { id: 1, nickname: "bangpot" },
+      requiredTermsAcceptedAt: "2026-04-08T00:00:00Z",
+    });
+    vi.mocked(getCrewGallery).mockResolvedValueOnce({
+      items: [
+        {
+          meetingId: 99,
+          meetingDate: "2026-04-10",
+          meetingTitle: "금요일 이스케이프 벙개",
+          coverPhotoUrl: null,
+          extraPhotoCount: 2,
+        },
+      ],
+      pageInfo: {
+        page: 0,
+        size: 20,
+        hasNext: true,
+      },
+    });
+    vi.mocked(getCrewGallery).mockRejectedValueOnce(
+      new OperationalError({
+        code: "CREW_GALLERY_LOAD_FAILED",
+        userMessage: "크루 사진첩을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+        status: 500,
+      }),
+    );
+
+    render(
+      await CrewGalleryPage({
+        params: Promise.resolve({ crewId: "11" }),
+      }),
+    );
+
+    await screen.findByText("금요일 이스케이프 벙개");
+    fireEvent.click(await screen.findByRole("button", { name: "더 보기" }));
+
+    expect(
+      await screen.findByText("크루 사진첩을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("금요일 이스케이프 벙개")).toBeInTheDocument();
+    expect(screen.getByText("+ 2장")).toBeInTheDocument();
+  });
+
   it("shows empty and error states without breaking", async () => {
     vi.mocked(getMe).mockResolvedValue({
       authStatus: "FULL",
