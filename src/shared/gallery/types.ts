@@ -19,3 +19,17 @@ export type CrewGalleryResponse = {
     hasNext: boolean;
   };
 };
+
+export type CrewGalleryDetailPhoto = {
+  photoId: number;
+  url: string;
+  order: number;
+};
+
+export type CrewGalleryDetail = {
+  meetingId: number;
+  meetingDate: string;
+  meetingTitle: string;
+  photos: CrewGalleryDetailPhoto[];
+  totalPhotoCount: number;
+};
