@@ -1,13 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type TouchEvent } from "react";
 
 import { getMe } from "@/shared/auth/client";
 import { resolveProtectedDestination } from "@/shared/auth/guards";
 import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
-import { getCrewGallery } from "@/shared/gallery/client";
-import type { CrewGalleryItem } from "@/shared/gallery/types";
+import {
+  getCrewGallery,
+  getCrewGalleryDetail,
+} from "@/shared/gallery/client";
+import type {
+  CrewGalleryDetail,
+  CrewGalleryDetailPhoto,
+  CrewGalleryItem,
+} from "@/shared/gallery/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
 type CrewGalleryPageClientProps = {
@@ -15,6 +22,7 @@ type CrewGalleryPageClientProps = {
 };
 
 const PAGE_SIZE = 20;
+const SWIPE_THRESHOLD = 40;
 
 function buildPublicCrewPath(crewId: string): string {
   return `/crews/public/${crewId}`;
@@ -34,9 +42,17 @@ function mergeItems(previousItems: CrewGalleryItem[], nextItems: CrewGalleryItem
   return merged;
 }
 
+function getPhotoPlaceholderText(order?: number): string {
+  return typeof order === "number"
+    ? `${order}번 사진을 불러올 수 없어요.`
+    : "대표 사진 준비 중";
+}
+
 export function CrewGalleryPageClient({ crewId }: CrewGalleryPageClientProps) {
   const router = useRouter();
   const hasBootstrappedRef = useRef(false);
+  const swipeStartXRef = useRef<number | null>(null);
+
   const [items, setItems] = useState<CrewGalleryItem[]>([]);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(false);
@@ -45,10 +61,30 @@ export function CrewGalleryPageClient({ crewId }: CrewGalleryPageClientProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [failedCoverMeetingIds, setFailedCoverMeetingIds] = useState<number[]>([]);
 
+  const [selectedMeetingId, setSelectedMeetingId] = useState<number | null>(null);
+  const [detailByMeetingId, setDetailByMeetingId] = useState<Record<number, CrewGalleryDetail>>({});
+  const [detailErrorByMeetingId, setDetailErrorByMeetingId] = useState<Record<number, string>>({});
+  const [detailLoadingMeetingId, setDetailLoadingMeetingId] = useState<number | null>(null);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
+  const [failedDetailPhotoIds, setFailedDetailPhotoIds] = useState<number[]>([]);
+
   const crewIdNumber = Number(crewId);
   const hasValidCrewId = Number.isFinite(crewIdNumber);
   const routePath = `/crews/${crewId}/gallery`;
   const publicCrewPath = buildPublicCrewPath(crewId);
+
+  const selectedCard =
+    selectedMeetingId != null
+      ? items.find((item) => item.meetingId === selectedMeetingId) ?? null
+      : null;
+  const selectedDetail =
+    selectedMeetingId != null ? detailByMeetingId[selectedMeetingId] ?? null : null;
+  const selectedDetailError =
+    selectedMeetingId != null ? detailErrorByMeetingId[selectedMeetingId] ?? null : null;
+  const selectedPhoto =
+    selectedDetail != null && selectedPhotoIndex != null
+      ? selectedDetail.photos[selectedPhotoIndex] ?? null
+      : null;
 
   useEffect(() => {
     if (!hasValidCrewId || hasBootstrappedRef.current) {
@@ -119,6 +155,32 @@ export function CrewGalleryPageClient({ crewId }: CrewGalleryPageClientProps) {
     };
   }, [crewIdNumber, hasValidCrewId, publicCrewPath, routePath, router]);
 
+  useEffect(() => {
+    if (selectedMeetingId == null) {
+      return;
+    }
+
+    const scrollY = window.scrollY;
+    const { style } = document.body;
+    const previousOverflow = style.overflow;
+    const previousPosition = style.position;
+    const previousTop = style.top;
+    const previousWidth = style.width;
+
+    style.overflow = "hidden";
+    style.position = "fixed";
+    style.top = `-${scrollY}px`;
+    style.width = "100%";
+
+    return () => {
+      style.overflow = previousOverflow;
+      style.position = previousPosition;
+      style.top = previousTop;
+      style.width = previousWidth;
+      window.scrollTo({ top: scrollY });
+    };
+  }, [selectedMeetingId]);
+
   async function handleLoadMore() {
     setIsLoadingMore(true);
 
@@ -148,6 +210,159 @@ export function CrewGalleryPageClient({ crewId }: CrewGalleryPageClientProps) {
   function handleCoverError(meetingId: number) {
     setFailedCoverMeetingIds((currentIds) =>
       currentIds.includes(meetingId) ? currentIds : [...currentIds, meetingId],
+    );
+  }
+
+  function handleDetailPhotoError(photoId: number) {
+    setFailedDetailPhotoIds((currentIds) =>
+      currentIds.includes(photoId) ? currentIds : [...currentIds, photoId],
+    );
+  }
+
+  async function openMeetingDetail(meetingId: number) {
+    setSelectedMeetingId(meetingId);
+    setSelectedPhotoIndex(null);
+
+    if (detailByMeetingId[meetingId] || detailLoadingMeetingId === meetingId) {
+      return;
+    }
+
+    setDetailLoadingMeetingId(meetingId);
+    setDetailErrorByMeetingId((current) => {
+      const next = { ...current };
+      delete next[meetingId];
+      return next;
+    });
+
+    try {
+      const detail = await getCrewGalleryDetail(crewIdNumber, meetingId);
+
+      setDetailByMeetingId((current) => ({
+        ...current,
+        [meetingId]: detail,
+      }));
+    } catch (error) {
+      const shouldRedirect =
+        isOperationalError(error) && error.code === "AUTH_ACCESS_DENIED";
+
+      reportOperationalError("crew.gallery.detail_failed", error, {
+        level: shouldRedirect ? "warn" : "warn",
+        route: routePath,
+      });
+
+      if (shouldRedirect) {
+        router.replace(publicCrewPath);
+        return;
+      }
+
+      setDetailErrorByMeetingId((current) => ({
+        ...current,
+        [meetingId]: getUserMessage(
+          error,
+          "사진 상세를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+        ),
+      }));
+    } finally {
+      setDetailLoadingMeetingId((current) => (current === meetingId ? null : current));
+    }
+  }
+
+  function closeMeetingDetail() {
+    setSelectedPhotoIndex(null);
+    setSelectedMeetingId(null);
+  }
+
+  function openLightbox(index: number) {
+    setSelectedPhotoIndex(index);
+  }
+
+  function closeLightbox() {
+    setSelectedPhotoIndex(null);
+  }
+
+  function movePhoto(direction: -1 | 1) {
+    if (!selectedDetail || selectedDetail.photos.length === 0) {
+      return;
+    }
+
+    setSelectedPhotoIndex((currentIndex) => {
+      if (currentIndex == null) {
+        return currentIndex;
+      }
+
+      return (currentIndex + direction + selectedDetail.photos.length) % selectedDetail.photos.length;
+    });
+  }
+
+  function handleLightboxTouchStart(event: TouchEvent<HTMLDivElement>) {
+    swipeStartXRef.current = event.changedTouches[0]?.clientX ?? null;
+  }
+
+  function handleLightboxTouchEnd(event: TouchEvent<HTMLDivElement>) {
+    if (swipeStartXRef.current == null) {
+      return;
+    }
+
+    const endX = event.changedTouches[0]?.clientX ?? swipeStartXRef.current;
+    const deltaX = endX - swipeStartXRef.current;
+    swipeStartXRef.current = null;
+
+    if (Math.abs(deltaX) < SWIPE_THRESHOLD) {
+      return;
+    }
+
+    movePhoto(deltaX < 0 ? 1 : -1);
+  }
+
+  function renderThumbnail(photo: CrewGalleryDetailPhoto, index: number) {
+    const showPlaceholder = failedDetailPhotoIds.includes(photo.photoId);
+
+    return (
+      <button
+        key={photo.photoId}
+        type="button"
+        onClick={() => openLightbox(index)}
+        data-testid={`gallery-thumb-button-${photo.order}`}
+        aria-label={`${photo.order}번 사진 보기`}
+        style={{
+          border: "1px solid #d9d9d9",
+          borderRadius: 12,
+          overflow: "hidden",
+          padding: 0,
+          background: "#f5f5f5",
+          aspectRatio: "1 / 1",
+          cursor: "pointer",
+        }}
+      >
+        {showPlaceholder ? (
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "grid",
+              placeItems: "center",
+              textAlign: "center",
+              color: "#666",
+              padding: 12,
+            }}
+          >
+            {getPhotoPlaceholderText(photo.order)}
+          </div>
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={photo.url}
+            alt={`${photo.order}번 사진`}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: "block",
+            }}
+            onError={() => handleDetailPhotoError(photo.photoId)}
+          />
+        )}
+      </button>
     );
   }
 
@@ -196,73 +411,88 @@ export function CrewGalleryPageClient({ crewId }: CrewGalleryPageClientProps) {
 
               return (
                 <li key={item.meetingId}>
-                  <article
+                  <button
+                    type="button"
+                    onClick={() => void openMeetingDetail(item.meetingId)}
+                    data-testid={`gallery-card-button-${item.meetingId}`}
+                    aria-label={`${item.meetingTitle} 사진 상세 보기`}
                     style={{
-                      border: "1px solid #d9d9d9",
-                      borderRadius: 16,
-                      overflow: "hidden",
-                      background: "#fff",
+                      border: 0,
+                      padding: 0,
+                      width: "100%",
+                      background: "transparent",
+                      textAlign: "left",
+                      cursor: "pointer",
                     }}
                   >
-                    <div
+                    <article
                       style={{
-                        position: "relative",
-                        aspectRatio: "1 / 1",
-                        background: "#f5f5f5",
+                        border: "1px solid #d9d9d9",
+                        borderRadius: 16,
+                        overflow: "hidden",
+                        background: "#fff",
                       }}
                     >
-                      {showPlaceholder ? (
-                        <div
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            display: "grid",
-                            placeItems: "center",
-                            color: "#666",
-                            textAlign: "center",
-                            padding: 16,
-                          }}
-                        >
-                          대표 사진 준비 중
-                        </div>
-                      ) : (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={item.coverPhotoUrl ?? undefined}
-                          alt={`${item.meetingTitle} 대표 사진`}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                            display: "block",
-                          }}
-                          onError={() => handleCoverError(item.meetingId)}
-                        />
-                      )}
+                      <div
+                        style={{
+                          position: "relative",
+                          aspectRatio: "1 / 1",
+                          background: "#f5f5f5",
+                        }}
+                      >
+                        {showPlaceholder ? (
+                          <div
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              display: "grid",
+                              placeItems: "center",
+                              color: "#666",
+                              textAlign: "center",
+                              padding: 16,
+                            }}
+                          >
+                            {getPhotoPlaceholderText()}
+                          </div>
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={item.coverPhotoUrl ?? undefined}
+                            alt={`${item.meetingTitle} 대표 사진`}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              display: "block",
+                            }}
+                            onError={() => handleCoverError(item.meetingId)}
+                          />
+                        )}
 
-                      {item.extraPhotoCount > 0 ? (
-                        <span
-                          style={{
-                            position: "absolute",
-                            right: 12,
-                            bottom: 12,
-                            padding: "6px 10px",
-                            borderRadius: 999,
-                            background: "rgba(0, 0, 0, 0.72)",
-                            color: "#fff",
-                            fontSize: 14,
-                          }}
-                        >
-                          + {item.extraPhotoCount}장
-                        </span>
-                      ) : null}
-                    </div>
+                        {item.extraPhotoCount > 0 ? (
+                          <span
+                            style={{
+                              position: "absolute",
+                              right: 12,
+                              bottom: 12,
+                              padding: "6px 10px",
+                              borderRadius: 999,
+                              background: "rgba(0, 0, 0, 0.72)",
+                              color: "#fff",
+                              fontSize: 14,
+                            }}
+                          >
+                            + {item.extraPhotoCount}장
+                          </span>
+                        ) : null}
+                      </div>
 
-                    <div style={{ display: "grid", gap: 6, padding: 14 }}>
-                      <strong>{item.meetingDate}</strong>
-                      <span>{item.meetingTitle}</span>
-                    </div>
-                  </article>
+                      <div style={{ display: "grid", gap: 6, padding: 14 }}>
+                        <strong>{item.meetingDate}</strong>
+                        <span>{item.meetingTitle}</span>
+                      </div>
+                    </article>
+                  </button>
                 </li>
               );
             })}
@@ -275,12 +505,188 @@ export function CrewGalleryPageClient({ crewId }: CrewGalleryPageClientProps) {
               disabled={isLoadingMore}
               style={{ marginTop: 20 }}
             >
-              {isLoadingMore ? "더 불러오는 중..." : "더 보기"}
+              {isLoadingMore ? "더 불러오는 중.." : "더보기"}
             </button>
           ) : (
             <p>여기까지 모두 확인했어요.</p>
           )}
         </>
+      ) : null}
+
+      {selectedMeetingId != null ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${selectedCard?.meetingDate ?? ""} 사진 상세`}
+          data-testid="gallery-detail-modal"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.7)",
+            display: "grid",
+            placeItems: "center",
+            padding: 20,
+            zIndex: 20,
+          }}
+        >
+          <div
+            style={{
+              width: "min(960px, 100%)",
+              maxHeight: "85vh",
+              overflow: "auto",
+              borderRadius: 20,
+              background: "#fff",
+              padding: 20,
+              display: "grid",
+              gap: 16,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+              }}
+            >
+              <div style={{ display: "grid", gap: 4 }}>
+                <strong>{selectedDetail?.meetingDate ?? selectedCard?.meetingDate}</strong>
+                {selectedDetail?.meetingTitle ? <span>{selectedDetail.meetingTitle}</span> : null}
+              </div>
+
+              <button
+                type="button"
+                onClick={closeMeetingDetail}
+                data-testid="gallery-detail-close"
+              >
+                시트 모달 닫기
+              </button>
+            </div>
+
+            {detailLoadingMeetingId === selectedMeetingId ? (
+              <p>사진 상세를 불러오는 중입니다.</p>
+            ) : selectedDetailError ? (
+              <p>{selectedDetailError}</p>
+            ) : selectedDetail ? (
+              <div
+                style={{
+                  display: "grid",
+                  gap: 12,
+                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                }}
+              >
+                {selectedDetail.photos.map((photo, index) => renderThumbnail(photo, index))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {selectedPhoto ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="사진 라이트박스"
+          data-testid="gallery-lightbox"
+          onTouchStart={handleLightboxTouchStart}
+          onTouchEnd={handleLightboxTouchEnd}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.92)",
+            display: "grid",
+            placeItems: "center",
+            padding: 20,
+            zIndex: 30,
+          }}
+        >
+          <div
+            style={{
+              width: "min(1080px, 100%)",
+              display: "grid",
+              gap: 16,
+              justifyItems: "center",
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                color: "#fff",
+              }}
+            >
+              <button
+                type="button"
+                onClick={closeLightbox}
+                data-testid="gallery-lightbox-close"
+              >
+                라이트박스 닫기
+              </button>
+              <strong>
+                {selectedPhotoIndex! + 1} / {selectedDetail?.photos.length}
+              </strong>
+            </div>
+
+            <div
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 16,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => movePhoto(-1)}
+                data-testid="gallery-lightbox-prev"
+              >
+                이전 사진
+              </button>
+
+              <div
+                style={{
+                  flex: 1,
+                  minHeight: 320,
+                  display: "grid",
+                  placeItems: "center",
+                  background: "rgba(255, 255, 255, 0.08)",
+                  borderRadius: 20,
+                  overflow: "hidden",
+                }}
+              >
+                {failedDetailPhotoIds.includes(selectedPhoto.photoId) ? (
+                  <div style={{ color: "#fff", textAlign: "center", padding: 24 }}>
+                    {getPhotoPlaceholderText(selectedPhoto.order)}
+                  </div>
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={selectedPhoto.url}
+                    alt={`${selectedPhoto.order}번 사진 큰 보기`}
+                    style={{
+                      width: "100%",
+                      maxHeight: "70vh",
+                      objectFit: "contain",
+                      display: "block",
+                    }}
+                    onError={() => handleDetailPhotoError(selectedPhoto.photoId)}
+                  />
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => movePhoto(1)}
+                data-testid="gallery-lightbox-next"
+              >
+                다음 사진
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
     </main>
   );
