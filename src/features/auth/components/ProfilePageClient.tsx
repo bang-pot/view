@@ -294,6 +294,23 @@ export function ProfilePageClient() {
       </section>
 
       <section
+        aria-label="계정 관리"
+        style={{
+          display: "grid",
+          gap: 8,
+          padding: 20,
+          border: "1px solid #d9d9d9",
+          borderRadius: 16,
+        }}
+      >
+        <h2>계정 관리</h2>
+        <p>회원탈퇴 전에 현재 정리해야 하는 크루와 모임 관계를 먼저 확인할 수 있어요.</p>
+        <div>
+          <Link href="/profile/withdrawal">회원탈퇴</Link>
+        </div>
+      </section>
+
+      <section
         aria-label="프로필 수정"
         style={{
           display: "grid",

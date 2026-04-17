@@ -88,6 +88,10 @@ describe("ProfilePage", () => {
       "href",
       "/profile/pending-crews",
     );
+    expect(screen.getByRole("link", { name: "회원탈퇴" })).toHaveAttribute(
+      "href",
+      "/profile/withdrawal",
+    );
   });
 
   it("keeps the hub counts from get profile even when patch returns null counts", async () => {

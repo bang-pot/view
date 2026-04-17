@@ -320,6 +320,54 @@ npm.cmd run dev
 - 비로그인 사용자는 `/login?redirectTo=%2Fprofile%2Fpending-crews`로 이동하는 것을 확인했습니다.
 - 따라서 round 07 범위의 구현, 자동 검증, 수동 검증이 모두 완료된 상태로 정리했습니다.
 
+## Auth Round 08 회원탈퇴 진입 + 영향 안내 + 차단 사유 확인
+
+- `/profile`
+  - 기존 허브와 활동 카드는 그대로 유지합니다.
+  - 계정 관리 섹션에 `회원탈퇴` entry를 추가해 `/profile/withdrawal`로 연결합니다.
+- `/profile/withdrawal`
+  - 먼저 `/api/auth/me`로 guest / temp / full 상태를 확인합니다.
+  - `GUEST`는 `/login?redirectTo=%2Fprofile%2Fwithdrawal`로 이동합니다.
+  - `TEMP` 또는 `completionRequired=true`는 `/auth/complete?redirectTo=%2Fprofile%2Fwithdrawal`로 이동합니다.
+  - `FULL`만 `GET /api/users/me/withdrawal-check`를 호출해 탈퇴 가능 여부와 차단 사유를 읽습니다.
+- 영향 안내 섹션
+  - `삭제되는 것`
+  - `유지되는 것`
+  - `재가입 가능 여부`
+  - 위 3개 섹션을 항상 함께 보여줘서, 사용자가 탈퇴 영향 범위를 한 화면에서 이해할 수 있게 합니다.
+- `canWithdraw` 분기
+  - `true`면 차단이 없다는 안내와 `다음 단계로` CTA 자리만 보여줍니다.
+  - 이번 라운드에서는 실제 탈퇴 실행을 열지 않기 때문에, CTA는 disabled 상태의 placeholder로 둡니다.
+  - `false`면 활성 크루 / 진행 중 모임 차단 사유를 한 번에 모두 보여줍니다.
+- 차단 목록 표시
+  - `blockingActiveCrews`는 크루 이름 목록으로 보여줍니다.
+  - `blockingParticipatingMeetings`는 모임명, 크루명, 모임 상태, 참여 역할, 날짜/시간을 함께 보여줍니다.
+  - `participationRole`은 `HOST -> 모임장`, `JOINED` / `APPROVED -> 참여자`로 자연스럽게 변환합니다.
+  - 차단 사유 항목에 바로가기 버튼은 넣지 않습니다.
+- 에러 / 재시도
+  - 첫 로딩 실패 시 `회원탈퇴 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.` 문구와 `다시 시도` 버튼을 보여줍니다.
+  - 이번 라운드는 목록 pagination이 없어서 `더 보기`는 없습니다.
+
+### Auth Round 08 자동 검증
+
+- `npm.cmd run test -- src/test/shared/auth-client.test.tsx src/test/app/profile-page.test.tsx src/test/app/profile-withdrawal-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+### Auth Round 08 수동 검증
+
+- 로그인한 `FULL` 사용자로 `/profile`에 진입했을 때 계정 관리 섹션의 `회원탈퇴` entry가 보이고, 클릭 시 `/profile/withdrawal` 화면으로 이동하는 것을 확인했습니다.
+- `/profile/withdrawal`에서 `삭제되는 것`, `유지되는 것`, `재가입 가능 여부` 3개 섹션이 분리되어 보이는 것을 확인했습니다.
+- `canWithdraw=true`인 계정에서는 차단 안내 없이 `다음 단계로` CTA 자리만 보이는 것을 확인했습니다.
+- `canWithdraw=false`인 계정에서는 `ACTIVE` 크루 차단 목록과 미종료 모임 차단 목록이 한 번에 함께 보이는 것을 확인했습니다.
+- `participationRole`이 `모임장`, `참여자` 문구로 자연스럽게 표시되는 것을 확인했습니다.
+- 첫 로딩 실패 시 에러 문구와 `다시 시도` 버튼이 보이고, 재시도 후 정상 화면으로 복구되는 것을 확인했습니다.
+- `TEMP` 또는 `completionRequired=true` 사용자는 `/auth/complete?redirectTo=%2Fprofile%2Fwithdrawal`로 이동하는 것을 확인했습니다.
+- 비로그인 사용자는 `/login?redirectTo=%2Fprofile%2Fwithdrawal`로 이동하는 것을 확인했습니다.
+- 이번 라운드가 구현, 자동 검증, 수동 검증까지 모두 완료된 상태임을 확인했습니다.
+- 따라서 round 08 범위의 구현, 자동 검증, 수동 검증이 모두 완료된 상태로 정리했습니다.
+
 ## Crew Round 1 理쒖냼 湲곕뒫 ?먮쫫
 
 - `Create crew`

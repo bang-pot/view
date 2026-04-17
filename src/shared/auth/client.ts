@@ -11,6 +11,7 @@ import type {
   MyCrewsResponse,
   NicknameAvailabilityResponse,
   PendingCrewsResponse,
+  WithdrawalCheckResponse,
 } from "@/shared/auth/types";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
 
@@ -158,6 +159,21 @@ export async function cancelPendingCrew(
     {
       code: "AUTH_PENDING_CREW_CANCEL_FAILED",
       message: "가입 신청 취소에 실패했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getWithdrawalCheck(): Promise<WithdrawalCheckResponse> {
+  return requestJson<WithdrawalCheckResponse>(
+    getApiBaseUrl(),
+    "/api/users/me/withdrawal-check",
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "AUTH_WITHDRAWAL_CHECK_REQUEST_FAILED",
+      message: "회원탈퇴 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }
