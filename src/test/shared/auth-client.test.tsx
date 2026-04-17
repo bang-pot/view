@@ -8,6 +8,7 @@ import {
   getJoinedMeetings,
   getMyCrews,
   getPendingCrews,
+  getWithdrawalCheck,
   getMe,
   getProfile,
   logout,
@@ -298,6 +299,61 @@ describe("auth client", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/backend/api/users/me/pending-crews?page=0&size=20",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("requests the withdrawal check from the profile guard API path", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          canWithdraw: false,
+          blockingActiveCrews: [
+            {
+              crewId: 17,
+              crewName: "방탈출 크루",
+            },
+          ],
+          blockingParticipatingMeetings: [
+            {
+              meetingId: 51,
+              meetingTitle: "금요 방탈출",
+              crewId: 17,
+              crewName: "방탈출 크루",
+              meetingStatus: "RECRUITING",
+              date: "2026-04-20",
+              time: "19:00",
+              participationRole: "HOST",
+            },
+            {
+              meetingId: 52,
+              meetingTitle: "주말 스터디 모임",
+              crewId: 18,
+              crewName: "서울 방탈출 클럽",
+              meetingStatus: "RECRUITMENT_CLOSED",
+              date: "2026-04-22",
+              time: "20:00",
+              participationRole: "PARTICIPANT",
+            },
+          ],
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getWithdrawalCheck();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/users/me/withdrawal-check",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",
