@@ -44,3 +44,28 @@ export type AuthProfileUpdateResponse = {
   myCrewsCount: number | null;
   pendingCrewsCount: number | null;
 };
+
+export type CreatedMeetingStatus =
+  | "RECRUITING"
+  | "RECRUITMENT_CLOSED"
+  | "COMPLETED"
+  | "CANCELED";
+
+export type CreatedMeetingListItem = {
+  meetingId: number;
+  title: string;
+  status: CreatedMeetingStatus;
+  date: string;
+  time: string;
+  crewId: number;
+  crewName: string;
+};
+
+export type CreatedMeetingsResponse = {
+  items: CreatedMeetingListItem[];
+  pageInfo: {
+    page: number;
+    size: number;
+    hasNext: boolean;
+  };
+};

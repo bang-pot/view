@@ -1,10 +1,5 @@
-import { ProfileActivityPlaceholderPageClient } from "@/features/auth/components/ProfileActivityPlaceholderPageClient";
+import { CreatedMeetingsPageClient } from "@/features/auth/components/CreatedMeetingsPageClient";
 
 export default function CreatedMeetingsProfilePage() {
-  return (
-    <ProfileActivityPlaceholderPageClient
-      title="생성한 모임"
-      requestedPath="/profile/created-meetings"
-    />
-  );
+  return <CreatedMeetingsPageClient />;
 }
