@@ -82,7 +82,7 @@ describe("ProfilePage", () => {
     );
     expect(screen.getByRole("link", { name: /소속 크루 2/ })).toHaveAttribute(
       "href",
-      "/profile/my-crews",
+      "/profile/crews",
     );
     expect(screen.getByRole("link", { name: /가입 대기 1/ })).toHaveAttribute(
       "href",

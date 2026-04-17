@@ -99,3 +99,22 @@ export type JoinedMeetingsResponse = {
     hasNext: boolean;
   };
 };
+
+export type MyCrewVisibility = "PUBLIC" | "PRIVATE";
+
+export type MyCrewListItem = {
+  crewId: number;
+  crewName: string;
+  visibility: MyCrewVisibility;
+  leaderNickname: string;
+  coverImageUrl: string | null;
+};
+
+export type MyCrewsResponse = {
+  items: MyCrewListItem[];
+  pageInfo: {
+    page: number;
+    size: number;
+    hasNext: boolean;
+  };
+};

@@ -29,7 +29,7 @@ const ACTIVITY_LINKS = [
     countKey: "joinedMeetingsCount",
   },
   {
-    href: "/profile/my-crews",
+    href: "/profile/crews",
     label: "소속 크루",
     countKey: "myCrewsCount",
   },
