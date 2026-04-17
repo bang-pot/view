@@ -7,6 +7,7 @@ import type {
   AuthProfileUpdateResponse,
   CreatedMeetingsResponse,
   JoinedMeetingsResponse,
+  MyCrewsResponse,
   NicknameAvailabilityResponse,
 } from "@/shared/auth/types";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
@@ -92,6 +93,29 @@ export async function getJoinedMeetings(input: {
     {
       code: "AUTH_JOINED_MEETINGS_REQUEST_FAILED",
       message: "참여 모임 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getMyCrews(input: {
+  page: number;
+  size: number;
+}): Promise<MyCrewsResponse> {
+  const params = new URLSearchParams({
+    page: String(input.page),
+    size: String(input.size),
+  });
+
+  return requestJson<MyCrewsResponse>(
+    getApiBaseUrl(),
+    `/api/users/me/crews?${params.toString()}`,
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "AUTH_MY_CREWS_REQUEST_FAILED",
+      message: "소속 크루 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

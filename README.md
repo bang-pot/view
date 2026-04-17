@@ -104,9 +104,9 @@ npm.cmd run dev
 - 활동 진입 구조
   - `/profile/created-meetings`
   - `/profile/joined-meetings`
-  - `/profile/my-crews`
+  - `/profile/crews`
   - `/profile/pending-crews`
-  - 이번 라운드에서는 다음 라운드용 route 자리만 만들고, 상세 목록 자체는 `다음 라운드에서 이어서 구현` 안내로 닫습니다.
+  - 이후 라운드에서 `생성 모임`, `참여 모임`, `소속 크루`는 실제 목록 화면으로 교체되었고, 현재 placeholder로 남아 있는 것은 `가입 대기`뿐입니다.
 - count source of truth
   - 허브 count는 항상 `GET /api/users/me` 결과를 기준으로만 표시합니다.
   - `PATCH /api/users/me` 응답은 count 필드가 `null`일 수 있으므로, 닉네임 저장 성공 후에도 기존 허브 count를 유지합니다.
@@ -127,7 +127,7 @@ npm.cmd run dev
 - 로그인한 `FULL` 사용자로 `/profile`에 진입했을 때 프로필 허브 화면이 정상적으로 열리는 것을 확인했습니다.
 - `profileImageUrl`이 없는 계정에서 `프로필 이미지 준비 중` placeholder가 보이는 것을 확인했습니다.
 - `생성 모임`, `참여한 모임`, `소속 크루`, `가입 대기` 카드와 각 count가 함께 표시되는 것을 확인했습니다.
-- 각 활동 카드가 `/profile/created-meetings`, `/profile/joined-meetings`, `/profile/my-crews`, `/profile/pending-crews` route로 정상 이동하는 것을 확인했습니다.
+- 각 활동 카드가 `/profile/created-meetings`, `/profile/joined-meetings`, `/profile/crews`, `/profile/pending-crews` route로 정상 이동하는 것을 확인했습니다.
 - 각 placeholder route에서 `상세 목록은 다음 라운드에서 이어서 구현할 예정입니다.` 안내와 `/profile` 복귀 링크가 보이는 것을 확인했습니다.
 - 닉네임 저장 후에도 허브 count는 patch 응답이 아니라 기존 `GET /api/users/me` 조회 값 기준으로 유지되는 것을 확인했습니다.
 - 닉네임 validation 실패 시 backend field error 문구가 그대로 보이는 것을 확인했습니다.
@@ -224,6 +224,51 @@ npm.cmd run dev
 - 허브의 `joinedMeetingsCount`와 실제 목록 길이가 항상 같다고 가정하지 않고, 목록은 joined list 응답 기준으로만 그려지는 것을 확인했습니다.
 - `TEMP` 또는 `completionRequired=true` 사용자는 `/auth/complete?redirectTo=%2Fprofile%2Fjoined-meetings`로 이동하는 것을 확인했습니다.
 - 비로그인 사용자는 `/login?redirectTo=%2Fprofile%2Fjoined-meetings`로 이동하는 것을 확인했습니다.
+
+## Auth Round 06 소속 크루 목록 상세
+
+- `/profile`
+  - 허브 count는 계속 `GET /api/users/me` 결과만 사용합니다.
+  - `소속 크루` 카드는 `/profile/crews` 실제 목록 화면으로 이어집니다.
+- `/profile/crews`
+  - 먼저 `/api/auth/me`로 guest / temp / full 상태를 확인합니다.
+  - `GUEST`는 `/login?redirectTo=%2Fprofile%2Fcrews`로 이동합니다.
+  - `TEMP` 또는 `completionRequired=true`는 `/auth/complete?redirectTo=%2Fprofile%2Fcrews`로 이동합니다.
+  - `FULL`만 `GET /api/users/me/crews`를 호출해 현재 소속 크루 목록을 읽습니다.
+- 소속 크루 목록 화면
+  - 카드에는 대표 이미지 또는 fallback, 크루 이름, 공개/비공개 여부, 크루장 이름을 표시합니다.
+  - 카드 전체 클릭 시 기존 크루 페이지 `/crews/{crewId}`로 이동합니다.
+  - `coverImageUrl`이 없거나 이미지 로드가 실패하면 `크루 이미지 준비 중` placeholder를 보여줍니다.
+  - 빈 상태는 `아직 소속된 크루가 없어요.`로 처리하고, `공개 크루 탐색` CTA를 함께 둡니다.
+  - 첫 로딩 실패 시 에러 문구와 `다시 시도` 버튼을 보여줍니다.
+  - `pageInfo.hasNext`가 true면 `더 보기` 버튼으로 추가 로딩합니다.
+  - `더 보기` 실패 시에도 이미 불러온 목록은 유지하고 에러 문구만 추가로 보여줍니다.
+- count와 목록 consumer 분리
+  - 허브의 `myCrewsCount`는 `GET /api/users/me` 기준을 유지합니다.
+  - 실제 소속 크루 목록은 `GET /api/users/me/crews` 응답을 source of truth로 사용합니다.
+  - 프론트는 두 값을 강제로 맞추지 않고, 허브와 목록을 각각 별도 consumer로 유지합니다.
+
+### Auth Round 06 자동 검증
+
+- `npm.cmd run test -- src/test/shared/auth-client.test.tsx src/test/app/profile-page.test.tsx src/test/app/profile-crews-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+### Auth Round 06 수동 검증
+
+- 로그인한 `FULL` 사용자로 `/profile`에 진입했을 때 `소속 크루` 카드가 보이고, 클릭 시 `/profile/crews` 실제 목록 화면으로 이동하는 것을 확인했습니다.
+- 소속 크루 목록에서 각 카드에 대표 이미지 또는 fallback, 크루 이름, 공개/비공개 여부, 크루장 이름이 보이는 것을 확인했습니다.
+- 카드 클릭 시 기존 크루 페이지 `/crews/{crewId}`로 이동하는 것을 확인했습니다.
+- `coverImageUrl`이 없거나 로드 실패가 나는 경우 `크루 이미지 준비 중` placeholder가 보이는 것을 확인했습니다.
+- 목록이 비어 있는 계정에서는 `아직 소속된 크루가 없어요.` 문구와 `공개 크루 탐색` CTA가 함께 보이는 것을 확인했습니다.
+- 첫 로딩 실패 시 에러 문구와 `다시 시도` 버튼이 보이고, 재시도 후 정상 목록으로 복구되는 것을 확인했습니다.
+- `hasNext=true`인 계정에서는 `더 보기` 버튼으로 다음 페이지를 이어서 불러올 수 있고, 중복 없이 병합되는 것을 확인했습니다.
+- `더 보기` 실패 시에도 이미 불러온 목록은 유지되고 에러 문구만 추가로 보이는 것을 확인했습니다.
+- 허브의 `myCrewsCount`와 실제 목록은 각각 `GET /api/users/me`, `GET /api/users/me/crews`를 기준으로 분리되어 동작하는 것을 확인했습니다.
+- `TEMP` 또는 `completionRequired=true` 사용자는 `/auth/complete?redirectTo=%2Fprofile%2Fcrews`로 이동하는 것을 확인했습니다.
+- 비로그인 사용자는 `/login?redirectTo=%2Fprofile%2Fcrews`로 이동하는 것을 확인했습니다.
+- 따라서 round 06 범위의 구현, 자동 검증, 수동 검증이 모두 완료된 상태로 정리했습니다.
 
 ## Crew Round 1 理쒖냼 湲곕뒫 ?먮쫫
 

@@ -5,6 +5,7 @@ import {
   completeProfile,
   getCreatedMeetings,
   getJoinedMeetings,
+  getMyCrews,
   getMe,
   getProfile,
   logout,
@@ -209,6 +210,49 @@ describe("auth client", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/backend/api/users/me/joined-meetings?page=0&size=20",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("requests the active crews list from the profile activity API path", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          items: [
+            {
+              crewId: 17,
+              crewName: "방탈출 크루",
+              visibility: "PUBLIC",
+              leaderNickname: "bangpot",
+              coverImageUrl: null,
+            },
+          ],
+          pageInfo: {
+            page: 0,
+            size: 20,
+            hasNext: false,
+          },
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getMyCrews({
+      page: 0,
+      size: 20,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/users/me/crews?page=0&size=20",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",
