@@ -6,7 +6,7 @@ import { FormEvent, useEffect, useState } from "react";
 
 import { logoutAndConfirmGuest } from "@/features/auth/logout";
 import { getMe, getProfile, updateProfile } from "@/shared/auth/client";
-import type { AuthProfileResponse } from "@/shared/auth/types";
+import type { AuthProfileHubResponse } from "@/shared/auth/types";
 import { resolveProtectedDestination } from "@/shared/auth/guards";
 import {
   getFieldErrorMessage,
@@ -16,6 +16,29 @@ import {
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
 const PROFILE_PATH = "/profile";
+
+const ACTIVITY_LINKS = [
+  {
+    href: "/profile/created-meetings",
+    label: "생성한 모임",
+    countKey: "createdMeetingsCount",
+  },
+  {
+    href: "/profile/joined-meetings",
+    label: "참여한 모임",
+    countKey: "joinedMeetingsCount",
+  },
+  {
+    href: "/profile/my-crews",
+    label: "소속 크루",
+    countKey: "myCrewsCount",
+  },
+  {
+    href: "/profile/pending-crews",
+    label: "가입 대기",
+    countKey: "pendingCrewsCount",
+  },
+] as const;
 
 function resolveNicknameMessage(error: unknown): string | null {
   const fieldMessage = getFieldErrorMessage(error, "nickname");
@@ -47,7 +70,7 @@ function isExpectedProfileSaveError(code: string): boolean {
 
 export function ProfilePageClient() {
   const router = useRouter();
-  const [profile, setProfile] = useState<AuthProfileResponse | null>(null);
+  const [profile, setProfile] = useState<AuthProfileHubResponse | null>(null);
   const [nickname, setNickname] = useState("");
   const [nicknameMessage, setNicknameMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -77,6 +100,7 @@ export function ProfilePageClient() {
 
           setProfile(currentProfile);
           setNickname(currentProfile.nickname);
+          setErrorMessage(null);
           setIsLoading(false);
         });
       })
@@ -85,15 +109,17 @@ export function ProfilePageClient() {
           route: PROFILE_PATH,
         });
 
-        if (isMounted) {
-          setErrorMessage(
-            getUserMessage(
-              error,
-              "프로필 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
-            ),
-          );
-          setIsLoading(false);
+        if (!isMounted) {
+          return;
         }
+
+        setErrorMessage(
+          getUserMessage(
+            error,
+            "프로필 허브를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+          ),
+        );
+        setIsLoading(false);
       });
 
     return () => {
@@ -112,7 +138,15 @@ export function ProfilePageClient() {
         nickname: nickname.trim(),
       });
 
-      setProfile(nextProfile);
+      setProfile((currentProfile) =>
+        currentProfile
+          ? {
+              ...currentProfile,
+              nickname: nextProfile.nickname,
+              profileImageUrl: nextProfile.profileImageUrl,
+            }
+          : currentProfile,
+      );
       setNickname(nextProfile.nickname);
     } catch (error) {
       const operationalError = toOperationalError(error);
@@ -132,7 +166,7 @@ export function ProfilePageClient() {
           ? null
           : getUserMessage(
               operationalError,
-              "프로필 저장에 실패했습니다. 입력값을 다시 확인해 주세요.",
+              "프로필 저장에 실패했어요. 입력값을 다시 확인해 주세요.",
             ),
       );
     } finally {
@@ -153,17 +187,14 @@ export function ProfilePageClient() {
         return;
       }
 
-      setErrorMessage("로그아웃 상태를 확인하지 못했습니다. 다시 시도해 주세요.");
+      setErrorMessage("로그아웃 상태를 확인하지 못했어요. 다시 시도해 주세요.");
     } catch (error) {
       reportOperationalError("auth.profile.logout_failed", error, {
         route: PROFILE_PATH,
       });
 
       setErrorMessage(
-        getUserMessage(
-          error,
-          "로그아웃에 실패했습니다. 잠시 후 다시 시도해 주세요.",
-        ),
+        getUserMessage(error, "로그아웃에 실패했어요. 잠시 후 다시 시도해 주세요."),
       );
     } finally {
       setIsLoggingOut(false);
@@ -173,41 +204,127 @@ export function ProfilePageClient() {
   if (isLoading) {
     return (
       <main>
-        <p>프로필 정보를 확인하고 있습니다.</p>
+        <p>프로필 허브를 불러오는 중입니다.</p>
+      </main>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <main>
+        <h1>내 프로필</h1>
+        <p>{errorMessage ?? "프로필 허브를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."}</p>
       </main>
     );
   }
 
   return (
-    <main>
-      <h1>Profile</h1>
-      {profile ? (
-        <>
-          <p>User ID: {profile.id}</p>
-          <p>Current nickname: {profile.nickname}</p>
-          <Link href="/crew-invites">My invites</Link>
-        </>
-      ) : null}
+    <main style={{ display: "grid", gap: 24 }}>
+      <h1>내 프로필</h1>
 
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="profile-nickname">Nickname</label>
-        <input
-          id="profile-nickname"
-          name="nickname"
-          value={nickname}
-          onChange={(event) => setNickname(event.target.value)}
-        />
-        {nicknameMessage ? <p>{nicknameMessage}</p> : null}
-        {errorMessage ? <p>{errorMessage}</p> : null}
+      <section
+        aria-label="프로필 기본 정보"
+        style={{
+          display: "grid",
+          gap: 16,
+          padding: 20,
+          border: "1px solid #d9d9d9",
+          borderRadius: 16,
+        }}
+      >
+        <div
+          style={{
+            width: 88,
+            height: 88,
+            borderRadius: "50%",
+            background: "#f5f5f5",
+            display: "grid",
+            placeItems: "center",
+            overflow: "hidden",
+          }}
+        >
+          {profile.profileImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={profile.profileImageUrl}
+              alt={`${profile.nickname} 프로필 이미지`}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : (
+            <span>프로필 이미지 준비 중</span>
+          )}
+        </div>
 
-        <button type="submit" disabled={isSaving || isLoggingOut}>
-          Save nickname
-        </button>
-      </form>
+        <div style={{ display: "grid", gap: 6 }}>
+          <strong style={{ fontSize: 24 }}>{profile.nickname}</strong>
+          <span>내 활동을 한 화면에서 확인하고 바로 이어서 들어갈 수 있어요.</span>
+        </div>
+      </section>
 
-      <button type="button" onClick={handleLogout} disabled={isSaving || isLoggingOut}>
-        Logout
-      </button>
+      <section aria-label="활동 허브" style={{ display: "grid", gap: 12 }}>
+        <h2>내 활동</h2>
+        <div
+          style={{
+            display: "grid",
+            gap: 12,
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          }}
+        >
+          {ACTIVITY_LINKS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              style={{
+                display: "grid",
+                gap: 8,
+                padding: 16,
+                border: "1px solid #d9d9d9",
+                borderRadius: 16,
+                textDecoration: "none",
+                color: "inherit",
+              }}
+            >
+              <strong>
+                {item.label} {profile[item.countKey]}
+              </strong>
+              <span>상세 목록 보기</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section
+        aria-label="프로필 수정"
+        style={{
+          display: "grid",
+          gap: 12,
+          padding: 20,
+          border: "1px solid #d9d9d9",
+          borderRadius: 16,
+        }}
+      >
+        <h2>닉네임 수정</h2>
+        <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12 }}>
+          <label htmlFor="profile-nickname">닉네임</label>
+          <input
+            id="profile-nickname"
+            name="nickname"
+            value={nickname}
+            onChange={(event) => setNickname(event.target.value)}
+          />
+          {nicknameMessage ? <p>{nicknameMessage}</p> : null}
+          {errorMessage ? <p>{errorMessage}</p> : null}
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <button type="submit" disabled={isSaving || isLoggingOut}>
+              닉네임 저장
+            </button>
+            <button type="button" onClick={handleLogout} disabled={isSaving || isLoggingOut}>
+              로그아웃
+            </button>
+          </div>
+        </form>
+      </section>
     </main>
   );
 }

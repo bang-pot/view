@@ -63,6 +63,11 @@ describe("auth client", () => {
         JSON.stringify({
           id: 1,
           nickname: "bangpot",
+          profileImageUrl: null,
+          createdMeetingsCount: 3,
+          joinedMeetingsCount: 4,
+          myCrewsCount: 2,
+          pendingCrewsCount: 1,
         }),
         {
           status: 200,
@@ -83,6 +88,37 @@ describe("auth client", () => {
         cache: "no-store",
       }),
     );
+  });
+
+  it("accepts nullable hub counts from the patch profile response", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: 1,
+          nickname: "potmaster",
+          profileImageUrl: null,
+          createdMeetingsCount: null,
+          joinedMeetingsCount: null,
+          myCrewsCount: null,
+          pendingCrewsCount: null,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(updateProfile({ nickname: "potmaster" })).resolves.toMatchObject({
+      nickname: "potmaster",
+      createdMeetingsCount: null,
+      joinedMeetingsCount: null,
+      myCrewsCount: null,
+      pendingCrewsCount: null,
+    });
   });
 
   it("checks nickname availability through the users API path", async () => {
@@ -250,8 +286,7 @@ describe("auth client", () => {
 
     await expect(getMe()).rejects.toMatchObject({
       code: "AUTH_ME_REQUEST_FAILED",
-      message: "로그인 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-      userMessage: "로그인 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      userMessage: "로그인 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
       requestId: "req-fallback-1",
       status: 503,
       fieldErrors: [],

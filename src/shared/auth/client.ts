@@ -3,7 +3,8 @@ import { sanitizeRedirectPath } from "@/shared/auth/guards";
 import type {
   AuthCompletionResponse,
   AuthMeResponse,
-  AuthProfileResponse,
+  AuthProfileHubResponse,
+  AuthProfileUpdateResponse,
   NicknameAvailabilityResponse,
 } from "@/shared/auth/types";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
@@ -27,13 +28,13 @@ export async function getMe(): Promise<AuthMeResponse> {
     },
     {
       code: "AUTH_ME_REQUEST_FAILED",
-      message: "로그인 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      message: "로그인 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }
 
-export async function getProfile(): Promise<AuthProfileResponse> {
-  return requestJson<AuthProfileResponse>(
+export async function getProfile(): Promise<AuthProfileHubResponse> {
+  return requestJson<AuthProfileHubResponse>(
     getApiBaseUrl(),
     "/api/users/me",
     {
@@ -42,7 +43,7 @@ export async function getProfile(): Promise<AuthProfileResponse> {
     },
     {
       code: "AUTH_PROFILE_REQUEST_FAILED",
-      message: "프로필 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      message: "프로필 허브를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }
@@ -61,15 +62,15 @@ export async function checkNicknameAvailability(
     },
     {
       code: "AUTH_NICKNAME_CHECK_FAILED",
-      message: "닉네임 중복 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+      message: "닉네임 중복 확인에 실패했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }
 
 export async function updateProfile(input: {
   nickname: string;
-}): Promise<AuthProfileResponse> {
-  return requestJson<AuthProfileResponse>(
+}): Promise<AuthProfileUpdateResponse> {
+  return requestJson<AuthProfileUpdateResponse>(
     getApiBaseUrl(),
     "/api/users/me",
     {
@@ -82,7 +83,7 @@ export async function updateProfile(input: {
     },
     {
       code: "AUTH_PROFILE_UPDATE_FAILED",
-      message: "프로필 저장에 실패했습니다. 입력값을 다시 확인해 주세요.",
+      message: "프로필 저장에 실패했어요. 입력값을 다시 확인해 주세요.",
     },
   );
 }
@@ -104,7 +105,7 @@ export async function completeProfile(input: {
     },
     {
       code: "AUTH_COMPLETE_REQUEST_FAILED",
-      message: "가입 완료 처리에 실패했습니다. 입력값을 다시 확인해 주세요.",
+      message: "가입 완료 처리에 실패했어요. 입력값을 다시 확인해 주세요.",
     },
   );
 }
@@ -119,7 +120,7 @@ export async function logout(): Promise<void> {
     },
     {
       code: "AUTH_LOGOUT_FAILED",
-      message: "로그아웃에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+      message: "로그아웃에 실패했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

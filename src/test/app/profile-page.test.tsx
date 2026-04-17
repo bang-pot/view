@@ -30,7 +30,7 @@ describe("ProfilePage", () => {
     cleanup();
   });
 
-  it("redirects temp users back to completion before loading the profile", async () => {
+  it("redirects temp users back to completion before loading the profile hub", async () => {
     vi.mocked(getMe).mockResolvedValue({
       authStatus: "TEMP",
       completionRequired: true,
@@ -48,7 +48,7 @@ describe("ProfilePage", () => {
     expect(getProfile).not.toHaveBeenCalled();
   });
 
-  it("loads the current profile and reflects the updated nickname after save", async () => {
+  it("loads the profile hub and shows all activity entry counts", async () => {
     vi.mocked(getMe).mockResolvedValue({
       authStatus: "FULL",
       completionRequired: false,
@@ -60,24 +60,69 @@ describe("ProfilePage", () => {
     vi.mocked(getProfile).mockResolvedValue({
       id: 1,
       nickname: "bangpot",
-    });
-    vi.mocked(updateProfile).mockResolvedValue({
-      id: 1,
-      nickname: "potmaster",
+      profileImageUrl: null,
+      createdMeetingsCount: 3,
+      joinedMeetingsCount: 4,
+      myCrewsCount: 2,
+      pendingCrewsCount: 1,
     });
 
     render(<ProfilePage />);
 
-    expect(await screen.findByRole("heading", { name: "Profile" })).toBeInTheDocument();
-    expect(screen.getByText("User ID: 1")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "My invites" })).toHaveAttribute(
+    expect(await screen.findByRole("heading", { name: "내 프로필" })).toBeInTheDocument();
+    expect(screen.getByText("프로필 이미지 준비 중")).toBeInTheDocument();
+    expect(screen.getByText("bangpot")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /생성한 모임 3/ })).toHaveAttribute(
       "href",
-      "/crew-invites",
+      "/profile/created-meetings",
     );
+    expect(screen.getByRole("link", { name: /참여한 모임 4/ })).toHaveAttribute(
+      "href",
+      "/profile/joined-meetings",
+    );
+    expect(screen.getByRole("link", { name: /소속 크루 2/ })).toHaveAttribute(
+      "href",
+      "/profile/my-crews",
+    );
+    expect(screen.getByRole("link", { name: /가입 대기 1/ })).toHaveAttribute(
+      "href",
+      "/profile/pending-crews",
+    );
+  });
 
-    const nicknameInput = screen.getByLabelText("Nickname");
+  it("keeps the hub counts from get profile even when patch returns null counts", async () => {
+    vi.mocked(getMe).mockResolvedValue({
+      authStatus: "FULL",
+      completionRequired: false,
+      redirectTo: null,
+      requiredTermsVersion: "2026-03-25",
+      user: { id: 1, nickname: "bangpot" },
+      requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
+    });
+    vi.mocked(getProfile).mockResolvedValue({
+      id: 1,
+      nickname: "bangpot",
+      profileImageUrl: null,
+      createdMeetingsCount: 3,
+      joinedMeetingsCount: 4,
+      myCrewsCount: 2,
+      pendingCrewsCount: 1,
+    });
+    vi.mocked(updateProfile).mockResolvedValue({
+      id: 1,
+      nickname: "potmaster",
+      profileImageUrl: null,
+      createdMeetingsCount: null,
+      joinedMeetingsCount: null,
+      myCrewsCount: null,
+      pendingCrewsCount: null,
+    });
+
+    render(<ProfilePage />);
+
+    const nicknameInput = await screen.findByLabelText("닉네임");
     fireEvent.change(nicknameInput, { target: { value: "potmaster" } });
-    fireEvent.click(screen.getByRole("button", { name: "Save nickname" }));
+    fireEvent.click(screen.getByRole("button", { name: "닉네임 저장" }));
 
     await waitFor(() => {
       expect(updateProfile).toHaveBeenCalledWith({
@@ -85,10 +130,11 @@ describe("ProfilePage", () => {
       });
     });
 
-    await waitFor(() => {
-      expect(screen.getByDisplayValue("potmaster")).toBeInTheDocument();
-      expect(screen.getByText("Current nickname: potmaster")).toBeInTheDocument();
-    });
+    expect(screen.getByDisplayValue("potmaster")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /생성한 모임 3/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /참여한 모임 4/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /소속 크루 2/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /가입 대기 1/ })).toBeInTheDocument();
   });
 
   it("shows the backend nickname validation message on profile update failure", async () => {
@@ -105,17 +151,22 @@ describe("ProfilePage", () => {
     vi.mocked(getProfile).mockResolvedValue({
       id: 1,
       nickname: "bangpot",
+      profileImageUrl: null,
+      createdMeetingsCount: 3,
+      joinedMeetingsCount: 4,
+      myCrewsCount: 2,
+      pendingCrewsCount: 1,
     });
     vi.mocked(updateProfile).mockRejectedValue(
       new OperationalError({
         code: "COMMON_VALIDATION_ERROR",
-        message: "?낅젰媛믪씠 ?щ컮瑜댁? ?딆뒿?덈떎.",
+        message: "입력값이 올바르지 않습니다.",
         requestId: "req-profile-validation-1",
         status: 400,
         fieldErrors: [
           {
             field: "nickname",
-            message: "?됰꽕?꾩? 鍮꾩뼱 ?덉쓣 ???놁뒿?덈떎.",
+            message: "닉네임은 비어 있을 수 없습니다.",
           },
         ],
       }),
@@ -123,13 +174,11 @@ describe("ProfilePage", () => {
 
     render(<ProfilePage />);
 
-    const nicknameInput = await screen.findByLabelText("Nickname");
+    const nicknameInput = await screen.findByLabelText("닉네임");
     fireEvent.change(nicknameInput, { target: { value: "" } });
-    fireEvent.click(screen.getByRole("button", { name: "Save nickname" }));
+    fireEvent.click(screen.getByRole("button", { name: "닉네임 저장" }));
 
-    expect(
-      await screen.findByText("?됰꽕?꾩? 鍮꾩뼱 ?덉쓣 ???놁뒿?덈떎."),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("닉네임은 비어 있을 수 없습니다.")).toBeInTheDocument();
   });
 
   it("logs out, re-checks auth state, and routes back to login when the user becomes guest", async () => {
@@ -153,13 +202,18 @@ describe("ProfilePage", () => {
     vi.mocked(getProfile).mockResolvedValue({
       id: 1,
       nickname: "bangpot",
+      profileImageUrl: null,
+      createdMeetingsCount: 3,
+      joinedMeetingsCount: 4,
+      myCrewsCount: 2,
+      pendingCrewsCount: 1,
     });
     vi.mocked(logout).mockResolvedValue(undefined);
 
     render(<ProfilePage />);
 
-    expect(await screen.findByRole("heading", { name: "Profile" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Logout" }));
+    expect(await screen.findByRole("heading", { name: "내 프로필" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "로그아웃" }));
 
     await waitFor(() => {
       expect(logout).toHaveBeenCalledTimes(1);
