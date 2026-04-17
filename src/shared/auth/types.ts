@@ -25,7 +25,22 @@ export type NicknameAvailabilityResponse = {
   available: boolean;
 };
 
-export type AuthProfileResponse = {
+export type AuthProfileHubResponse = {
   id: number;
   nickname: string;
+  profileImageUrl: string | null;
+  createdMeetingsCount: number;
+  joinedMeetingsCount: number;
+  myCrewsCount: number;
+  pendingCrewsCount: number;
+};
+
+export type AuthProfileUpdateResponse = {
+  id: number;
+  nickname: string;
+  profileImageUrl: string | null;
+  createdMeetingsCount: number | null;
+  joinedMeetingsCount: number | null;
+  myCrewsCount: number | null;
+  pendingCrewsCount: number | null;
 };

@@ -1,6 +1,6 @@
 ﻿# BangPot Frontend
 
-BangPot ?꾨줎?몄뿏????μ냼?낅땲?? ?꾩옱 ??μ냼?먮뒗 Common Ops, Common Error Contract, Production Start, Auth Round 1~2, Crew Round 1, Crew Round 3~5??理쒖냼 湲곕뒫 UI媛 諛섏쁺?섏뼱 ?덉뒿?덈떎.
+BangPot ?꾨줎?몄뿏????μ냼?낅땲?? ?꾩옱 ??μ냼?먮뒗 Common Ops, Common Error Contract, Production Start, Auth Round 1~3, Crew Round 1, Crew Round 3~5??理쒖냼 湲곕뒫 UI媛 諛섏쁺?섏뼱 ?덉뒿?덈떎.
 
 ## 湲곗닠 ?ㅽ깮
 
@@ -85,6 +85,54 @@ npm.cmd run dev
 - 濡쒓렇?꾩썐
   - `POST /api/auth/logout` ?몄텧 ??`/api/auth/me`瑜??ㅼ떆 ?뺤씤?⑸땲??
   - `GUEST` ?꾪솚???뺤씤?섎㈃ `/login`?쇰줈 ?대룞?⑸땲??
+
+## Auth Round 03 프로필 허브 + 활동 상세 목록 진입
+
+- `/profile`
+  - 먼저 `/api/auth/me`로 guest / temp / full 상태를 확인합니다.
+  - `GUEST`는 `/login?redirectTo=%2Fprofile`로 이동합니다.
+  - `TEMP` 또는 `completionRequired=true`는 `/auth/complete?redirectTo=%2Fprofile`로 이동합니다.
+  - `FULL`만 `GET /api/users/me`를 호출해 프로필 허브 데이터를 읽습니다.
+- 프로필 허브 화면
+  - 프로필 이미지가 없으면 `프로필 이미지 준비 중` placeholder를 보여줍니다.
+  - 닉네임과 함께 아래 4개 활동 진입 링크를 카드형으로 보여줍니다.
+    - `생성한 모임`
+    - `참여한 모임`
+    - `소속 크루`
+    - `가입 대기`
+  - 각 링크에는 `GET /api/users/me`에서 받은 count를 그대로 표시합니다.
+- 활동 진입 구조
+  - `/profile/created-meetings`
+  - `/profile/joined-meetings`
+  - `/profile/my-crews`
+  - `/profile/pending-crews`
+  - 이번 라운드에서는 다음 라운드용 route 자리만 만들고, 상세 목록 자체는 `다음 라운드에서 이어서 구현` 안내로 닫습니다.
+- count source of truth
+  - 허브 count는 항상 `GET /api/users/me` 결과를 기준으로만 표시합니다.
+  - `PATCH /api/users/me` 응답은 count 필드가 `null`일 수 있으므로, 닉네임 저장 성공 후에도 기존 허브 count를 유지합니다.
+- 기존 프로필 수정 흐름
+  - 닉네임 저장은 계속 `PATCH /api/users/me`를 사용합니다.
+  - 닉네임 검증 실패 시 backend `fieldErrors`와 `message`를 그대로 보여줍니다.
+  - 로그아웃은 기존처럼 `POST /api/auth/logout` 후 `/api/auth/me`를 다시 확인해 `/login`으로 이동합니다.
+
+### Auth Round 03 자동 검증
+
+- `npm.cmd run test -- src/test/shared/auth-client.test.tsx src/test/app/profile-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+### Auth Round 03 수동 검증
+
+- 로그인한 `FULL` 사용자로 `/profile`에 진입했을 때 프로필 허브 화면이 정상적으로 열리는 것을 확인했습니다.
+- `profileImageUrl`이 없는 계정에서 `프로필 이미지 준비 중` placeholder가 보이는 것을 확인했습니다.
+- `생성한 모임`, `참여한 모임`, `소속 크루`, `가입 대기` 카드와 각 count가 함께 표시되는 것을 확인했습니다.
+- 각 활동 카드가 `/profile/created-meetings`, `/profile/joined-meetings`, `/profile/my-crews`, `/profile/pending-crews` route로 정상 이동하는 것을 확인했습니다.
+- 각 placeholder route에서 `상세 목록은 다음 라운드에서 이어서 구현할 예정입니다.` 안내와 `/profile` 복귀 링크가 보이는 것을 확인했습니다.
+- 닉네임 저장 후에도 허브 count는 patch 응답이 아니라 기존 `GET /api/users/me` 조회 값 기준으로 유지되는 것을 확인했습니다.
+- 닉네임 validation 실패 시 backend field error 문구가 그대로 보이는 것을 확인했습니다.
+- 로그아웃 후 `/login`으로 이동하는 것을 확인했습니다.
+- `TEMP` 또는 `completionRequired=true` 사용자는 `/auth/complete?redirectTo=%2Fprofile`로 이동하는 것을 확인했습니다.
 
 ## Crew Round 1 理쒖냼 湲곕뒫 ?먮쫫
 
@@ -184,6 +232,7 @@ npm.cmd run build
 怨꾪쉷怨?寃곌낵 臾몄꽌??紐⑤몢 `workdocs-repo`???뺣━?⑸땲??
 
 - Auth Round 2 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\auth\01-auth-builder-round-02-result.md](C:\bangpot\workdocs-repo\docs\plans\results\auth\01-auth-builder-round-02-result.md)
+- Auth Round 3 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\auth\01-auth-builder-round-03-result.md](C:\bangpot\workdocs-repo\docs\plans\results\auth\01-auth-builder-round-03-result.md)
 - Crew Round 1 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-01-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-01-result.md)
 - Crew Round 3 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-03-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-03-result.md)
 - Crew Round 4 寃곌낵: [C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-04-result.md](C:\bangpot\workdocs-repo\docs\plans\results\crew\02-crew-builder-round-04-result.md)
