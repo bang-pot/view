@@ -118,3 +118,25 @@ export type MyCrewsResponse = {
     hasNext: boolean;
   };
 };
+
+export type PendingCrewListItem = {
+  joinRequestId: number;
+  crewId: number;
+  crewName: string;
+  requestedAt: string;
+  messageSummary: string | null;
+};
+
+export type PendingCrewsResponse = {
+  items: PendingCrewListItem[];
+  pageInfo: {
+    page: number;
+    size: number;
+    hasNext: boolean;
+  };
+};
+
+export type CancelPendingCrewResponse = {
+  joinRequestId: number;
+  crewId: number;
+};

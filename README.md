@@ -106,7 +106,7 @@ npm.cmd run dev
   - `/profile/joined-meetings`
   - `/profile/crews`
   - `/profile/pending-crews`
-  - 이후 라운드에서 `생성 모임`, `참여 모임`, `소속 크루`는 실제 목록 화면으로 교체되었고, 현재 placeholder로 남아 있는 것은 `가입 대기`뿐입니다.
+  - 이후 라운드에서 `생성 모임`, `참여 모임`, `소속 크루`, `가입 대기 중 크루` 모두 실제 목록 화면으로 교체되었습니다.
 - count source of truth
   - 허브 count는 항상 `GET /api/users/me` 결과를 기준으로만 표시합니다.
   - `PATCH /api/users/me` 응답은 count 필드가 `null`일 수 있으므로, 닉네임 저장 성공 후에도 기존 허브 count를 유지합니다.
@@ -269,6 +269,56 @@ npm.cmd run dev
 - `TEMP` 또는 `completionRequired=true` 사용자는 `/auth/complete?redirectTo=%2Fprofile%2Fcrews`로 이동하는 것을 확인했습니다.
 - 비로그인 사용자는 `/login?redirectTo=%2Fprofile%2Fcrews`로 이동하는 것을 확인했습니다.
 - 따라서 round 06 범위의 구현, 자동 검증, 수동 검증이 모두 완료된 상태로 정리했습니다.
+
+## Auth Round 07 가입 대기 중 크루 목록 상세
+
+- `/profile`
+  - 허브 count는 계속 `GET /api/users/me` 결과만 사용합니다.
+  - `가입 대기 중 크루` 카드는 `/profile/pending-crews` 실제 목록 화면으로 이어집니다.
+- `/profile/pending-crews`
+  - 먼저 `/api/auth/me`로 guest / temp / full 상태를 확인합니다.
+  - `GUEST`는 `/login?redirectTo=%2Fprofile%2Fpending-crews`로 이동합니다.
+  - `TEMP` 또는 `completionRequired=true`는 `/auth/complete?redirectTo=%2Fprofile%2Fpending-crews`로 이동합니다.
+  - `FULL`만 `GET /api/users/me/pending-crews`를 호출해 현재 대기 중인 가입 신청 목록을 읽습니다.
+- 가입 대기 중 크루 목록 화면
+  - 각 항목에는 크루 이름, 신청일, 신청 메시지 1줄 요약을 표시합니다.
+  - `messageSummary`가 비어 있거나 `null`이면 `메시지 없음` fallback을 보여줍니다.
+  - 항목 전체는 클릭되지 않으며, 각 항목에는 `가입 신청 취소` 버튼만 둡니다.
+  - 취소는 확인 모달을 거치고, `DELETE /api/users/me/pending-crews/{joinRequestId}`로 처리합니다.
+  - 취소 성공 시 해당 항목을 목록에서 즉시 제거합니다.
+  - 마지막 항목이 제거되면 `현재 대기 중인 가입 신청이 없어요` 빈 상태로 전환합니다.
+  - 빈 상태에서는 `공개 크루 탐색` CTA를 함께 보여줍니다.
+  - 첫 로딩 실패 시 에러 문구와 `다시 시도` 버튼을 보여줍니다.
+  - `pageInfo.hasNext`가 true면 `더 보기` 버튼으로 추가 로딩합니다.
+  - `더 보기` 실패 시에도 이미 불러온 목록은 유지하고 에러 문구만 추가로 보여줍니다.
+  - 취소 실패 시에는 목록 전체를 날리지 않고, 해당 항목에만 액션 에러 문구를 보여줍니다.
+- count와 목록 consumer 분리
+  - 허브의 `pendingCrewsCount`는 `GET /api/users/me` 기준을 유지합니다.
+  - 실제 가입 대기 목록은 `GET /api/users/me/pending-crews` 응답만 source of truth로 사용합니다.
+  - 프론트는 두 값을 강제로 맞추지 않고, 허브와 목록을 각각 별도 consumer로 유지합니다.
+
+### Auth Round 07 자동 검증
+
+- `npm.cmd run test -- src/test/shared/auth-client.test.tsx src/test/app/profile-page.test.tsx src/test/app/profile-pending-crews-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+### Auth Round 07 수동 검증
+
+- 로그인한 `FULL` 사용자로 `/profile`에 진입했을 때 `가입 대기 중 크루` 카드가 보이고, 클릭 시 `/profile/pending-crews` 실제 목록 화면으로 이동하는 것을 확인했습니다.
+- 목록에서 각 항목에 크루 이름, 신청일, 신청 메시지 요약이 보이는 것을 확인했습니다.
+- `messageSummary`가 비어 있는 항목에서는 `메시지 없음` fallback이 보이는 것을 확인했습니다.
+- 항목 전체가 클릭되지 않고, `가입 신청 취소` 버튼만 노출되는 것을 확인했습니다.
+- `가입 신청 취소`를 누르면 확인 모달이 열리고, 확인 후 해당 항목이 목록에서 즉시 제거되는 것을 확인했습니다.
+- 마지막 항목을 취소하면 `현재 대기 중인 가입 신청이 없어요` 빈 상태로 전환되는 것을 확인했습니다.
+- 첫 로딩 실패 시 에러 문구와 `다시 시도` 버튼이 보이고, 재시도 후 정상 목록으로 복구되는 것을 확인했습니다.
+- `hasNext=true`인 계정에서는 `더 보기` 버튼으로 다음 페이지를 이어서 불러올 수 있고, 중복 없이 병합되는 것을 확인했습니다.
+- `더 보기` 실패 시에도 이미 불러온 목록은 유지되고 에러 문구만 추가로 보이는 것을 확인했습니다.
+- 취소 실패 시에는 목록 전체가 사라지지 않고, 해당 항목에만 실패 문구가 보이는 것을 확인했습니다.
+- `TEMP` 또는 `completionRequired=true` 사용자는 `/auth/complete?redirectTo=%2Fprofile%2Fpending-crews`로 이동하는 것을 확인했습니다.
+- 비로그인 사용자는 `/login?redirectTo=%2Fprofile%2Fpending-crews`로 이동하는 것을 확인했습니다.
+- 따라서 round 07 범위의 구현, 자동 검증, 수동 검증이 모두 완료된 상태로 정리했습니다.
 
 ## Crew Round 1 理쒖냼 湲곕뒫 ?먮쫫
 

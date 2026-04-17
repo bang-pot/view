@@ -5,10 +5,12 @@ import type {
   AuthMeResponse,
   AuthProfileHubResponse,
   AuthProfileUpdateResponse,
+  CancelPendingCrewResponse,
   CreatedMeetingsResponse,
   JoinedMeetingsResponse,
   MyCrewsResponse,
   NicknameAvailabilityResponse,
+  PendingCrewsResponse,
 } from "@/shared/auth/types";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
 
@@ -116,6 +118,46 @@ export async function getMyCrews(input: {
     {
       code: "AUTH_MY_CREWS_REQUEST_FAILED",
       message: "소속 크루 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getPendingCrews(input: {
+  page: number;
+  size: number;
+}): Promise<PendingCrewsResponse> {
+  const params = new URLSearchParams({
+    page: String(input.page),
+    size: String(input.size),
+  });
+
+  return requestJson<PendingCrewsResponse>(
+    getApiBaseUrl(),
+    `/api/users/me/pending-crews?${params.toString()}`,
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "AUTH_PENDING_CREWS_REQUEST_FAILED",
+      message: "가입 대기 중 크루 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function cancelPendingCrew(
+  joinRequestId: number,
+): Promise<CancelPendingCrewResponse> {
+  return requestJson<CancelPendingCrewResponse>(
+    getApiBaseUrl(),
+    `/api/users/me/pending-crews/${joinRequestId}`,
+    {
+      method: "DELETE",
+      credentials: "include",
+    },
+    {
+      code: "AUTH_PENDING_CREW_CANCEL_FAILED",
+      message: "가입 신청 취소에 실패했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

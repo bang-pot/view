@@ -35,7 +35,7 @@ const ACTIVITY_LINKS = [
   },
   {
     href: "/profile/pending-crews",
-    label: "가입 대기",
+    label: "가입 대기 중 크루",
     countKey: "pendingCrewsCount",
   },
 ] as const;
