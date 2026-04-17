@@ -1,10 +1,5 @@
-import { ProfileActivityPlaceholderPageClient } from "@/features/auth/components/ProfileActivityPlaceholderPageClient";
+import { JoinedMeetingsPageClient } from "@/features/auth/components/JoinedMeetingsPageClient";
 
 export default function JoinedMeetingsProfilePage() {
-  return (
-    <ProfileActivityPlaceholderPageClient
-      title="참여한 모임"
-      requestedPath="/profile/joined-meetings"
-    />
-  );
+  return <JoinedMeetingsPageClient />;
 }

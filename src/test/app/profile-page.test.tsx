@@ -76,7 +76,7 @@ describe("ProfilePage", () => {
       "href",
       "/profile/created-meetings",
     );
-    expect(screen.getByRole("link", { name: /참여한 모임 4/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /참여 모임 4/ })).toHaveAttribute(
       "href",
       "/profile/joined-meetings",
     );
@@ -132,7 +132,7 @@ describe("ProfilePage", () => {
 
     expect(screen.getByDisplayValue("potmaster")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /생성 모임 3/ })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /참여한 모임 4/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /참여 모임 4/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /소속 크루 2/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /가입 대기 1/ })).toBeInTheDocument();
   });

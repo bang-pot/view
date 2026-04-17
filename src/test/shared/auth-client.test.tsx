@@ -4,6 +4,7 @@ import {
   checkNicknameAvailability,
   completeProfile,
   getCreatedMeetings,
+  getJoinedMeetings,
   getMe,
   getProfile,
   logout,
@@ -160,6 +161,54 @@ describe("auth client", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/backend/api/users/me/created-meetings?page=0&size=20",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("requests the joined meetings list from the profile activity API path", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          items: [
+            {
+              meetingId: 41,
+              title: "금요일 방탈출",
+              themeName: "더 킹덤",
+              crewId: 7,
+              crewName: "방팟 크루",
+              date: "2026-04-25",
+              time: "19:00",
+              status: "COMPLETED",
+              result: "SUCCESS",
+              canWriteReview: true,
+            },
+          ],
+          pageInfo: {
+            page: 0,
+            size: 20,
+            hasNext: false,
+          },
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getJoinedMeetings({
+      page: 0,
+      size: 20,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/users/me/joined-meetings?page=0&size=20",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",

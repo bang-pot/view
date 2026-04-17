@@ -177,6 +177,54 @@ npm.cmd run dev
 - `TEMP` 또는 `completionRequired=true` 사용자는 `/auth/complete?redirectTo=%2Fprofile%2Fcreated-meetings`로 이동하는 것을 확인했습니다.
 - 비로그인 사용자는 `/login?redirectTo=%2Fprofile%2Fcreated-meetings`로 이동하는 것을 확인했습니다.
 
+## Auth Round 05 참여 모임 목록 상세
+
+- `/profile`
+  - 허브 count는 계속 `GET /api/users/me` 결과만 사용합니다.
+  - `참여 모임` 카드는 `/profile/joined-meetings` 실제 목록 화면으로 이어집니다.
+- `/profile/joined-meetings`
+  - 먼저 `/api/auth/me`로 guest / temp / full 상태를 확인합니다.
+  - `GUEST`는 `/login?redirectTo=%2Fprofile%2Fjoined-meetings`로 이동합니다.
+  - `TEMP` 또는 `completionRequired=true`는 `/auth/complete?redirectTo=%2Fprofile%2Fjoined-meetings`로 이동합니다.
+  - `FULL`만 `GET /api/users/me/joined-meetings`를 호출해 참여 모임 목록을 읽습니다.
+- 참여 모임 목록 화면
+  - 목록에는 모임명, 테마명, 크루명, 날짜, 시간, 상태 배지, 완료 결과를 보여줍니다.
+  - `result`는 완료된 모임일 때만 표시합니다.
+  - `canWriteReview=true`일 때만 `리뷰 작성하기` 링크를 보여줍니다.
+  - `리뷰 작성하기`와 `모임 상세 보기`는 모두 기존 meeting detail 경로 `/crews/{crewId}/meetings/{meetingId}`로 이동합니다.
+  - 빈 상태는 `아직 참여한 모임이 없어요.`로 처리합니다.
+  - 첫 로딩 실패 시 에러 문구와 `다시 시도` 버튼을 보여줍니다.
+  - `pageInfo.hasNext`가 true면 `더 보기` 버튼으로 추가 로딩합니다.
+- count와 목록 consumer 분리
+  - 허브 count는 `GET /api/users/me` 기준을 유지합니다.
+  - 참여 모임 실제 목록은 `GET /api/users/me/joined-meetings` 응답을 source of truth로 사용합니다.
+  - 따라서 허브 count와 목록 길이가 특수 케이스에서 완전히 같다고 가정하지 않습니다.
+- 리뷰 작성 분기
+  - frontend는 `canWriteReview`를 자체 추론하지 않고 backend 응답만 믿고 버튼을 그립니다.
+  - `DELETED_BLOCKED` 같은 로그 상태도 backend가 이미 `canWriteReview=false`로 반영한 결과를 그대로 소비합니다.
+
+### Auth Round 05 자동 검증
+
+- `npm.cmd run test -- src/test/shared/auth-client.test.tsx src/test/app/profile-page.test.tsx src/test/app/profile-joined-meetings-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+### Auth Round 05 수동 검증
+
+- 로그인한 `FULL` 사용자로 `/profile`에 진입했을 때 `참여 모임` 카드가 보이고, 클릭 시 `/profile/joined-meetings` 실제 목록 화면으로 이동하는 것을 확인했습니다.
+- 참여 모임 목록에서 모임명, 테마명, 크루명, 날짜, 시간, 상태 배지, 완료 결과가 자연스럽게 보이는 것을 확인했습니다.
+- 완료되지 않은 모임에서는 결과가 숨겨지고, 완료된 모임에서만 `결과 성공` 또는 `결과 실패`가 보이는 것을 확인했습니다.
+- `canWriteReview=true`인 항목에서만 `리뷰 작성하기`가 노출되고, 클릭 시 기존 meeting detail `/crews/{crewId}/meetings/{meetingId}`로 이동하는 것을 확인했습니다.
+- `canWriteReview=false`인 항목에서는 `리뷰 작성하기`가 보이지 않는 것을 확인했습니다.
+- 참여 모임이 없는 계정에서는 `아직 참여한 모임이 없어요.` 빈 상태 문구가 보이는 것을 확인했습니다.
+- 첫 로딩 실패 시 에러 문구와 `다시 시도` 버튼이 보이고, 재시도 후 정상 목록으로 복구되는 것을 확인했습니다.
+- `hasNext=true`인 계정에서는 `더 보기` 버튼으로 다음 페이지를 이어서 불러올 수 있고, 중복 없이 병합되는 것을 확인했습니다.
+- `더 보기` 실패 시에도 이미 불러온 목록은 유지되고 에러 문구만 추가로 보이는 것을 확인했습니다.
+- 허브의 `joinedMeetingsCount`와 실제 목록 길이가 항상 같다고 가정하지 않고, 목록은 joined list 응답 기준으로만 그려지는 것을 확인했습니다.
+- `TEMP` 또는 `completionRequired=true` 사용자는 `/auth/complete?redirectTo=%2Fprofile%2Fjoined-meetings`로 이동하는 것을 확인했습니다.
+- 비로그인 사용자는 `/login?redirectTo=%2Fprofile%2Fjoined-meetings`로 이동하는 것을 확인했습니다.
+
 ## Crew Round 1 理쒖냼 湲곕뒫 ?먮쫫
 
 - `Create crew`

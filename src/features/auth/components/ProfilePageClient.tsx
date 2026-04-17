@@ -25,7 +25,7 @@ const ACTIVITY_LINKS = [
   },
   {
     href: "/profile/joined-meetings",
-    label: "참여한 모임",
+    label: "참여 모임",
     countKey: "joinedMeetingsCount",
   },
   {

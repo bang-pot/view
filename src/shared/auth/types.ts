@@ -69,3 +69,33 @@ export type CreatedMeetingsResponse = {
     hasNext: boolean;
   };
 };
+
+export type JoinedMeetingStatus =
+  | "RECRUITING"
+  | "RECRUITMENT_CLOSED"
+  | "COMPLETED"
+  | "CANCELED";
+
+export type JoinedMeetingResult = "SUCCESS" | "FAILURE";
+
+export type JoinedMeetingListItem = {
+  meetingId: number;
+  title: string;
+  themeName: string;
+  crewId: number;
+  crewName: string;
+  date: string;
+  time: string;
+  status: JoinedMeetingStatus;
+  result: JoinedMeetingResult | null;
+  canWriteReview: boolean;
+};
+
+export type JoinedMeetingsResponse = {
+  items: JoinedMeetingListItem[];
+  pageInfo: {
+    page: number;
+    size: number;
+    hasNext: boolean;
+  };
+};
