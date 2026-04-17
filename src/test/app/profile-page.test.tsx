@@ -84,7 +84,7 @@ describe("ProfilePage", () => {
       "href",
       "/profile/crews",
     );
-    expect(screen.getByRole("link", { name: /가입 대기 1/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /가입 대기 중 크루 1/ })).toHaveAttribute(
       "href",
       "/profile/pending-crews",
     );
@@ -134,7 +134,7 @@ describe("ProfilePage", () => {
     expect(screen.getByRole("link", { name: /생성 모임 3/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /참여 모임 4/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /소속 크루 2/ })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /가입 대기 1/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /가입 대기 중 크루 1/ })).toBeInTheDocument();
   });
 
   it("shows the backend nickname validation message on profile update failure", async () => {

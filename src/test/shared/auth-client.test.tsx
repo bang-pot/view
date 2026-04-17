@@ -1,11 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  cancelPendingCrew,
   checkNicknameAvailability,
   completeProfile,
   getCreatedMeetings,
   getJoinedMeetings,
   getMyCrews,
+  getPendingCrews,
   getMe,
   getProfile,
   logout,
@@ -256,6 +258,77 @@ describe("auth client", () => {
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",
+      }),
+    );
+  });
+
+  it("requests the pending crews list from the profile activity API path", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          items: [
+            {
+              joinRequestId: 91,
+              crewId: 17,
+              crewName: "방탈출 크루",
+              requestedAt: "2026-04-17T09:00:00Z",
+              messageSummary: "주말 위주로 참여하고 싶어요.",
+            },
+          ],
+          pageInfo: {
+            page: 0,
+            size: 20,
+            hasNext: false,
+          },
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getPendingCrews({
+      page: 0,
+      size: 20,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/users/me/pending-crews?page=0&size=20",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("cancels a pending crew join request through the profile activity API path", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          joinRequestId: 91,
+          crewId: 17,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await cancelPendingCrew(91);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/users/me/pending-crews/91",
+      expect.objectContaining({
+        method: "DELETE",
+        credentials: "include",
       }),
     );
   });
