@@ -96,7 +96,7 @@ npm.cmd run dev
 - 프로필 허브 화면
   - 프로필 이미지가 없으면 `프로필 이미지 준비 중` placeholder를 보여줍니다.
   - 닉네임과 함께 아래 4개 활동 진입 링크를 카드형으로 보여줍니다.
-    - `생성한 모임`
+    - `생성 모임`
     - `참여한 모임`
     - `소속 크루`
     - `가입 대기`
@@ -126,13 +126,56 @@ npm.cmd run dev
 
 - 로그인한 `FULL` 사용자로 `/profile`에 진입했을 때 프로필 허브 화면이 정상적으로 열리는 것을 확인했습니다.
 - `profileImageUrl`이 없는 계정에서 `프로필 이미지 준비 중` placeholder가 보이는 것을 확인했습니다.
-- `생성한 모임`, `참여한 모임`, `소속 크루`, `가입 대기` 카드와 각 count가 함께 표시되는 것을 확인했습니다.
+- `생성 모임`, `참여한 모임`, `소속 크루`, `가입 대기` 카드와 각 count가 함께 표시되는 것을 확인했습니다.
 - 각 활동 카드가 `/profile/created-meetings`, `/profile/joined-meetings`, `/profile/my-crews`, `/profile/pending-crews` route로 정상 이동하는 것을 확인했습니다.
 - 각 placeholder route에서 `상세 목록은 다음 라운드에서 이어서 구현할 예정입니다.` 안내와 `/profile` 복귀 링크가 보이는 것을 확인했습니다.
 - 닉네임 저장 후에도 허브 count는 patch 응답이 아니라 기존 `GET /api/users/me` 조회 값 기준으로 유지되는 것을 확인했습니다.
 - 닉네임 validation 실패 시 backend field error 문구가 그대로 보이는 것을 확인했습니다.
 - 로그아웃 후 `/login`으로 이동하는 것을 확인했습니다.
 - `TEMP` 또는 `completionRequired=true` 사용자는 `/auth/complete?redirectTo=%2Fprofile`로 이동하는 것을 확인했습니다.
+
+## Auth Round 04 생성 모임 목록 상세
+
+- `/profile`
+  - 허브 count는 계속 `GET /api/users/me` 결과만 사용합니다.
+  - `생성 모임` 카드는 `/profile/created-meetings` 실제 목록 화면으로 이어집니다.
+- `/profile/created-meetings`
+  - 먼저 `/api/auth/me`로 guest / temp / full 상태를 확인합니다.
+  - `GUEST`는 `/login?redirectTo=%2Fprofile%2Fcreated-meetings`로 이동합니다.
+  - `TEMP` 또는 `completionRequired=true`는 `/auth/complete?redirectTo=%2Fprofile%2Fcreated-meetings`로 이동합니다.
+  - `FULL`만 `GET /api/users/me/created-meetings`를 호출해 생성 모임 목록을 읽습니다.
+- 생성 모임 목록 화면
+  - 목록에는 모임 제목, 상태 배지, 날짜, 시간, 크루명을 보여줍니다.
+  - 항목 클릭 시 기존 meeting detail 경로 `/crews/{crewId}/meetings/{meetingId}`로 이동합니다.
+  - 빈 상태는 `아직 만든 모임이 없어요.`로 처리합니다.
+  - 첫 로딩 실패 시 에러 문구와 `다시 시도` 버튼을 보여줍니다.
+  - `pageInfo.hasNext`가 true면 `더 보기` 버튼으로 추가 로딩합니다.
+- count와 목록 consumer 분리
+  - 허브 count는 `GET /api/users/me` 기준을 유지합니다.
+  - 생성 모임 실제 목록은 `GET /api/users/me/created-meetings` 응답을 source of truth로 사용합니다.
+  - 따라서 허브 count와 목록 길이가 특수 케이스에서 완전히 같다고 가정하지 않습니다.
+
+### Auth Round 04 자동 검증
+
+- `npm.cmd run test -- src/test/shared/auth-client.test.tsx src/test/app/profile-page.test.tsx src/test/app/profile-created-meetings-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+### Auth Round 04 수동 검증
+
+- 로그인한 `FULL` 사용자로 `/profile`에 진입했을 때 프로필 허브 화면이 정상적으로 열리고, `생성 모임` 카드가 보이는 것을 확인했습니다.
+- 프로필 허브에서 `생성 모임` 카드를 클릭하면 `/profile/created-meetings` 실제 목록 화면으로 이동하는 것을 확인했습니다.
+- 생성 모임 목록에서 각 항목에 모임 제목, 상태, 날짜, 시간, 크루명이 보이는 것을 확인했습니다.
+- 상태가 `모집 중`, `모집 마감`, `완료`, `취소됨`으로 자연스럽게 표시되는 것을 확인했습니다.
+- 목록 항목 클릭 시 기존 meeting detail 경로 `/crews/{crewId}/meetings/{meetingId}`로 이동하는 것을 확인했습니다.
+- 생성 모임이 없는 계정에서는 `아직 만든 모임이 없어요.` 빈 상태 문구가 보이는 것을 확인했습니다.
+- 첫 로딩 실패 시 에러 문구와 `다시 시도` 버튼이 보이고, 재시도 후 정상 목록으로 복구되는 것을 확인했습니다.
+- `hasNext=true`인 계정에서는 `더 보기` 버튼으로 다음 페이지를 이어서 불러올 수 있고, 중복 없이 병합되는 것을 확인했습니다.
+- `더 보기` 실패 시에도 이미 불러온 목록은 유지되고 에러 문구만 추가로 보이는 것을 확인했습니다.
+- 닉네임 저장 후에도 허브 count는 patch 응답이 아니라 기존 `GET /api/users/me` 기준 값을 유지하는 것을 확인했습니다.
+- `TEMP` 또는 `completionRequired=true` 사용자는 `/auth/complete?redirectTo=%2Fprofile%2Fcreated-meetings`로 이동하는 것을 확인했습니다.
+- 비로그인 사용자는 `/login?redirectTo=%2Fprofile%2Fcreated-meetings`로 이동하는 것을 확인했습니다.
 
 ## Crew Round 1 理쒖냼 湲곕뒫 ?먮쫫
 

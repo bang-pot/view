@@ -5,6 +5,7 @@ import type {
   AuthMeResponse,
   AuthProfileHubResponse,
   AuthProfileUpdateResponse,
+  CreatedMeetingsResponse,
   NicknameAvailabilityResponse,
 } from "@/shared/auth/types";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
@@ -44,6 +45,29 @@ export async function getProfile(): Promise<AuthProfileHubResponse> {
     {
       code: "AUTH_PROFILE_REQUEST_FAILED",
       message: "프로필 허브를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getCreatedMeetings(input: {
+  page: number;
+  size: number;
+}): Promise<CreatedMeetingsResponse> {
+  const params = new URLSearchParams({
+    page: String(input.page),
+    size: String(input.size),
+  });
+
+  return requestJson<CreatedMeetingsResponse>(
+    getApiBaseUrl(),
+    `/api/users/me/created-meetings?${params.toString()}`,
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "AUTH_CREATED_MEETINGS_REQUEST_FAILED",
+      message: "생성 모임 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

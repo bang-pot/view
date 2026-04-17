@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   checkNicknameAvailability,
   completeProfile,
+  getCreatedMeetings,
   getMe,
   getProfile,
   logout,
@@ -119,6 +120,51 @@ describe("auth client", () => {
       myCrewsCount: null,
       pendingCrewsCount: null,
     });
+  });
+
+  it("requests the created meetings list from the profile activity API path", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          items: [
+            {
+              meetingId: 31,
+              title: "토요일 방탈출",
+              status: "RECRUITING",
+              date: "2026-04-20",
+              time: "14:00",
+              crewId: 7,
+              crewName: "방팟 크루",
+            },
+          ],
+          pageInfo: {
+            page: 0,
+            size: 20,
+            hasNext: true,
+          },
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getCreatedMeetings({
+      page: 0,
+      size: 20,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/users/me/created-meetings?page=0&size=20",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
   });
 
   it("checks nickname availability through the users API path", async () => {

@@ -20,7 +20,7 @@ const PROFILE_PATH = "/profile";
 const ACTIVITY_LINKS = [
   {
     href: "/profile/created-meetings",
-    label: "생성한 모임",
+    label: "생성 모임",
     countKey: "createdMeetingsCount",
   },
   {
