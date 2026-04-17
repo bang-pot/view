@@ -6,6 +6,7 @@ import type {
   AuthProfileHubResponse,
   AuthProfileUpdateResponse,
   CreatedMeetingsResponse,
+  JoinedMeetingsResponse,
   NicknameAvailabilityResponse,
 } from "@/shared/auth/types";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
@@ -68,6 +69,29 @@ export async function getCreatedMeetings(input: {
     {
       code: "AUTH_CREATED_MEETINGS_REQUEST_FAILED",
       message: "생성 모임 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getJoinedMeetings(input: {
+  page: number;
+  size: number;
+}): Promise<JoinedMeetingsResponse> {
+  const params = new URLSearchParams({
+    page: String(input.page),
+    size: String(input.size),
+  });
+
+  return requestJson<JoinedMeetingsResponse>(
+    getApiBaseUrl(),
+    `/api/users/me/joined-meetings?${params.toString()}`,
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "AUTH_JOINED_MEETINGS_REQUEST_FAILED",
+      message: "참여 모임 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }
