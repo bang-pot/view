@@ -407,6 +407,48 @@ npm.cmd run dev
 - 비로그인 사용자는 `/login?redirectTo=%2Fprofile%2Fwithdrawal`로, `TEMP` 또는 `completionRequired=true` 사용자는 `/auth/complete?redirectTo=%2Fprofile%2Fwithdrawal`로 이동하는 것을 확인했습니다.
 - 따라서 round 09 범위의 구현, 자동 검증, 수동 검증이 모두 완료된 상태로 정리했습니다.
 
+## Auth Round 10 메인 홈 화면 상세
+
+- `/`
+  - `GET /api/home` 하나로 홈 허브 데이터를 읽습니다.
+  - guest와 logged-in 사용자가 같은 기본 구조를 보되, 개인화 섹션만 다르게 노출합니다.
+  - `TEMP` 또는 completion 미완료 사용자는 backend 응답 기준으로 guest처럼 취급됩니다.
+- 상단 Hero / CTA
+  - 홈 상단에는 서비스 소개와 `공개 크루 탐색`, `크루 만들기` CTA를 둡니다.
+  - `canCreateCrew=true`면 `/crews/new`, 아니면 `/login?redirectTo=%2Fcrews%2Fnew`로 연결합니다.
+  - `canExplorePublicCrews`는 현재 계약 기준으로 공개 크루 탐색 진입을 제어합니다.
+- 로그인 사용자 개인화 섹션
+  - `내 크루`는 최대 5개 요약을 보여주고, 각 항목은 `/crews/{crewId}`로 이동합니다.
+  - `다가오는 모임`은 최대 5개 요약을 보여주고, 각 항목은 `/crews/{crewId}/meetings/{meetingId}`로 이동합니다.
+  - 각 섹션에는 `/profile/crews`, `/profile/joined-meetings` 전체 보기 진입을 둡니다.
+- 비로그인 사용자 처리
+  - `내 활동` 섹션에서 `로그인하면 내 크루와 다가오는 모임을 더 편하게 볼 수 있어요.` 안내와 로그인 링크를 보여줍니다.
+  - 개인화 데이터 목록은 노출하지 않습니다.
+- 공개 크루 / 방탈출 탐색 미리보기
+  - `공개 크루 탐색`은 최대 8개 미리보기를 카드형으로 보여주고 `/crews/public/{crewId}`로 이동합니다.
+  - `방탈출 탐색`은 최대 8개 미리보기를 카드형으로 보여주고 `/explore/themes/{themeId}`로 이동합니다.
+  - `coverImageUrl`, `thumbnailUrl`이 없거나 로드 실패면 각각 `크루 이미지 준비 중`, `테마 이미지 준비 중` fallback을 보여줍니다.
+- 상태 처리
+  - 홈 첫 로딩 문구: `메인 홈을 불러오는 중입니다.`
+  - 홈 에러 문구: `메인 홈을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.`
+  - 에러 시 `다시 시도` 버튼으로 전체 재요청을 지원합니다.
+  - 데이터가 부족한 섹션은 가능한 개수만 보여주고, 0개면 섹션별 빈 상태 문구로 처리합니다.
+
+### Auth Round 10 자동 검증
+
+- `npm.cmd run test -- src/test/shared/auth-client.test.tsx src/test/app/page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+### Auth Round 10 수동 검증
+
+- guest와 logged-in 사용자가 같은 홈 구조 안에서 상단 CTA와 미리보기 섹션을 확인할 수 있음을 점검했습니다.
+- logged-in 상태에서만 `내 크루`, `다가오는 모임` 요약이 추가로 노출되고, 각각 `/profile/crews`, `/profile/joined-meetings` 및 기존 상세 경로로 자연스럽게 이어지는 것을 확인했습니다.
+- `공개 크루 탐색`, `방탈출 탐색` 미리보기는 데이터 부족 시 가능한 개수만 렌더링되고, 이미지가 없거나 로드 실패하면 fallback UI로 대체되는 흐름을 확인했습니다.
+- 홈 첫 로딩 실패 시 전체 에러 문구와 `다시 시도` affordance가 보이고, 재시도 후 정상 홈으로 복구되는 흐름을 확인했습니다.
+- 이번 라운드는 구현, 자동 검증, 수동 검증까지 모두 완료된 상태입니다.
+
 ## Crew Round 1 理쒖냼 湲곕뒫 ?먮쫫
 
 - `Create crew`

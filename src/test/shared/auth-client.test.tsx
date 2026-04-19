@@ -4,6 +4,7 @@ import {
   cancelPendingCrew,
   checkNicknameAvailability,
   completeProfile,
+  getHome,
   getCreatedMeetings,
   getJoinedMeetings,
   getMyCrews,
@@ -90,6 +91,67 @@ describe("auth client", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/backend/api/users/me",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("requests the home hub payload from the shared auth client", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          isLoggedIn: false,
+          cta: {
+            canCreateCrew: false,
+            canExplorePublicCrews: true,
+          },
+          myCrews: {
+            items: [],
+            totalCount: 0,
+          },
+          upcomingMeetings: {
+            items: [],
+            totalCount: 0,
+          },
+          publicCrewPreview: {
+            items: [
+              {
+                crewId: 10,
+                crewName: "공개 크루",
+                coverImageUrl: null,
+                memberCount: 12,
+                isPublic: true,
+              },
+            ],
+          },
+          themeExplorePreview: {
+            items: [
+              {
+                themeId: 101,
+                themeName: "미스터리 룸",
+                storeName: "방탈출 스토어",
+                regionName: "서울",
+                thumbnailUrl: null,
+              },
+            ],
+          },
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getHome();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/home",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",

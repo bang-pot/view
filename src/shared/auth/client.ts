@@ -7,6 +7,7 @@ import type {
   AuthProfileUpdateResponse,
   CancelPendingCrewResponse,
   CreatedMeetingsResponse,
+  HomeResponse,
   JoinedMeetingsResponse,
   MyCrewsResponse,
   NicknameAvailabilityResponse,
@@ -52,6 +53,21 @@ export async function getProfile(): Promise<AuthProfileHubResponse> {
     {
       code: "AUTH_PROFILE_REQUEST_FAILED",
       message: "프로필 허브를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getHome(): Promise<HomeResponse> {
+  return requestJson<HomeResponse>(
+    getApiBaseUrl(),
+    "/api/home",
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "AUTH_HOME_REQUEST_FAILED",
+      message: "메인 홈을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }
