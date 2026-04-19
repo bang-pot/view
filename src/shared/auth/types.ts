@@ -70,6 +70,28 @@ export type ProfileCalendarResponse = {
   totalCount: number;
 };
 
+export type MyMeetingLogListItem = {
+  logId: number;
+  crewId: number;
+  crewName: string;
+  meetingId: number;
+  meetingTitle: string;
+  meetingDate: string;
+  createdAt: string;
+  excerpt: string | null;
+  coverPhotoUrl: string | null;
+  photoCount: number;
+};
+
+export type MyMeetingLogsResponse = {
+  items: MyMeetingLogListItem[];
+  pageInfo: {
+    page: number;
+    size: number;
+    hasNext: boolean;
+  };
+};
+
 export type HomeResponse = {
   isLoggedIn: boolean;
   cta: {

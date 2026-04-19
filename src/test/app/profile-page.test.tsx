@@ -88,7 +88,7 @@ describe("ProfilePage", () => {
           meetingId: 71,
           meetingTitle: "금요일 방탈출",
           crewId: 3,
-          crewName: "방팟 크루",
+          crewName: "방탈출 크루",
           date: "2026-05-15",
           time: "19:00",
           meetingStatus: "RECRUITING",
@@ -99,7 +99,7 @@ describe("ProfilePage", () => {
           meetingId: 72,
           meetingTitle: "토요일 리벤지",
           crewId: 4,
-          crewName: "서울 탈출단",
+          crewName: "서울 이스케이프",
           date: "2026-05-18",
           time: "14:00",
           meetingStatus: "CANCELED",
@@ -131,6 +131,10 @@ describe("ProfilePage", () => {
       "href",
       "/profile/pending-crews",
     );
+    expect(screen.getByRole("link", { name: "내 방탈로그" })).toHaveAttribute(
+      "href",
+      "/profile/logs",
+    );
     expect(screen.getByRole("link", { name: "회원탈퇴" })).toHaveAttribute(
       "href",
       "/profile/withdrawal",
@@ -140,13 +144,13 @@ describe("ProfilePage", () => {
     expect(await screen.findByRole("button", { name: "15일" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "18일" })).toBeInTheDocument();
     expect(screen.getByText("금요일 방탈출")).toBeInTheDocument();
-    expect(screen.getByText("방팟 크루")).toBeInTheDocument();
+    expect(screen.getByText("방탈출 크루")).toBeInTheDocument();
     expect(screen.getByText("모임장")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "18일" }));
 
     expect(screen.getByText("토요일 리벤지")).toBeInTheDocument();
-    expect(screen.getByText("서울 탈출단")).toBeInTheDocument();
+    expect(screen.getByText("서울 이스케이프")).toBeInTheDocument();
     expect(screen.getByText("참여자")).toBeInTheDocument();
     expect(screen.getByText("취소")).toBeInTheDocument();
   });
@@ -205,7 +209,7 @@ describe("ProfilePage", () => {
         fieldErrors: [
           {
             field: "nickname",
-            message: "닉네임은 비어 있을 수 없습니다.",
+            message: "닉네임이 비어 있을 수 없습니다.",
           },
         ],
       }),
@@ -217,7 +221,7 @@ describe("ProfilePage", () => {
     fireEvent.change(nicknameInput, { target: { value: "" } });
     fireEvent.click(screen.getByRole("button", { name: "닉네임 저장" }));
 
-    expect(await screen.findByText("닉네임은 비어 있을 수 없습니다.")).toBeInTheDocument();
+    expect(await screen.findByText("닉네임이 비어 있을 수 없습니다.")).toBeInTheDocument();
   });
 
   it("keeps the profile hub visible when the calendar section fails and allows retry", async () => {
