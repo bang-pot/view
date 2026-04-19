@@ -368,6 +368,45 @@ npm.cmd run dev
 - 이번 라운드가 구현, 자동 검증, 수동 검증까지 모두 완료된 상태임을 확인했습니다.
 - 따라서 round 08 범위의 구현, 자동 검증, 수동 검증이 모두 완료된 상태로 정리했습니다.
 
+## Auth Round 09 회원탈퇴 실제 실행 연결
+
+- `/profile/withdrawal`
+  - Round 08의 영향 안내와 차단 상태 화면을 유지합니다.
+  - `canWithdraw=true`일 때는 `다음 단계로`를 눌러 실제 실행 단계로 진입할 수 있습니다.
+  - `canWithdraw=false`일 때는 기존처럼 차단 사유 목록만 보여주고 실행 단계는 열지 않습니다.
+- 실행 단계
+  - 탈퇴 사유를 라디오 리스트로 선택합니다.
+  - `기타`를 선택하면 `상세 사유 (선택)` 입력창을 추가로 보여줍니다.
+  - `안내된 내용을 모두 확인했어요` 체크를 해야만 `회원탈퇴` 버튼이 활성화됩니다.
+  - `POST /api/users/me/withdrawal`를 호출해 실제 탈퇴를 실행합니다.
+- 실행 중 처리
+  - 요청 중에는 `회원탈퇴` 버튼을 `처리 중...` 상태로 바꾸고 중복 제출을 막습니다.
+- `409 AUTH_WITHDRAWAL_NOT_ALLOWED`
+  - 실행 직전 차단 조건이 다시 생기면 `GET /api/users/me/withdrawal-check`를 다시 불러옵니다.
+  - 최신 차단 목록으로 화면을 복귀시키고, 실행 단계는 닫습니다.
+- 성공 후 완료 상태
+  - `회원탈퇴가 완료되었어요.` 완료 상태를 같은 페이지에서 보여줍니다.
+  - `재가입은 가능하지만 기존 데이터는 복구되지 않아요.` 안내를 함께 노출합니다.
+  - 후속 버튼은 `로그인 화면으로` 1개만 둡니다.
+
+### Auth Round 09 자동 검증
+
+- `npm.cmd run test -- src/test/shared/auth-client.test.tsx src/test/app/profile-page.test.tsx src/test/app/profile-withdrawal-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+### Auth Round 09 수동 검증
+
+- 로그인한 `FULL` 사용자로 `/profile/withdrawal`에 진입했을 때 영향 안내와 차단 여부가 먼저 보이는 것을 확인했습니다.
+- `canWithdraw=true`인 계정에서는 `다음 단계로`를 통해 실행 단계로 진입하고, 탈퇴 사유 선택과 최종 확인 체크를 거쳐 실제 탈퇴를 실행할 수 있는 것을 확인했습니다.
+- `OTHER` 선택 시 `상세 사유 (선택)` 입력창이 열리고, 비워둔 채로도 제출 가능한 것을 확인했습니다.
+- 실행 중에는 `회원탈퇴` 버튼이 `처리 중...`으로 바뀌고 비활성화되어 중복 제출이 막히는 것을 확인했습니다.
+- 탈퇴 성공 시 같은 페이지 안에서 `회원탈퇴가 완료되었어요.` 완료 상태로 전환되고, `로그인 화면으로` 버튼으로 `/login` 이동이 가능한 것을 확인했습니다.
+- `409 AUTH_WITHDRAWAL_NOT_ALLOWED`가 발생하면 실행 단계를 닫고 최신 `withdrawal-check` 기준 차단 상태로 복귀하는 것을 확인했습니다.
+- 비로그인 사용자는 `/login?redirectTo=%2Fprofile%2Fwithdrawal`로, `TEMP` 또는 `completionRequired=true` 사용자는 `/auth/complete?redirectTo=%2Fprofile%2Fwithdrawal`로 이동하는 것을 확인했습니다.
+- 따라서 round 09 범위의 구현, 자동 검증, 수동 검증이 모두 완료된 상태로 정리했습니다.
+
 ## Crew Round 1 理쒖냼 湲곕뒫 ?먮쫫
 
 - `Create crew`

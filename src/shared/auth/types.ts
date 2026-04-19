@@ -166,3 +166,20 @@ export type WithdrawalCheckResponse = {
   blockingActiveCrews: WithdrawalBlockingActiveCrew[];
   blockingParticipatingMeetings: WithdrawalBlockingParticipatingMeeting[];
 };
+
+export type WithdrawalReasonCode =
+  | "NOT_USING"
+  | "SERVICE_UNSATISFIED"
+  | "LOW_ACTIVITY"
+  | "OTHER";
+
+export type WithdrawalRequest = {
+  reasonCode: WithdrawalReasonCode;
+  reasonDetail: string | null;
+  confirmationChecked: true;
+};
+
+export type WithdrawalResponse = {
+  withdrawnAt: string;
+  canLogin: false;
+};
