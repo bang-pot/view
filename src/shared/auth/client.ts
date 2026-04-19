@@ -11,7 +11,9 @@ import type {
   MyCrewsResponse,
   NicknameAvailabilityResponse,
   PendingCrewsResponse,
+  WithdrawalRequest,
   WithdrawalCheckResponse,
+  WithdrawalResponse,
 } from "@/shared/auth/types";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
 
@@ -174,6 +176,25 @@ export async function getWithdrawalCheck(): Promise<WithdrawalCheckResponse> {
     {
       code: "AUTH_WITHDRAWAL_CHECK_REQUEST_FAILED",
       message: "회원탈퇴 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function withdrawUser(input: WithdrawalRequest): Promise<WithdrawalResponse> {
+  return requestJson<WithdrawalResponse>(
+    getApiBaseUrl(),
+    "/api/users/me/withdrawal",
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    },
+    {
+      code: "AUTH_WITHDRAWAL_EXECUTION_FAILED",
+      message: "회원탈퇴 처리에 실패했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

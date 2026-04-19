@@ -13,6 +13,7 @@ import {
   getProfile,
   logout,
   updateProfile,
+  withdrawUser,
 } from "@/shared/auth/client";
 
 const ORIGINAL_ENV = { ...process.env };
@@ -357,6 +358,46 @@ describe("auth client", () => {
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",
+      }),
+    );
+  });
+
+  it("posts the withdrawal execution request to the users API path", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          withdrawnAt: "2026-04-19T10:00:00Z",
+          canLogin: false,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await withdrawUser({
+      reasonCode: "OTHER",
+      reasonDetail: "쉬어가려고 해요.",
+      confirmationChecked: true,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/users/me/withdrawal",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reasonCode: "OTHER",
+          reasonDetail: "쉬어가려고 해요.",
+          confirmationChecked: true,
+        }),
       }),
     );
   });
