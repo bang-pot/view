@@ -5,6 +5,7 @@ import {
   checkNicknameAvailability,
   completeProfile,
   getHome,
+  getMyCalendar,
   getCreatedMeetings,
   getJoinedMeetings,
   getMyCrews,
@@ -152,6 +153,46 @@ describe("auth client", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/backend/api/home",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("requests the profile calendar payload from the shared auth client", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          items: [
+            {
+              meetingId: 91,
+              meetingTitle: "토요일 방탈출",
+              crewId: 7,
+              crewName: "방팟 크루",
+              date: "2026-05-02",
+              time: "14:00",
+              meetingStatus: "RECRUITING",
+              isCanceled: false,
+              participationRole: "HOST",
+            },
+          ],
+          totalCount: 1,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getMyCalendar();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/users/me/calendar",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",
