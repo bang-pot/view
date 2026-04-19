@@ -8,6 +8,7 @@ import {
   getMyCalendar,
   getCreatedMeetings,
   getJoinedMeetings,
+  getMyMeetingLogs,
   getMyCrews,
   getPendingCrews,
   getWithdrawalCheck,
@@ -317,6 +318,54 @@ describe("auth client", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/backend/api/users/me/joined-meetings?page=0&size=20",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("requests the authored meeting logs list from the profile activity API path", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          items: [
+            {
+              logId: 501,
+              crewId: 31,
+              crewName: "Alpha Crew",
+              meetingId: 201,
+              meetingTitle: "Friday Escape",
+              meetingDate: "2026-04-18",
+              createdAt: "2026-04-19T10:15:30Z",
+              excerpt: "내가 직접 쓴 방탈로그 요약",
+              coverPhotoUrl: "https://cdn.example.com/log-cover.jpg",
+              photoCount: 3,
+            },
+          ],
+          pageInfo: {
+            page: 0,
+            size: 20,
+            hasNext: true,
+          },
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getMyMeetingLogs({
+      page: 0,
+      size: 20,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/users/me/logs?page=0&size=20",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",

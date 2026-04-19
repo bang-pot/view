@@ -167,7 +167,7 @@ export function ProfilePageClient() {
           ? null
           : getUserMessage(
               operationalError,
-              "프로필 저장에 실패했어요. 입력값을 다시 확인해 주세요.",
+              "프로필 수정에 실패했어요. 입력값을 다시 확인해 주세요.",
             ),
       );
     } finally {
@@ -295,6 +295,23 @@ export function ProfilePageClient() {
       </section>
 
       <ProfileCalendarSection />
+
+      <section
+        aria-label="내 기록"
+        style={{
+          display: "grid",
+          gap: 8,
+          padding: 20,
+          border: "1px solid #d9d9d9",
+          borderRadius: 16,
+        }}
+      >
+        <h2>내 기록</h2>
+        <p>내가 직접 작성한 방탈로그만 따로 모아보고, 기존 상세 화면으로 바로 이어서 볼 수 있어요.</p>
+        <div>
+          <Link href="/profile/logs">내 방탈로그</Link>
+        </div>
+      </section>
 
       <section
         aria-label="계정 관리"

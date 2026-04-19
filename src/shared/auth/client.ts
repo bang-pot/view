@@ -8,11 +8,12 @@ import type {
   CancelPendingCrewResponse,
   CreatedMeetingsResponse,
   HomeResponse,
-  ProfileCalendarResponse,
   JoinedMeetingsResponse,
+  MyMeetingLogsResponse,
   MyCrewsResponse,
   NicknameAvailabilityResponse,
   PendingCrewsResponse,
+  ProfileCalendarResponse,
   WithdrawalRequest,
   WithdrawalCheckResponse,
   WithdrawalResponse,
@@ -130,6 +131,29 @@ export async function getJoinedMeetings(input: {
     {
       code: "AUTH_JOINED_MEETINGS_REQUEST_FAILED",
       message: "참여 모임 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getMyMeetingLogs(input: {
+  page: number;
+  size: number;
+}): Promise<MyMeetingLogsResponse> {
+  const params = new URLSearchParams({
+    page: String(input.page),
+    size: String(input.size),
+  });
+
+  return requestJson<MyMeetingLogsResponse>(
+    getApiBaseUrl(),
+    `/api/users/me/logs?${params.toString()}`,
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "AUTH_MY_MEETING_LOGS_REQUEST_FAILED",
+      message: "내 방탈로그 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }
