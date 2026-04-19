@@ -45,6 +45,61 @@ export type AuthProfileUpdateResponse = {
   pendingCrewsCount: number | null;
 };
 
+export type HomeResponse = {
+  isLoggedIn: boolean;
+  cta: {
+    canCreateCrew: boolean;
+    canExplorePublicCrews: boolean;
+  };
+  myCrews: {
+    items: HomeMyCrewPreviewItem[];
+    totalCount: number;
+  };
+  upcomingMeetings: {
+    items: HomeUpcomingMeetingPreviewItem[];
+    totalCount: number;
+  };
+  publicCrewPreview: {
+    items: HomePublicCrewPreviewItem[];
+  };
+  themeExplorePreview: {
+    items: HomeThemeExplorePreviewItem[];
+  };
+};
+
+export type HomeMyCrewPreviewItem = {
+  crewId: number;
+  crewName: string;
+};
+
+export type HomeUpcomingMeetingStatus = "RECRUITING" | "RECRUITMENT_CLOSED";
+
+export type HomeUpcomingMeetingPreviewItem = {
+  meetingId: number;
+  title: string;
+  crewId: number;
+  crewName: string;
+  date: string;
+  time: string;
+  status: HomeUpcomingMeetingStatus;
+};
+
+export type HomePublicCrewPreviewItem = {
+  crewId: number;
+  crewName: string;
+  coverImageUrl: string | null;
+  memberCount: number;
+  isPublic: boolean;
+};
+
+export type HomeThemeExplorePreviewItem = {
+  themeId: number;
+  themeName: string;
+  storeName: string;
+  regionName: string;
+  thumbnailUrl: string | null;
+};
+
 export type CreatedMeetingStatus =
   | "RECRUITING"
   | "RECRUITMENT_CLOSED"
