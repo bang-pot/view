@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 
+import { ProfileCalendarSection } from "@/features/auth/components/ProfileCalendarSection";
 import { logoutAndConfirmGuest } from "@/features/auth/logout";
 import { getMe, getProfile, updateProfile } from "@/shared/auth/client";
 import type { AuthProfileHubResponse } from "@/shared/auth/types";
@@ -292,6 +293,8 @@ export function ProfilePageClient() {
           ))}
         </div>
       </section>
+
+      <ProfileCalendarSection />
 
       <section
         aria-label="계정 관리"

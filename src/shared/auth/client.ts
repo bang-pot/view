@@ -8,6 +8,7 @@ import type {
   CancelPendingCrewResponse,
   CreatedMeetingsResponse,
   HomeResponse,
+  ProfileCalendarResponse,
   JoinedMeetingsResponse,
   MyCrewsResponse,
   NicknameAvailabilityResponse,
@@ -68,6 +69,21 @@ export async function getHome(): Promise<HomeResponse> {
     {
       code: "AUTH_HOME_REQUEST_FAILED",
       message: "메인 홈을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getMyCalendar(): Promise<ProfileCalendarResponse> {
+  return requestJson<ProfileCalendarResponse>(
+    getApiBaseUrl(),
+    "/api/users/me/calendar",
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "AUTH_PROFILE_CALENDAR_REQUEST_FAILED",
+      message: "달력 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

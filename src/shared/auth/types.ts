@@ -45,6 +45,31 @@ export type AuthProfileUpdateResponse = {
   pendingCrewsCount: number | null;
 };
 
+export type ProfileCalendarMeetingStatus =
+  | "RECRUITING"
+  | "RECRUITMENT_CLOSED"
+  | "COMPLETED"
+  | "CANCELED";
+
+export type ProfileCalendarParticipationRole = "HOST" | "PARTICIPANT";
+
+export type ProfileCalendarItem = {
+  meetingId: number;
+  meetingTitle: string;
+  crewId: number;
+  crewName: string;
+  date: string;
+  time: string;
+  meetingStatus: ProfileCalendarMeetingStatus;
+  isCanceled: boolean;
+  participationRole: ProfileCalendarParticipationRole;
+};
+
+export type ProfileCalendarResponse = {
+  items: ProfileCalendarItem[];
+  totalCount: number;
+};
+
 export type HomeResponse = {
   isLoggedIn: boolean;
   cta: {

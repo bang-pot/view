@@ -2,7 +2,13 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ProfilePage from "@/app/profile/page";
-import { getMe, getProfile, logout, updateProfile } from "@/shared/auth/client";
+import {
+  getMe,
+  getMyCalendar,
+  getProfile,
+  logout,
+  updateProfile,
+} from "@/shared/auth/client";
 
 const replaceMock = vi.fn();
 const routerMock = {
@@ -15,10 +21,34 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/shared/auth/client", () => ({
   getMe: vi.fn(),
+  getMyCalendar: vi.fn(),
   getProfile: vi.fn(),
   updateProfile: vi.fn(),
   logout: vi.fn(),
 }));
+
+function mockFullUser() {
+  vi.mocked(getMe).mockResolvedValue({
+    authStatus: "FULL",
+    completionRequired: false,
+    redirectTo: null,
+    requiredTermsVersion: "2026-03-25",
+    user: { id: 1, nickname: "bangpot" },
+    requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
+  });
+}
+
+function mockProfile() {
+  vi.mocked(getProfile).mockResolvedValue({
+    id: 1,
+    nickname: "bangpot",
+    profileImageUrl: null,
+    createdMeetingsCount: 3,
+    joinedMeetingsCount: 4,
+    myCrewsCount: 2,
+    pendingCrewsCount: 1,
+  });
+}
 
 describe("ProfilePage", () => {
   beforeEach(() => {
@@ -46,25 +76,38 @@ describe("ProfilePage", () => {
       expect(replaceMock).toHaveBeenCalledWith("/auth/complete?redirectTo=%2Fprofile");
     });
     expect(getProfile).not.toHaveBeenCalled();
+    expect(getMyCalendar).not.toHaveBeenCalled();
   });
 
-  it("loads the profile hub and shows all activity entry counts", async () => {
-    vi.mocked(getMe).mockResolvedValue({
-      authStatus: "FULL",
-      completionRequired: false,
-      redirectTo: null,
-      requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
-      requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
-    });
-    vi.mocked(getProfile).mockResolvedValue({
-      id: 1,
-      nickname: "bangpot",
-      profileImageUrl: null,
-      createdMeetingsCount: 3,
-      joinedMeetingsCount: 4,
-      myCrewsCount: 2,
-      pendingCrewsCount: 1,
+  it("loads the profile hub and shows the calendar section with selectable schedules", async () => {
+    mockFullUser();
+    mockProfile();
+    vi.mocked(getMyCalendar).mockResolvedValue({
+      items: [
+        {
+          meetingId: 71,
+          meetingTitle: "금요일 방탈출",
+          crewId: 3,
+          crewName: "방팟 크루",
+          date: "2026-05-15",
+          time: "19:00",
+          meetingStatus: "RECRUITING",
+          isCanceled: false,
+          participationRole: "HOST",
+        },
+        {
+          meetingId: 72,
+          meetingTitle: "토요일 리벤지",
+          crewId: 4,
+          crewName: "서울 탈출단",
+          date: "2026-05-18",
+          time: "14:00",
+          meetingStatus: "CANCELED",
+          isCanceled: true,
+          participationRole: "PARTICIPANT",
+        },
+      ],
+      totalCount: 2,
     });
 
     render(<ProfilePage />);
@@ -92,25 +135,28 @@ describe("ProfilePage", () => {
       "href",
       "/profile/withdrawal",
     );
+
+    expect(screen.getByRole("heading", { name: "달력" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "15일" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "18일" })).toBeInTheDocument();
+    expect(screen.getByText("금요일 방탈출")).toBeInTheDocument();
+    expect(screen.getByText("방팟 크루")).toBeInTheDocument();
+    expect(screen.getByText("모임장")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "18일" }));
+
+    expect(screen.getByText("토요일 리벤지")).toBeInTheDocument();
+    expect(screen.getByText("서울 탈출단")).toBeInTheDocument();
+    expect(screen.getByText("참여자")).toBeInTheDocument();
+    expect(screen.getByText("취소")).toBeInTheDocument();
   });
 
   it("keeps the hub counts from get profile even when patch returns null counts", async () => {
-    vi.mocked(getMe).mockResolvedValue({
-      authStatus: "FULL",
-      completionRequired: false,
-      redirectTo: null,
-      requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
-      requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
-    });
-    vi.mocked(getProfile).mockResolvedValue({
-      id: 1,
-      nickname: "bangpot",
-      profileImageUrl: null,
-      createdMeetingsCount: 3,
-      joinedMeetingsCount: 4,
-      myCrewsCount: 2,
-      pendingCrewsCount: 1,
+    mockFullUser();
+    mockProfile();
+    vi.mocked(getMyCalendar).mockResolvedValue({
+      items: [],
+      totalCount: 0,
     });
     vi.mocked(updateProfile).mockResolvedValue({
       id: 1,
@@ -144,22 +190,11 @@ describe("ProfilePage", () => {
   it("shows the backend nickname validation message on profile update failure", async () => {
     const { OperationalError } = await import("@/shared/errors/operational");
 
-    vi.mocked(getMe).mockResolvedValue({
-      authStatus: "FULL",
-      completionRequired: false,
-      redirectTo: null,
-      requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
-      requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
-    });
-    vi.mocked(getProfile).mockResolvedValue({
-      id: 1,
-      nickname: "bangpot",
-      profileImageUrl: null,
-      createdMeetingsCount: 3,
-      joinedMeetingsCount: 4,
-      myCrewsCount: 2,
-      pendingCrewsCount: 1,
+    mockFullUser();
+    mockProfile();
+    vi.mocked(getMyCalendar).mockResolvedValue({
+      items: [],
+      totalCount: 0,
     });
     vi.mocked(updateProfile).mockRejectedValue(
       new OperationalError({
@@ -185,6 +220,32 @@ describe("ProfilePage", () => {
     expect(await screen.findByText("닉네임은 비어 있을 수 없습니다.")).toBeInTheDocument();
   });
 
+  it("keeps the profile hub visible when the calendar section fails and allows retry", async () => {
+    mockFullUser();
+    mockProfile();
+    vi.mocked(getMyCalendar)
+      .mockRejectedValueOnce(new Error("calendar boom"))
+      .mockResolvedValueOnce({
+        items: [],
+        totalCount: 0,
+      });
+
+    render(<ProfilePage />);
+
+    expect(await screen.findByText("bangpot")).toBeInTheDocument();
+    expect(
+      await screen.findByText("달력 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "다시 시도" }));
+
+    await waitFor(() => {
+      expect(getMyCalendar).toHaveBeenCalledTimes(2);
+    });
+
+    expect(screen.getByText("아직 표시할 일정이 없어요")).toBeInTheDocument();
+  });
+
   it("logs out, re-checks auth state, and routes back to login when the user becomes guest", async () => {
     vi.mocked(getMe)
       .mockResolvedValueOnce({
@@ -203,14 +264,10 @@ describe("ProfilePage", () => {
         user: null,
         requiredTermsAcceptedAt: null,
       });
-    vi.mocked(getProfile).mockResolvedValue({
-      id: 1,
-      nickname: "bangpot",
-      profileImageUrl: null,
-      createdMeetingsCount: 3,
-      joinedMeetingsCount: 4,
-      myCrewsCount: 2,
-      pendingCrewsCount: 1,
+    mockProfile();
+    vi.mocked(getMyCalendar).mockResolvedValue({
+      items: [],
+      totalCount: 0,
     });
     vi.mocked(logout).mockResolvedValue(undefined);
 
