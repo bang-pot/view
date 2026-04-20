@@ -16,6 +16,7 @@ import type {
   NicknameAvailabilityResponse,
   PendingCrewsResponse,
   ProfileCalendarResponse,
+  UserSearchResponse,
   WithdrawalRequest,
   WithdrawalCheckResponse,
   WithdrawalResponse,
@@ -57,6 +58,32 @@ export async function getProfile(): Promise<AuthProfileHubResponse> {
     {
       code: "AUTH_PROFILE_REQUEST_FAILED",
       message: "프로필 허브를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function searchUsers(input: {
+  keyword: string;
+  size?: number;
+}): Promise<UserSearchResponse> {
+  const params = new URLSearchParams({
+    keyword: input.keyword,
+  });
+
+  if (input.size !== undefined) {
+    params.set("size", String(input.size));
+  }
+
+  return requestJson<UserSearchResponse>(
+    getApiBaseUrl(),
+    `/api/users/search?${params.toString()}`,
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "AUTH_USER_SEARCH_REQUEST_FAILED",
+      message: "회원 검색 결과를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

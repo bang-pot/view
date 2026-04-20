@@ -1726,5 +1726,57 @@ npm.cmd run build
 - 비가입 사용자와 비로그인 사용자가 `/crews/{crewId}/schedule`에 직접 진입하면 `/crews/public/{crewId}`로 분기되는 것을 확인했습니다.
 - 이번 라운드에서는 일정 생성 / 수정 / 삭제 / 참여 / 모집 운영 버튼이 보이지 않고, 읽기 전용 일정 화면까지만 동작하는 것을 확인했습니다.
 
+## Auth Round 16 회원 검색 상세
+
+- `/member-search`
+  - 로그인한 `FULL` 사용자만 사용할 수 있는 공통 회원 검색 화면을 추가했습니다.
+  - 먼저 `/api/auth/me`로 guest / temp / full 상태를 확인합니다.
+  - `GUEST`는 `/login?redirectTo=%2Fmember-search`로 이동합니다.
+  - `TEMP` 또는 `completionRequired=true`는 `/auth/complete?redirectTo=%2Fmember-search`로 이동합니다.
+  - `FULL`만 검색 화면을 사용할 수 있습니다.
+- 공통 검색 consumer
+  - `GET /api/users/search`를 `keyword`, `size` 기준으로 연결했습니다.
+  - `size` 기본값은 20으로 두고, 현재 라운드에서는 공통 consumer와 standalone 화면까지만 엽니다.
+  - 공통 검색 UI는 `UserSearchPanel`로 분리해 이후 초대/선택 consumer가 `onSelect(user)` 형태로 재사용할 수 있게 했습니다.
+- 검색 입력 / 상태 처리
+  - 빈 검색어 또는 공백-only 입력에서는 API를 호출하지 않고 `닉네임으로 회원을 검색해보세요` 안내만 보여줍니다.
+  - 검색 중에는 `회원 검색 결과를 불러오는 중입니다.` 문구를 보여줍니다.
+  - 검색 결과가 없으면 `검색 결과가 없어요`를 보여줍니다.
+  - 검색 실패 시 `회원 검색 결과를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.`와 `다시 시도`를 보여줍니다.
+- 결과 표시
+  - 결과 row에는 프로필 이미지 또는 fallback, 닉네임, 한줄소개, 성별, 방수를 표시합니다.
+  - 프로필 이미지가 없으면 `기본 프로필 이미지` fallback을 보여줍니다.
+  - 한줄소개가 없으면 `한줄소개가 아직 없어요` fallback을 보여줍니다.
+  - 성별은 `남성`, `여성`, `미설정`으로 매핑해 표시합니다.
+  - 같은 닉네임이 있을 수 있으므로 보조 정보까지 함께 노출합니다.
+- 선택 처리
+  - 결과 row 클릭으로 선택할 수 있습니다.
+  - 선택된 결과는 `선택됨` 표시와 함께 상위 consumer에 `onSelect(user)`로 전달할 수 있도록 정리했습니다.
+  - standalone `/member-search` 화면에서는 선택 결과 미리보기만 보여주고, 후속 초대/추가 액션은 연결하지 않았습니다.
+
+### Auth Round 16 자동 검증
+
+- `npm.cmd run test -- src/test/shared/auth-client.test.tsx src/test/app/member-search-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+### Auth Round 16 수동 검증
+
+- 로그인한 `FULL` 사용자로 `/member-search`에 진입했을 때 `회원 검색` 화면이 정상적으로 열리고, 제목 / 안내 문구 / `프로필 허브로 돌아가기` 링크가 보이는 것을 확인했습니다.
+- 첫 진입 시 전체 회원 목록이 노출되지 않고 `닉네임으로 회원을 검색해보세요` 안내 문구만 보이는 것을 확인했습니다.
+- 빈 문자열과 공백-only 입력에서는 API가 호출되지 않고, 계속 빈 검색 상태를 유지하는 것을 확인했습니다.
+- 닉네임 일부 문자열로 검색했을 때 부분 일치 결과가 리스트로 노출되는 것을 확인했습니다.
+- 검색 중에는 `회원 검색 결과를 불러오는 중입니다.` 문구와 `검색 중...` disabled 버튼이 보이는 것을 확인했습니다.
+- 검색 결과 row에 프로필 이미지 또는 fallback, 닉네임, 한줄소개, 성별, 방수가 함께 표시되는 것을 확인했습니다.
+- `profileImageUrl`이 없는 경우 `기본 프로필 이미지`, `bio`가 없는 경우 `한줄소개가 아직 없어요` fallback이 보이는 것을 확인했습니다.
+- `gender`가 `MALE`, `FEMALE`, `null`일 때 각각 `남성`, `여성`, `미설정`으로 자연스럽게 표시되는 것을 확인했습니다.
+- 결과 row 클릭 시 `선택됨` 표시와 함께 `선택 결과` 영역이 갱신되는 것을 확인했습니다.
+- 검색 결과가 없는 keyword에서는 `검색 결과가 없어요` 문구가 보이는 것을 확인했습니다.
+- API 실패 시 에러 문구와 `다시 시도` 버튼이 보이고, 재시도 후 정상 결과로 복구되는 것을 확인했습니다.
+- 결과가 있던 상태에서 공백-only 검색을 다시 제출하면 결과와 선택 상태가 함께 초기화되는 것을 확인했습니다.
+- 비로그인 사용자는 `/login?redirectTo=%2Fmember-search`, `TEMP` 또는 `completionRequired=true` 사용자는 `/auth/complete?redirectTo=%2Fmember-search`로 분기되는 것을 확인했습니다.
+- 이번 라운드는 초대 / 차단 / 신고 / 타인 프로필 상세 / 자동완성 / 추천 검색어 없이 검색과 선택까지만 동작하는 것을 확인했습니다.
+
 
 
