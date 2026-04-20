@@ -108,6 +108,25 @@ export type FavoriteThemesSummaryResponse = {
   hasMore: boolean;
 };
 
+export type FavoriteThemeListItem = {
+  themeId: number;
+  themeName: string;
+  storeName: string;
+  regionName: string;
+  thumbnailUrl: string | null;
+  favoriteCount: number;
+  isFavorite: boolean;
+};
+
+export type FavoriteThemesResponse = {
+  items: FavoriteThemeListItem[];
+  pageInfo: {
+    page: number;
+    size: number;
+    hasNext: boolean;
+  };
+};
+
 export type HomeResponse = {
   isLoggedIn: boolean;
   cta: {

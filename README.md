@@ -1633,5 +1633,47 @@ npm.cmd run build
 - 비로그인 사용자는 로그인 유도 흐름으로, 크루원이 아닌 사용자는 `/crews/public/{crewId}`로 분기되는 것을 확인했습니다.
 - 업로드/삭제/순서 변경 UI가 열리지 않고, 이번 라운드는 읽기 전용 모달 상세와 라이트박스까지만 동작하는 것을 확인했습니다.
 
+## Auth Round 15 프로필 찜 목록 상세
+
+- `/profile/favorites`
+  - Round 14의 placeholder route를 실제 목록 화면으로 교체했습니다.
+  - `GET /api/users/me/favorites`를 `page`, `size` 기준으로 연결합니다.
+  - 비로그인 / completion-required 사용자는 기존 보호 라우트 흐름으로 분기합니다.
+- 목록 구성
+  - 최신 찜 순으로 전체 찜 테마를 카드형 목록으로 보여줍니다.
+  - 카드에는 썸네일 또는 fallback, 테마명, 매장명, 지역명을 표시합니다.
+  - 카드 클릭 시 기존 테마 상세 `/explore/themes/{themeId}`로 이동합니다.
+  - 각 카드에서는 공용 `ThemeFavoriteButton`으로 바로 `찜 해제`할 수 있습니다.
+- 찜 해제
+  - `DELETE /api/themes/{themeId}/favorite`를 재사용합니다.
+  - 해제 성공 시 해당 항목은 목록에서 즉시 제거됩니다.
+  - 마지막 항목이 제거되면 `아직 찜한 테마가 없어요` 빈 상태로 전환됩니다.
+  - 실패 시 목록 전체는 유지되고, 버튼 주변에만 에러 문구가 보입니다.
+- fallback / 상태 처리
+  - `thumbnailUrl`이 없거나 이미지 로드 실패가 나면 `테마 이미지 준비 중` fallback을 보여줍니다.
+  - 첫 로딩 실패 시 `찜한 테마 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.`와 `다시 시도`를 보여줍니다.
+  - `hasNext`가 true면 `더 보기` 버튼으로 다음 페이지를 이어서 불러옵니다.
+  - `더 보기` 실패 시에도 이미 불러온 목록은 유지하고 에러만 추가로 보여줍니다.
+
+### Auth Round 15 자동 검증
+
+- `npm.cmd run test -- src/test/shared/auth-client.test.tsx src/test/app/profile-page.test.tsx src/test/app/profile-favorites-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+### Auth Round 15 수동 검증
+
+- 로그인한 `FULL` 사용자로 `/profile/favorites`에 진입했을 때 실제 찜 테마 목록 화면이 정상적으로 열리는 것을 확인했습니다.
+- 목록이 최신 찜 순으로 보이고, 카드에 썸네일 또는 fallback, 테마명, 매장명, 지역명이 표시되는 것을 확인했습니다.
+- `thumbnailUrl`이 없거나 로드 실패하는 카드에서 `테마 이미지 준비 중` fallback이 보이는 것을 확인했습니다.
+- 카드 클릭 시 기존 테마 상세 `/explore/themes/{themeId}`로 이동하는 것을 확인했습니다.
+- 카드의 `찜 해제` 버튼으로 바로 해제할 수 있고, 성공 시 해당 항목이 목록에서 즉시 제거되는 것을 확인했습니다.
+- 마지막 항목을 해제하면 `아직 찜한 테마가 없어요` 빈 상태와 `테마 둘러보기` CTA가 보이는 것을 확인했습니다.
+- 첫 로딩 실패 시 `다시 시도`로 정상 복구되는 것을 확인했습니다.
+- `더 보기` 실패 시에도 이미 불러온 목록은 유지되고 에러 문구만 추가로 보이는 것을 확인했습니다.
+- 비로그인 사용자는 `/login?redirectTo=%2Fprofile%2Ffavorites`, completion-required 사용자는 `/auth/complete?redirectTo=%2Fprofile%2Ffavorites`로 분기되는 것을 확인했습니다.
+- 이번 라운드는 정렬/필터/검색/추천 고도화 없이 전체 목록 조회와 즉시 해제 흐름까지만 동작하는 것을 확인했습니다.
+
 
 
