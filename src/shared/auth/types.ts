@@ -127,6 +127,19 @@ export type FavoriteThemesResponse = {
   };
 };
 
+export type UserSearchItem = {
+  userId: number;
+  nickname: string;
+  profileImageUrl: string | null;
+  bio: string | null;
+  gender: string | null;
+  escapeCount: number;
+};
+
+export type UserSearchResponse = {
+  items: UserSearchItem[];
+};
+
 export type HomeResponse = {
   isLoggedIn: boolean;
   cta: {

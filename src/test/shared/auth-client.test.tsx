@@ -16,6 +16,7 @@ import {
   getWithdrawalCheck,
   getMe,
   getProfile,
+  searchUsers,
   logout,
   updateProfile,
   withdrawUser,
@@ -198,6 +199,45 @@ describe("auth client", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/backend/api/users/me/calendar",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("requests the user search results from the shared auth client", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          items: [
+            {
+              userId: 101,
+              nickname: "bangpot",
+              profileImageUrl: null,
+              bio: "escape lover",
+              gender: "FEMALE",
+              escapeCount: 0,
+            },
+          ],
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await searchUsers({
+      keyword: "bang",
+      size: 12,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/users/search?keyword=bang&size=12",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",
