@@ -1,11 +1,11 @@
 .button {
-  --text-button-color: #111111;
-  --text-button-disabled-color: #a3a3a3;
+  --text-button-color: var(--color-text-primary);
+  --text-button-disabled-color: var(--color-text-disabled);
   align-items: center;
   appearance: none;
   background: transparent;
   border: none;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   color: var(--text-button-color);
   cursor: pointer;
   display: inline-flex;
@@ -25,25 +25,25 @@
 }
 
 .primary {
-  --text-button-color: #111111;
+  --text-button-color: var(--color-text-primary);
 }
 
 .assist {
-  --text-button-color: #525252;
+  --text-button-color: var(--color-text-secondary);
 }
 
 .sm {
-  --text-button-gap: 6px;
-  --text-button-height: 20px;
-  --text-button-line-height: 20px;
-  font-size: 14px;
+  --text-button-gap: var(--space-3);
+  --text-button-height: var(--space-10);
+  --text-button-line-height: var(--line-height-label-1);
+  font-size: var(--font-size-label-1);
 }
 
 .md {
-  --text-button-gap: 6px;
-  --text-button-height: 24px;
-  --text-button-line-height: 24px;
-  font-size: 16px;
+  --text-button-gap: var(--space-3);
+  --text-button-height: var(--space-12);
+  --text-button-line-height: var(--line-height-body-1);
+  font-size: var(--font-size-body-1);
 }
 
 .label {
@@ -61,11 +61,11 @@
 }
 
 .sm .icon {
-  height: 10px;
-  width: 10px;
+  height: var(--space-5);
+  width: var(--space-5);
 }
 
 .md .icon {
-  height: 12px;
-  width: 12px;
+  height: var(--space-6);
+  width: var(--space-6);
 }

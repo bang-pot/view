@@ -1,13 +1,8 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import "../shared/styles/tokens.css";
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: var(--app-background);
+  --foreground: var(--app-foreground);
 }
 
 body {
@@ -18,5 +13,5 @@ body {
 }
 
 main {
-  padding: 24px;
+  padding: var(--space-12);
 }

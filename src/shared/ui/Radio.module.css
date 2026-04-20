@@ -1,12 +1,12 @@
 .root {
   align-items: center;
-  color: #111111;
+  color: var(--color-text-primary);
   display: inline-flex;
   font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
-  font-size: 16px;
+  font-size: var(--font-size-body-1);
   font-weight: 500;
-  gap: 8px;
-  line-height: 24px;
+  gap: var(--space-4);
+  line-height: var(--line-height-body-1);
 }
 
 .input {
@@ -17,51 +17,51 @@
 
 .indicator {
   align-items: center;
-  background: #ffffff;
-  border: 1px solid #d4d4d4;
-  border-radius: 999px;
+  background: var(--color-background-default);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
   display: inline-flex;
   flex-shrink: 0;
-  height: 24px;
+  height: var(--space-12);
   justify-content: center;
   transition:
     border-color 120ms ease,
     box-shadow 120ms ease;
-  width: 24px;
+  width: var(--space-12);
 }
 
 .indicator::after {
   background: transparent;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   content: "";
-  height: 12px;
+  height: var(--space-6);
   transition: background-color 120ms ease;
-  width: 12px;
+  width: var(--space-6);
 }
 
 .input:checked + .indicator {
-  border-color: #449bfe;
+  border-color: var(--color-brand-secondary);
 }
 
 .input:checked + .indicator::after {
-  background: #449bfe;
+  background: var(--color-brand-secondary);
 }
 
 .input:focus-visible + .indicator {
-  box-shadow: 0 0 0 2px rgba(68, 155, 254, 0.24);
+  box-shadow: 0 0 0 2px rgb(from var(--color-brand-secondary) r g b / 0.24);
 }
 
 .input:disabled + .indicator {
-  background: #f2f2f2;
-  border-color: #e5e5e5;
+  background: var(--color-background-muted);
+  border-color: var(--color-border-default);
 }
 
 .input:disabled:checked + .indicator::after {
-  background: #a3a3a3;
+  background: var(--color-text-disabled);
 }
 
 .input:disabled ~ .label {
-  color: #a3a3a3;
+  color: var(--color-text-disabled);
 }
 
 .label {

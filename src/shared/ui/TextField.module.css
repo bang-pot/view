@@ -1,61 +1,61 @@
 .root {
-  --text-field-bg: #ffffff;
-  --text-field-border: #e5e5e5;
-  --text-field-text: #111111;
-  --text-field-placeholder: #a3a3a3;
-  --text-field-label: #111111;
-  --text-field-supporting: #737373;
+  --text-field-bg: var(--color-background-default);
+  --text-field-border: var(--color-border-default);
+  --text-field-text: var(--color-text-primary);
+  --text-field-placeholder: var(--color-text-disabled);
+  --text-field-label: var(--color-text-primary);
+  --text-field-supporting: var(--color-text-tertiary);
   display: grid;
-  gap: 4px;
+  gap: var(--space-2);
   width: min(100%, 280px);
 }
 
 .root[data-variant="filled"] {
-  --text-field-bg: #f9f9f9;
+  --text-field-bg: var(--color-background-subtle);
   --text-field-border: transparent;
 }
 
 .root[data-state="focused"] {
-  --text-field-bg: #ffffff;
-  --text-field-border: #111111;
+  --text-field-bg: var(--color-background-default);
+  --text-field-border: var(--color-text-primary);
 }
 
 .root[data-state="error"] {
-  --text-field-border: #f5494a;
-  --text-field-label: #f5494a;
-  --text-field-supporting: #f5494a;
+  --text-field-border: var(--color-status-danger);
+  --text-field-label: var(--color-status-danger);
+  --text-field-supporting: var(--color-status-danger);
 }
 
 .root[data-variant="filled"][data-state="error"] .control {
-  background: #fde0e0;
+  background: var(--color-red-100);
 }
 
 .root[data-state="disabled"] {
-  --text-field-bg: #f9f9f9;
-  --text-field-border: #e5e5e5;
-  --text-field-text: #a3a3a3;
-  --text-field-placeholder: #d4d4d4;
-  --text-field-label: #a3a3a3;
-  --text-field-supporting: #a3a3a3;
+  --text-field-bg: var(--color-background-subtle);
+  --text-field-border: var(--color-border-default);
+  --text-field-text: var(--color-text-disabled);
+  --text-field-placeholder: var(--color-border-strong);
+  --text-field-label: var(--color-text-disabled);
+  --text-field-supporting: var(--color-text-disabled);
 }
 
 .label {
   color: var(--text-field-label);
   font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
-  font-size: 12px;
+  font-size: var(--font-size-caption-1);
   font-weight: 500;
-  line-height: 16px;
+  line-height: var(--line-height-caption-1);
 }
 
 .control {
   align-items: center;
   background: var(--text-field-bg);
   border: 1px solid var(--text-field-border);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   display: flex;
-  gap: 8px;
-  min-height: 40px;
-  padding: 8px 12px;
+  gap: var(--space-4);
+  min-height: var(--space-20);
+  padding: var(--space-4) var(--space-6);
   transition:
     border-color 120ms ease,
     background-color 120ms ease,
@@ -73,9 +73,9 @@
   color: var(--text-field-text);
   flex: 1;
   font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
-  font-size: 14px;
+  font-size: var(--font-size-label-1);
   font-weight: 400;
-  line-height: 20px;
+  line-height: var(--line-height-label-1);
   min-width: 0;
   outline: none;
   padding: 0;
@@ -94,24 +94,24 @@
   color: var(--text-field-placeholder);
   display: inline-flex;
   flex-shrink: 0;
-  height: 14px;
+  height: var(--space-7);
   justify-content: center;
-  width: 14px;
+  width: var(--space-7);
 }
 
 .root[data-state="error"] .icon {
-  color: #f5494a;
+  color: var(--color-status-danger);
 }
 
 .root[data-state="disabled"] .icon {
-  color: #a3a3a3;
+  color: var(--color-text-disabled);
 }
 
 .supportingText {
   color: var(--text-field-supporting);
   font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
-  font-size: 12px;
+  font-size: var(--font-size-caption-1);
   font-weight: 400;
-  line-height: 16px;
+  line-height: var(--line-height-caption-1);
   margin: 0;
 }

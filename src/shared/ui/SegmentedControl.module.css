@@ -1,0 +1,74 @@
+.root {
+  align-items: center;
+  background: var(--color-background-subtle);
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-1);
+  width: fit-content;
+}
+
+.item {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: var(--font-size-label-1);
+  font-weight: 600;
+  gap: var(--space-3);
+  justify-content: center;
+  line-height: var(--line-height-label-1);
+  min-height: var(--space-16);
+  min-width: var(--space-24);
+  padding: 0 var(--space-6);
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    color 120ms ease;
+}
+
+.item[data-type="text-only"] {
+  min-width: var(--space-20);
+  padding: 0 var(--space-5);
+}
+
+.item[data-state="selected"] {
+  background: var(--color-background-default);
+  border-color: var(--color-border-default);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text-primary);
+}
+
+.item[data-state="unselected"]:hover {
+  color: var(--color-text-primary);
+}
+
+.item[data-state="disabled"] {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.item:focus-visible {
+  box-shadow: 0 0 0 2px rgb(from var(--color-brand-secondary) r g b / 0.24);
+  outline: none;
+}
+
+.icon {
+  align-items: center;
+  color: currentColor;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: var(--space-5);
+  justify-content: center;
+  width: var(--space-5);
+}
+
+.label {
+  display: inline-flex;
+  white-space: nowrap;
+}
