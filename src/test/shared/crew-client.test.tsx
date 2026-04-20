@@ -11,6 +11,7 @@ import {
   leaveCrew,
   updateCrewVisibility,
   getCrewHub,
+  getCrewSchedule,
   getCrewMembers,
   getCrewPolicies,
   getCrewJoinRequests,
@@ -330,6 +331,48 @@ describe("crew client", () => {
         body: JSON.stringify({
           visibility: "PRIVATE",
         }),
+      }),
+    );
+  });
+
+  it("loads the crew schedule contract with a from/to range", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          items: [
+            {
+              meetingId: 91,
+              themeName: "Abyss",
+              date: "2026-05-15",
+              time: "19:00",
+              meetingStatus: "RECRUITING",
+              recruitmentStatus: "OPEN",
+              place: "Gangnam Branch",
+              participantCount: 4,
+              isCanceled: false,
+            },
+          ],
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getCrewSchedule(11, {
+      from: "2026-05-01",
+      to: "2026-05-31",
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/schedule?from=2026-05-01&to=2026-05-31",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
       }),
     );
   });
