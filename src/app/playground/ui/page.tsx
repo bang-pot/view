@@ -4,8 +4,10 @@ import Link from "next/link";
 import { Button } from "@/shared/ui/Button";
 import { Checkbox } from "@/shared/ui/Checkbox";
 import { Chip } from "@/shared/ui/Chip";
+import { ColorBadge } from "@/shared/ui/ColorBadge";
 import { IconButton } from "@/shared/ui/IconButton";
 import { Radio } from "@/shared/ui/Radio";
+import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { Select } from "@/shared/ui/Select";
 import { SwitchBox } from "@/shared/ui/SwitchBox";
 import { TextField } from "@/shared/ui/TextField";
@@ -32,7 +34,9 @@ type TabKey =
   | "select"
   | "checkbox"
   | "radio"
-  | "switch-box";
+  | "switch-box"
+  | "segmented-control"
+  | "color-badge";
 
 const tabs: Array<{ key: TabKey; label: string }> = [
   { key: "button", label: "Button" },
@@ -45,6 +49,8 @@ const tabs: Array<{ key: TabKey; label: string }> = [
   { key: "checkbox", label: "Checkbox" },
   { key: "radio", label: "Radio" },
   { key: "switch-box", label: "Switch Box" },
+  { key: "segmented-control", label: "Segmented Control" },
+  { key: "color-badge", label: "Color Badge" },
 ];
 
 const buttonTextStyles = [
@@ -79,7 +85,9 @@ function resolveActiveTab(tab?: string): TabKey {
     tab === "select" ||
     tab === "checkbox" ||
     tab === "radio" ||
-    tab === "switch-box"
+    tab === "switch-box" ||
+    tab === "segmented-control" ||
+    tab === "color-badge"
     ? tab
     : "button";
 }
@@ -1451,6 +1459,168 @@ function SwitchBoxTabContent() {
   );
 }
 
+function SegmentedControlTabContent() {
+  const textItems = [
+    { label: "텍스트", value: "first" },
+    { label: "텍스트", value: "second" },
+    { disabled: true, label: "텍스트", value: "third" },
+  ];
+
+  const iconTextItems = [
+    { icon: <SquareIcon />, label: "텍스트", value: "first" },
+    { icon: <SquareIcon color="#737373" />, label: "텍스트", value: "second" },
+    { disabled: true, icon: <SquareIcon color="#a3a3a3" />, label: "텍스트", value: "third" },
+  ];
+
+  const previewStyle = {
+    display: "grid",
+    gap: 20,
+  } as const;
+
+  const matrixColumns = [
+    { title: "1번 선택", value: "first" },
+    { title: "2번 선택", value: "second" },
+    { title: "3번 선택", value: "third" },
+  ];
+
+  return (
+    <>
+      <SectionTitle>Segmented Control</SectionTitle>
+
+      <Panel title="Interactive preview">
+        <div style={previewStyle}>
+          <div style={{ display: "grid", gap: 8 }}>
+            <p style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}>Text only</p>
+            <SegmentedControl ariaLabel="텍스트 전용 세그먼트" defaultValue="first" items={textItems} />
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
+            <p style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}>Icon + Text</p>
+            <SegmentedControl
+              ariaLabel="아이콘 포함 세그먼트"
+              defaultValue="first"
+              items={iconTextItems}
+            />
+          </div>
+        </div>
+      </Panel>
+
+      <Panel title="Segmented Control">
+        <div
+          style={{
+            alignItems: "start",
+            columnGap: 24,
+            display: "grid",
+            gridTemplateColumns: "120px repeat(3, minmax(0, 1fr))",
+            rowGap: 20,
+          }}
+        >
+          <div />
+          {matrixColumns.map((column) => (
+            <p
+              key={`segmented-heading-${column.value}`}
+              style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}
+            >
+              {column.title}
+            </p>
+          ))}
+
+          <p style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}>Text only</p>
+          {matrixColumns.map((column) => (
+            <SegmentedControl
+              key={`segmented-text-${column.value}`}
+              ariaLabel={`텍스트 전용 ${column.title}`}
+              defaultValue={column.value}
+              items={[
+                { label: "텍스트", value: "first" },
+                { label: "텍스트", value: "second" },
+                { label: "텍스트", value: "third" },
+              ]}
+            />
+          ))}
+
+          <p style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}>Icon + Text</p>
+          {matrixColumns.map((column) => (
+            <SegmentedControl
+              key={`segmented-icon-${column.value}`}
+              ariaLabel={`아이콘 포함 ${column.title}`}
+              defaultValue={column.value}
+              items={[
+                { icon: <SquareIcon />, label: "텍스트", value: "first" },
+                { icon: <SquareIcon color="#737373" />, label: "텍스트", value: "second" },
+                { icon: <SquareIcon color="#737373" />, label: "텍스트", value: "third" },
+              ]}
+            />
+          ))}
+        </div>
+      </Panel>
+    </>
+  );
+}
+
+function ColorBadgeTabContent() {
+  const colors = [
+    { key: "yellow", label: "Yellow" },
+    { key: "red", label: "Red" },
+    { key: "blue", label: "Blue" },
+    { key: "pink", label: "Pink" },
+    { key: "purple", label: "Purple" },
+    { key: "green", label: "Green" },
+  ] as const;
+
+  const sizes = [
+    { key: "sm", label: "S" },
+    { key: "md", label: "M" },
+    { key: "lg", label: "L" },
+  ] as const;
+
+  function renderMatrix(variant: "solid" | "outline", title: string) {
+    return (
+      <Panel title={title}>
+        <div
+          style={{
+            alignItems: "center",
+            columnGap: 24,
+            display: "grid",
+            gridTemplateColumns: "96px repeat(3, minmax(0, max-content))",
+            rowGap: 16,
+          }}
+        >
+          <div />
+          {sizes.map((size) => (
+            <p key={`${title}-${size.key}`} style={{ color: "#a3a3a3", fontSize: 13, margin: 0 }}>
+              {size.label}
+            </p>
+          ))}
+
+          {colors.map((color) => (
+            <Fragment key={`${title}-${color.key}`}>
+              <p style={{ color: "#737373", fontSize: 13, margin: 0 }}>{color.label}</p>
+              {sizes.map((size) => (
+                <ColorBadge
+                  key={`${title}-${color.key}-${size.key}`}
+                  color={color.key}
+                  size={size.key}
+                  variant={variant}
+                >
+                  {color.label}
+                </ColorBadge>
+              ))}
+            </Fragment>
+          ))}
+        </div>
+      </Panel>
+    );
+  }
+
+  return (
+    <>
+      <SectionTitle>Color Badge</SectionTitle>
+      {renderMatrix("solid", "Solid")}
+      {renderMatrix("outline", "Outline")}
+    </>
+  );
+}
+
 export default async function UiPlaygroundPage({ searchParams }: UiPlaygroundPageProps) {
   const resolvedSearchParams = searchParams ? await Promise.resolve(searchParams) : undefined;
   const activeTab = resolveActiveTab(resolvedSearchParams?.tab);
@@ -1531,6 +1701,8 @@ export default async function UiPlaygroundPage({ searchParams }: UiPlaygroundPag
           {activeTab === "checkbox" ? <CheckboxTabContent /> : null}
           {activeTab === "radio" ? <RadioTabContent /> : null}
           {activeTab === "switch-box" ? <SwitchBoxTabContent /> : null}
+          {activeTab === "segmented-control" ? <SegmentedControlTabContent /> : null}
+          {activeTab === "color-badge" ? <ColorBadgeTabContent /> : null}
         </section>
       </div>
     </main>

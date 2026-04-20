@@ -1,3 +1,7 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -8,6 +12,15 @@ afterEach(() => {
 });
 
 describe("SwitchBox", () => {
+  it("uses a valid token-backed track width", () => {
+    const currentDir = dirname(fileURLToPath(import.meta.url));
+    const cssPath = resolve(currentDir, "../../shared/ui/SwitchBox.module.css");
+    const css = readFileSync(cssPath, "utf8");
+
+    expect(css).not.toContain("width: var(--space-22);");
+    expect(css).toContain("width: calc(var(--space-10) + var(--space-12));");
+  });
+
   it("renders label and supports checked changes", () => {
     const handleChange = vi.fn();
 

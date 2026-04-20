@@ -1,9 +1,9 @@
 .button {
   --icon-button-bg: transparent;
-  --icon-button-bg-hover: #f2f2f2;
-  --icon-button-bg-pressed: #e5e5e5;
-  --icon-button-icon-color: #111111;
-  --icon-button-icon-disabled: #a3a3a3;
+  --icon-button-bg-hover: var(--color-button-ghost-hover);
+  --icon-button-bg-pressed: var(--color-button-ghost-pressed);
+  --icon-button-icon-color: var(--color-text-primary);
+  --icon-button-icon-disabled: var(--color-text-disabled);
   --icon-button-border: transparent;
   --icon-button-outline: transparent;
   --icon-button-ring-width: 0px;
@@ -70,57 +70,57 @@
 
 .normal {
   --icon-button-bg: transparent;
-  --icon-button-bg-hover: #f2f2f2;
-  --icon-button-bg-pressed: #e5e5e5;
+  --icon-button-bg-hover: var(--color-button-ghost-hover);
+  --icon-button-bg-pressed: var(--color-button-ghost-pressed);
   --icon-button-border: transparent;
-  --icon-button-outline: #111111;
+  --icon-button-outline: var(--color-text-primary);
   --icon-button-ring-width: 2px;
   --icon-button-disabled-bg: transparent;
   --icon-button-disabled-border: transparent;
-  --icon-button-icon-color: #111111;
+  --icon-button-icon-color: var(--color-text-primary);
 }
 
 .background {
-  --icon-button-bg: #111111;
-  --icon-button-bg-hover: #262626;
-  --icon-button-bg-pressed: #404040;
+  --icon-button-bg: var(--color-button-primary-bg);
+  --icon-button-bg-hover: var(--color-button-primary-hover);
+  --icon-button-bg-pressed: var(--color-button-primary-pressed);
   --icon-button-border: transparent;
-  --icon-button-outline: #449bfe;
+  --icon-button-outline: var(--color-brand-secondary);
   --icon-button-ring-width: 2px;
-  --icon-button-disabled-bg: #e5e5e5;
-  --icon-button-disabled-border: #e5e5e5;
-  --icon-button-icon-color: #ffffff;
-  --icon-button-icon-disabled: #a3a3a3;
+  --icon-button-disabled-bg: var(--color-button-disabled-bg);
+  --icon-button-disabled-border: var(--color-button-disabled-bg);
+  --icon-button-icon-color: var(--color-text-inverse);
+  --icon-button-icon-disabled: var(--color-text-disabled);
 }
 
 .outline {
-  --icon-button-bg: #ffffff;
-  --icon-button-bg-hover: #f2f2f2;
-  --icon-button-bg-pressed: #e5e5e5;
-  --icon-button-border: #d4d4d4;
-  --icon-button-outline: #111111;
+  --icon-button-bg: var(--color-background-default);
+  --icon-button-bg-hover: var(--color-button-ghost-hover);
+  --icon-button-bg-pressed: var(--color-button-ghost-pressed);
+  --icon-button-border: var(--color-border-strong);
+  --icon-button-outline: var(--color-text-primary);
   --icon-button-ring-width: 1px;
-  --icon-button-disabled-bg: #f2f2f2;
-  --icon-button-disabled-border: #e5e5e5;
-  --icon-button-icon-color: #111111;
+  --icon-button-disabled-bg: var(--color-background-muted);
+  --icon-button-disabled-border: var(--color-border-default);
+  --icon-button-icon-color: var(--color-text-primary);
 }
 
 .sm {
-  --icon-button-radius: 8px;
-  --icon-button-size: 28px;
-  --icon-size: 12px;
+  --icon-button-radius: var(--radius-sm);
+  --icon-button-size: var(--space-14);
+  --icon-size: var(--space-6);
 }
 
 .md {
-  --icon-button-radius: 999px;
-  --icon-button-size: 40px;
-  --icon-size: 14px;
+  --icon-button-radius: var(--radius-full);
+  --icon-button-size: var(--space-20);
+  --icon-size: var(--space-7);
 }
 
 .lg {
-  --icon-button-radius: 999px;
-  --icon-button-size: 48px;
-  --icon-size: 16px;
+  --icon-button-radius: var(--radius-full);
+  --icon-button-size: var(--space-24);
+  --icon-size: var(--space-8);
 }
 
 .iconWrapper {

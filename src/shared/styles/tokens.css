@@ -1,0 +1,144 @@
+:root {
+  --color-black: #111111;
+  --color-white: #ffffff;
+
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f9f9f9;
+  --color-neutral-100: #f2f2f2;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #111111;
+
+  --color-red-100: #fde0e0;
+  --color-red-500: #f5494a;
+
+  --color-blue-100: #e3f1ff;
+  --color-blue-500: #449bfe;
+  --color-blue-600: #3d8ee5;
+  --color-blue-700: #357fcc;
+
+  --color-purple-100: #f0e4ff;
+  --color-purple-500: #ae4df4;
+
+  --color-pink-500: #ff8fc5;
+  --color-green-500: #adff5b;
+
+  --color-brand-primary: var(--color-black);
+  --color-brand-secondary: var(--color-blue-500);
+  --color-brand-primary-hover: var(--color-neutral-800);
+  --color-brand-primary-pressed: var(--color-neutral-700);
+  --color-brand-secondary-hover: var(--color-blue-600);
+  --color-brand-secondary-pressed: var(--color-blue-700);
+  --color-brand-accent-subtle: var(--color-blue-100);
+
+  --color-text-primary: var(--color-black);
+  --color-text-secondary: var(--color-neutral-600);
+  --color-text-tertiary: var(--color-neutral-500);
+  --color-text-disabled: var(--color-neutral-400);
+  --color-text-inverse: var(--color-white);
+
+  --color-background-default: var(--color-white);
+  --color-background-subtle: var(--color-neutral-50);
+  --color-background-muted: var(--color-neutral-100);
+  --color-background-inverse: var(--color-black);
+  --color-background-primary: var(--color-blue-100);
+  --color-background-secondary: var(--color-purple-100);
+
+  --color-border-default: var(--color-neutral-200);
+  --color-border-strong: var(--color-neutral-300);
+  --color-border-primary: var(--color-blue-500);
+  --color-border-secondary: var(--color-purple-500);
+
+  --color-button-primary-bg: var(--color-black);
+  --color-button-primary-text: var(--color-white);
+  --color-button-primary-hover: var(--color-neutral-800);
+  --color-button-primary-pressed: var(--color-neutral-700);
+  --color-button-secondary-bg: var(--color-blue-500);
+  --color-button-secondary-text: var(--color-white);
+  --color-button-secondary-hover: var(--color-blue-600);
+  --color-button-secondary-pressed: var(--color-blue-700);
+  --color-button-ghost-text: var(--color-black);
+  --color-button-ghost-border: var(--color-neutral-300);
+  --color-button-ghost-hover: var(--color-neutral-100);
+  --color-button-ghost-pressed: var(--color-neutral-200);
+  --color-button-disabled-bg: var(--color-neutral-200);
+  --color-button-disabled-text: var(--color-neutral-400);
+
+  --color-status-danger: var(--color-red-500);
+  --color-status-info: var(--color-blue-500);
+  --color-status-success: var(--color-green-500);
+  --color-status-highlight: var(--color-purple-500);
+  --color-status-playful: var(--color-pink-500);
+
+  --space-0: 0px;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 10px;
+  --space-6: 12px;
+  --space-7: 14px;
+  --space-8: 16px;
+  --space-9: 18px;
+  --space-10: 20px;
+  --space-11: 22px;
+  --space-12: 24px;
+  --space-14: 28px;
+  --space-16: 32px;
+  --space-18: 36px;
+  --space-20: 40px;
+  --space-24: 48px;
+  --space-28: 56px;
+  --space-32: 64px;
+  --space-36: 72px;
+  --space-40: 80px;
+  --space-44: 88px;
+  --space-48: 96px;
+  --space-56: 112px;
+  --space-64: 128px;
+  --space-72: 144px;
+  --space-80: 160px;
+  --space-96: 192px;
+  --space-120: 240px;
+
+  --radius-none: 0px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-full: 9999px;
+
+  --shadow-xs: 0 1px 2px 0 #0000000a;
+  --shadow-sm: 0 1px 3px 0 #0000000a, 0 2px 6px 0 #0000000f;
+  --shadow-md: 0 2px 6px 0 #0000000a, 0 4px 12px 0 #00000014;
+  --shadow-lg: 0 4px 8px 0 #0000000a, 0 8px 24px 0 #0000001a;
+  --shadow-xl: 0 8px 16px 0 #0000000a, 0 16px 40px 0 #0000001f;
+  --shadow-2xl: 0 12px 24px 0 #0000000f, 0 24px 64px 0 #00000024;
+
+  --font-size-display-1: 56px;
+  --line-height-display-1: 72px;
+  --font-size-title-1: 32px;
+  --line-height-title-1: 44px;
+  --font-size-heading-1: 22px;
+  --line-height-heading-1: 30px;
+  --font-size-body-1: 16px;
+  --line-height-body-1: 24px;
+  --font-size-body-2: 15px;
+  --line-height-body-2: 22px;
+  --font-size-label-1: 14px;
+  --line-height-label-1: 20px;
+  --font-size-label-2: 13px;
+  --line-height-label-2: 18px;
+  --font-size-caption-1: 12px;
+  --line-height-caption-1: 16px;
+
+  --app-background: var(--color-background-default);
+  --app-foreground: var(--color-text-primary);
+}

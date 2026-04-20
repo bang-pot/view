@@ -1,15 +1,15 @@
 .chip {
-  --chip-bg: #ffffff;
-  --chip-bg-hover: #f2f2f2;
-  --chip-bg-pressed: #e5e5e5;
-  --chip-border: #d4d4d4;
-  --chip-color: #111111;
-  --chip-outline: #111111;
+  --chip-bg: var(--color-background-default);
+  --chip-bg-hover: var(--color-button-ghost-hover);
+  --chip-bg-pressed: var(--color-button-ghost-pressed);
+  --chip-border: var(--color-border-strong);
+  --chip-color: var(--color-text-primary);
+  --chip-outline: var(--color-text-primary);
   --chip-outline-width: 0px;
   align-items: center;
   background: var(--chip-bg);
   border: 1px solid var(--chip-border);
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   color: var(--chip-color);
   display: inline-flex;
   font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
@@ -42,57 +42,57 @@
 }
 
 .chip[data-state="disabled"] {
-  background: var(--chip-disabled-bg, #f2f2f2);
-  border-color: var(--chip-disabled-border, #e5e5e5);
-  color: #a3a3a3;
+  background: var(--chip-disabled-bg, var(--color-background-muted));
+  border-color: var(--chip-disabled-border, var(--color-border-default));
+  color: var(--color-text-disabled);
 }
 
 .normal {
-  --chip-bg: #ffffff;
-  --chip-bg-hover: #f2f2f2;
-  --chip-bg-pressed: #e5e5e5;
-  --chip-border: #d4d4d4;
-  --chip-color: #111111;
-  --chip-outline: #111111;
+  --chip-bg: var(--color-background-default);
+  --chip-bg-hover: var(--color-button-ghost-hover);
+  --chip-bg-pressed: var(--color-button-ghost-pressed);
+  --chip-border: var(--color-border-strong);
+  --chip-color: var(--color-text-primary);
+  --chip-outline: var(--color-text-primary);
   --chip-outline-width: 2px;
-  --chip-disabled-bg: #f2f2f2;
-  --chip-disabled-border: #e5e5e5;
+  --chip-disabled-bg: var(--color-background-muted);
+  --chip-disabled-border: var(--color-border-default);
 }
 
 .solid {
-  --chip-bg: #111111;
-  --chip-bg-hover: #262626;
-  --chip-bg-pressed: #404040;
-  --chip-border: #111111;
-  --chip-color: #ffffff;
-  --chip-outline: #e5e5e5;
+  --chip-bg: var(--color-button-primary-bg);
+  --chip-bg-hover: var(--color-button-primary-hover);
+  --chip-bg-pressed: var(--color-button-primary-pressed);
+  --chip-border: var(--color-button-primary-bg);
+  --chip-color: var(--color-button-primary-text);
+  --chip-outline: var(--color-border-default);
   --chip-outline-width: 2px;
-  --chip-disabled-bg: #e5e5e5;
-  --chip-disabled-border: #e5e5e5;
+  --chip-disabled-bg: var(--color-button-disabled-bg);
+  --chip-disabled-border: var(--color-button-disabled-bg);
 }
 
 .lg {
-  --chip-height: 32px;
-  --chip-padding-x: 12px;
-  --chip-gap: 6px;
-  font-size: 14px;
-  line-height: 20px;
+  --chip-height: var(--space-16);
+  --chip-padding-x: var(--space-6);
+  --chip-gap: var(--space-3);
+  font-size: var(--font-size-label-1);
+  line-height: var(--line-height-label-1);
 }
 
 .md {
-  --chip-height: 28px;
-  --chip-padding-x: 10px;
-  --chip-gap: 6px;
-  font-size: 13px;
-  line-height: 18px;
+  --chip-height: var(--space-14);
+  --chip-padding-x: var(--space-5);
+  --chip-gap: var(--space-3);
+  font-size: var(--font-size-label-2);
+  line-height: var(--line-height-label-2);
 }
 
 .sm {
-  --chip-height: 24px;
-  --chip-padding-x: 8px;
-  --chip-gap: 4px;
-  font-size: 12px;
-  line-height: 16px;
+  --chip-height: var(--space-12);
+  --chip-padding-x: var(--space-4);
+  --chip-gap: var(--space-2);
+  font-size: var(--font-size-caption-1);
+  line-height: var(--line-height-caption-1);
 }
 
 .icon {
@@ -103,18 +103,18 @@
 }
 
 .lg .icon {
-  height: 14px;
-  width: 14px;
+  height: var(--space-7);
+  width: var(--space-7);
 }
 
 .md .icon {
-  height: 12px;
-  width: 12px;
+  height: var(--space-6);
+  width: var(--space-6);
 }
 
 .sm .icon {
-  height: 10px;
-  width: 10px;
+  height: var(--space-5);
+  width: var(--space-5);
 }
 
 .label {

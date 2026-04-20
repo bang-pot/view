@@ -1,54 +1,54 @@
 .root {
-  --select-bg: #ffffff;
-  --select-border: #e5e5e5;
-  --select-text: #111111;
-  --select-label: #111111;
-  --select-supporting: #a3a3a3;
+  --select-bg: var(--color-background-default);
+  --select-border: var(--color-border-default);
+  --select-text: var(--color-text-primary);
+  --select-label: var(--color-text-primary);
+  --select-supporting: var(--color-text-disabled);
   display: grid;
-  gap: 6px;
+  gap: var(--space-3);
   width: min(100%, 280px);
 }
 
 .root[data-state="hover"] {
-  --select-bg: #f9f9f9;
+  --select-bg: var(--color-background-subtle);
 }
 
 .root[data-state="focused"],
 .root[data-state="open"] {
-  --select-border: #111111;
+  --select-border: var(--color-text-primary);
 }
 
 .root[data-state="error"] {
-  --select-border: #f5494a;
-  --select-label: #f5494a;
-  --select-supporting: #f5494a;
+  --select-border: var(--color-status-danger);
+  --select-label: var(--color-status-danger);
+  --select-supporting: var(--color-status-danger);
 }
 
 .root[data-state="disabled"] {
-  --select-bg: #f9f9f9;
-  --select-border: #e5e5e5;
-  --select-text: #d4d4d4;
-  --select-label: #a3a3a3;
-  --select-supporting: #a3a3a3;
+  --select-bg: var(--color-background-subtle);
+  --select-border: var(--color-border-default);
+  --select-text: var(--color-border-strong);
+  --select-label: var(--color-text-disabled);
+  --select-supporting: var(--color-text-disabled);
 }
 
 .label {
   color: var(--select-label);
   font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
-  font-size: 12px;
+  font-size: var(--font-size-caption-1);
   font-weight: 500;
-  line-height: 16px;
+  line-height: var(--line-height-caption-1);
 }
 
 .control {
   align-items: center;
   background: var(--select-bg);
   border: 1px solid var(--select-border);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 16px;
-  min-height: 40px;
-  padding: 0 12px;
+  grid-template-columns: minmax(0, 1fr) var(--space-8);
+  min-height: var(--space-20);
+  padding: 0 var(--space-6);
   transition:
     border-color 120ms ease,
     background-color 120ms ease,
@@ -66,9 +66,9 @@
   border: 0;
   color: var(--select-text);
   font-family: "Pretendard", var(--font-geist-sans), Arial, Helvetica, sans-serif;
-  font-size: 14px;
+  font-size: var(--font-size-label-1);
   font-weight: 400;
-  line-height: 20px;
+  line-height: var(--line-height-label-1);
   outline: none;
   padding: 0;
   width: 100%;
