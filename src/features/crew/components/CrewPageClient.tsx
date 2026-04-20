@@ -31,6 +31,7 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
   const hasValidCrewId = Number.isFinite(crewIdNumber);
   const publicCrewPath = useMemo(() => buildPublicCrewPath(crewId), [crewId]);
   const meetingsPath = useMemo(() => `/crews/${crewId}/meetings`, [crewId]);
+  const schedulePath = useMemo(() => `/crews/${crewId}/schedule`, [crewId]);
   const logsPath = useMemo(() => `/crews/${crewId}/logs`, [crewId]);
   const galleryPath = useMemo(() => `/crews/${crewId}/gallery`, [crewId]);
   const policiesPath = useMemo(() => `/crews/${crewId}/policies`, [crewId]);
@@ -74,7 +75,7 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
         }
 
         setErrorMessage(
-          getUserMessage(error, "크루 내부 허브를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."),
+          getUserMessage(error, "크루 허브를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
         );
         setIsLoading(false);
       });
@@ -105,7 +106,7 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
     return (
       <main>
         <h1>크루 허브</h1>
-        <p>{errorMessage ?? "크루 내부 허브를 불러오지 못했습니다."}</p>
+        <p>{errorMessage ?? "크루 허브를 불러오지 못했어요."}</p>
       </main>
     );
   }
@@ -123,13 +124,16 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
           <p>내 역할: {crew.myRole}</p>
         </section>
 
-        <nav aria-label="크루 네비게이션">
+        <nav aria-label="크루 내비게이션">
           <ul>
             <li>
               <Link href={`/crews/${crew.crewId}`}>홈</Link>
             </li>
             <li>
               <Link href={meetingsPath}>모임</Link>
+            </li>
+            <li>
+              <Link href={schedulePath}>일정</Link>
             </li>
             <li>
               <Link href={logsPath}>방탈로그</Link>

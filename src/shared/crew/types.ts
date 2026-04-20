@@ -160,3 +160,30 @@ export type CrewInviteRejectResponse = {
   crewId: number;
   status: "REJECTED";
 };
+
+export type CrewScheduleMeetingStatus =
+  | "RECRUITING"
+  | "RECRUITMENT_CLOSED"
+  | "COMPLETED"
+  | "CANCELED";
+
+export type CrewScheduleItem = {
+  meetingId: number;
+  themeName: string;
+  date: string;
+  time: string;
+  meetingStatus: CrewScheduleMeetingStatus;
+  recruitmentStatus: string;
+  place: string;
+  participantCount: number;
+  isCanceled: boolean;
+};
+
+export type CrewScheduleResponse = {
+  items: CrewScheduleItem[];
+};
+
+export type CrewScheduleRange = {
+  from: string;
+  to: string;
+};

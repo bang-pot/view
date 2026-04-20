@@ -2,6 +2,8 @@ import { requestJson } from "@/shared/api/client";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
 import type {
   CrewHubResponse,
+  CrewScheduleRange,
+  CrewScheduleResponse,
   CrewMember,
   CrewPolicy,
   CrewJoinRequestApproveResponse,
@@ -114,6 +116,29 @@ export async function updateCrewVisibility(
     {
       code: "CREW_VISIBILITY_UPDATE_FAILED",
       message: "크루 공개 범위를 변경하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getCrewSchedule(
+  crewId: number,
+  range: CrewScheduleRange,
+): Promise<CrewScheduleResponse> {
+  const search = new URLSearchParams({
+    from: range.from,
+    to: range.to,
+  });
+
+  return requestJson<CrewScheduleResponse>(
+    getApiBaseUrl(),
+    `/api/crews/${crewId}/schedule?${search.toString()}`,
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "CREW_SCHEDULE_REQUEST_FAILED",
+      message: "일정 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

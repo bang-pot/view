@@ -1675,5 +1675,56 @@ npm.cmd run build
 - 비로그인 사용자는 `/login?redirectTo=%2Fprofile%2Ffavorites`, completion-required 사용자는 `/auth/complete?redirectTo=%2Fprofile%2Ffavorites`로 분기되는 것을 확인했습니다.
 - 이번 라운드는 정렬/필터/검색/추천 고도화 없이 전체 목록 조회와 즉시 해제 흐름까지만 동작하는 것을 확인했습니다.
 
+## Crew Round 12 크루 일정 상세
+
+- `/crews/{crewId}`
+  - 내부 허브 내비게이션에 `일정` 링크를 추가했습니다.
+  - 링크는 `/crews/{crewId}/schedule`로 연결됩니다.
+- `/crews/{crewId}/schedule`
+  - `GET /api/crews/{crewId}/schedule?from&to`를 사용해 월 단위 일정을 읽어옵니다.
+  - joined member 권한을 먼저 확인하고, `AUTH_ACCESS_DENIED`와 `AUTH_UNAUTHENTICATED`는 `/crews/public/{crewId}`로 되돌립니다.
+  - 화면은 월간 캘린더 + 선택 날짜 일정 리스트 구조입니다.
+- 날짜 선택 방식
+  - 일정이 있는 날짜는 `일정 n` 또는 `취소 n` 마커로 표시합니다.
+  - 날짜 버튼을 누르면 오른쪽 패널이 해당 날짜 기준으로 갱신됩니다.
+  - 같은 날짜 안의 일정은 backend 응답 순서를 그대로 사용해 시간순으로 보입니다.
+- 상태 라벨
+  - `RECRUITING`, `RECRUITMENT_CLOSED` -> `예정`
+  - `COMPLETED` -> `완료`
+  - `CANCELED` 또는 `isCanceled=true` -> `취소`
+- 취소 일정
+  - 카드와 날짜 마커를 회색조로 처리했습니다.
+  - 일정 카드 안에 `취소` 라벨을 함께 표시합니다.
+- 기존 모임 상세 연결
+  - 일정 항목 클릭 시 `/crews/{crewId}/meetings/{meetingId}`로 이동합니다.
+- 빈 상태
+  - 월 전체 일정이 없으면 `아직 등록된 일정이 없어요`
+  - 선택 날짜만 비어 있으면 `이 날짜에는 일정이 없어요`
+- 에러 상태
+  - 일정 섹션 안에서만 `일정 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.`와 `다시 시도`를 보여줍니다.
+  - 크루 페이지 전체는 유지됩니다.
+
+### Crew Round 12 자동 검증
+
+- `npm.cmd run test -- src/test/shared/crew-client.test.tsx src/test/app/crew-page.test.tsx src/test/app/crew-schedule-page.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+- 모두 통과했습니다.
+
+### Crew Round 12 수동 검증
+
+- 가입한 `ACTIVE` 크루원으로 `/crews/{crewId}`에 진입했을 때 허브 내비게이션에 `일정` 링크가 보이는 것을 확인했습니다.
+- `일정` 클릭 시 `/crews/{crewId}/schedule` 전용 화면이 열리고, 좌측 월간 캘린더와 우측 선택 날짜 일정 패널이 함께 보이는 것을 확인했습니다.
+- 일정이 있는 날짜 셀에 `일정 n` 또는 `취소 n` 마커가 표시되고, 날짜 선택 시 해당 날짜 일정이 오른쪽 패널에 시간순으로 보이는 것을 확인했습니다.
+- `RECRUITING`, `RECRUITMENT_CLOSED`는 `예정`, `COMPLETED`는 `완료`, `CANCELED`는 `취소` 라벨로 보이는 것을 확인했습니다.
+- 취소 일정은 회색 카드와 `취소` 라벨로 일반 일정과 명확히 구분되는 것을 확인했습니다.
+- 일정 카드에는 시간, 테마명, 장소, 참여 인원, 상태 라벨이 보이고, 클릭 시 기존 모임 상세 `/crews/{crewId}/meetings/{meetingId}`로 이동하는 것을 확인했습니다.
+- 선택 날짜에 일정이 없는 경우 `이 날짜에는 일정이 없어요`, 월 전체 일정이 없는 경우 `아직 등록된 일정이 없어요`가 각각 구분되어 보이는 것을 확인했습니다.
+- 일정 API 실패 시에도 화면 전체가 깨지지 않고, 섹션 안에서만 에러 문구와 `다시 시도`가 보이는 것을 확인했습니다.
+- 비가입 사용자와 비로그인 사용자가 `/crews/{crewId}/schedule`에 직접 진입하면 `/crews/public/{crewId}`로 분기되는 것을 확인했습니다.
+- 이번 라운드에서는 일정 생성 / 수정 / 삭제 / 참여 / 모집 운영 버튼이 보이지 않고, 읽기 전용 일정 화면까지만 동작하는 것을 확인했습니다.
+
 
 
