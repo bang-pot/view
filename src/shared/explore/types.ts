@@ -11,7 +11,27 @@ export type ExploreThemeCard = {
   recommendedPlayers: string | null;
   runningTimeMinutes: number | null;
   favoriteCount: number;
-  isFavorited: boolean;
+  isFavorite: boolean;
+};
+
+export type ExploreRelatedThemeCard = {
+  themeId: number;
+  themeName: string;
+  storeId: number;
+  storeName: string;
+  regionLabel: string;
+  genre: string | null;
+  posterImageUrl: string | null;
+  difficulty: string | null;
+  runningTimeMinutes: number | null;
+  favoriteCount: number;
+  isFavorite: boolean;
+};
+
+export type ThemeFavoriteResponse = {
+  themeId: number;
+  isFavorite: boolean;
+  favoriteCount: number;
 };
 
 export type ExplorePageInfo = {
@@ -56,7 +76,8 @@ export type ExploreThemeDetail = {
   runningTimeMinutes: number | null;
   description: string | null;
   externalLink: string | null;
-  relatedThemes: ExploreThemeCard[];
+  isFavorite: boolean;
+  relatedThemes: ExploreRelatedThemeCard[];
 };
 
 export type ExploreMeetingCreateCrew = {

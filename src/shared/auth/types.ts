@@ -145,6 +145,8 @@ export type HomeThemeExplorePreviewItem = {
   storeName: string;
   regionName: string;
   thumbnailUrl: string | null;
+  favoriteCount: number;
+  isFavorite: boolean;
 };
 
 export type CreatedMeetingStatus =

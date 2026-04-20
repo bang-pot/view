@@ -6,6 +6,7 @@ import type {
   ExploreThemeDetail,
   ExploreThemesQuery,
   ExploreThemesResponse,
+  ThemeFavoriteResponse,
 } from "@/shared/explore/types";
 
 function buildThemesQuery(query: ExploreThemesQuery): string {
@@ -105,6 +106,40 @@ export async function getExploreMeetingCreateCrews(): Promise<ExploreMeetingCrea
     {
       code: "EXPLORE_MEETING_CREATE_CREWS_LOAD_FAILED",
       userMessage: "크루 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function addThemeFavorite(themeId: number): Promise<ThemeFavoriteResponse> {
+  const { apiBaseUrl } = getPublicRuntimeConfig();
+
+  return requestJson<ThemeFavoriteResponse>(
+    apiBaseUrl,
+    `/api/themes/${themeId}/favorite`,
+    {
+      method: "POST",
+      credentials: "include",
+    },
+    {
+      code: "EXPLORE_THEME_FAVORITE_ADD_FAILED",
+      userMessage: "찜 상태를 변경하지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function removeThemeFavorite(themeId: number): Promise<ThemeFavoriteResponse> {
+  const { apiBaseUrl } = getPublicRuntimeConfig();
+
+  return requestJson<ThemeFavoriteResponse>(
+    apiBaseUrl,
+    `/api/themes/${themeId}/favorite`,
+    {
+      method: "DELETE",
+      credentials: "include",
+    },
+    {
+      code: "EXPLORE_THEME_FAVORITE_REMOVE_FAILED",
+      userMessage: "찜 상태를 변경하지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

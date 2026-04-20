@@ -2,21 +2,44 @@
 
 import Link from "next/link";
 
-import type { ExploreThemeCard as ExploreThemeCardType } from "@/shared/explore/types";
+import { ThemeFavoriteButton } from "./ThemeFavoriteButton";
 
-function toCardValue(value: string | number | null): string {
-  if (value === null || value === "") {
+export type ExploreThemeCardViewModel = {
+  themeId: number;
+  themeName: string;
+  storeName: string;
+  regionLabel: string;
+  posterImageUrl: string | null;
+  favoriteCount: number;
+  isFavorite: boolean;
+  genre?: string | null;
+  difficulty?: string | null;
+  activityLabel?: string | null;
+  recommendedPlayers?: string | null;
+  runningTimeMinutes?: number | null;
+};
+
+type ExploreThemeCardProps = {
+  item: ExploreThemeCardViewModel;
+  redirectPath?: string;
+  variant?: "full" | "preview";
+};
+
+function toCardValue(value: string | number | null | undefined): string {
+  if (value === null || value === undefined || value === "") {
     return "정보 준비 중";
   }
 
   return String(value);
 }
 
-type ExploreThemeCardProps = {
-  item: ExploreThemeCardType;
-};
+export function ExploreThemeCard({
+  item,
+  redirectPath = "/explore",
+  variant = "full",
+}: ExploreThemeCardProps) {
+  const isPreview = variant === "preview";
 
-export function ExploreThemeCard({ item }: ExploreThemeCardProps) {
   return (
     <article
       style={{
@@ -25,8 +48,19 @@ export function ExploreThemeCard({ item }: ExploreThemeCardProps) {
         overflow: "hidden",
         background: "#fff",
         opacity: 0.98,
+        position: "relative",
       }}
     >
+      <div style={{ position: "absolute", top: 12, right: 12, zIndex: 1 }}>
+        <ThemeFavoriteButton
+          themeId={item.themeId}
+          initialIsFavorite={item.isFavorite}
+          initialFavoriteCount={item.favoriteCount}
+          redirectPath={redirectPath}
+          variant="compact"
+        />
+      </div>
+
       <Link
         href={`/explore/themes/${item.themeId}`}
         aria-label={`${item.themeName} 상세 보기`}
@@ -57,20 +91,22 @@ export function ExploreThemeCard({ item }: ExploreThemeCardProps) {
             포스터 준비 중
           </div>
         )}
+
         <div style={{ padding: 16, display: "grid", gap: 8 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-            <strong>{item.themeName}</strong>
-            <span aria-label="찜 수">관심 {item.favoriteCount}</span>
-          </div>
+          <strong style={{ paddingRight: 88 }}>{item.themeName}</strong>
           <span>{item.storeName}</span>
           <span>{item.regionLabel}</span>
-          <span>{toCardValue(item.genre)}</span>
-          <span>난이도 {toCardValue(item.difficulty)}</span>
-          <span>활동성 {toCardValue(item.activityLabel)}</span>
-          <span>권장 인원 {toCardValue(item.recommendedPlayers)}</span>
+
+          {isPreview ? null : <span>{toCardValue(item.genre)}</span>}
+          {isPreview ? null : <span>난이도 {toCardValue(item.difficulty)}</span>}
+          {isPreview ? null : <span>활동성 {toCardValue(item.activityLabel)}</span>}
+          {isPreview ? null : <span>권장 인원 {toCardValue(item.recommendedPlayers)}</span>}
+
           <span>
             플레이 시간{" "}
-            {item.runningTimeMinutes === null ? "정보 준비 중" : `${item.runningTimeMinutes}분`}
+            {item.runningTimeMinutes === null || item.runningTimeMinutes === undefined
+              ? "정보 준비 중"
+              : `${item.runningTimeMinutes}분`}
           </span>
           <span style={{ color: "#666" }}>상세 보기</span>
         </div>

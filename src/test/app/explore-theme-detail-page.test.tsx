@@ -4,8 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ExploreThemeDetailPage from "@/app/explore/themes/[themeId]/page";
 import { OperationalError } from "@/shared/errors/operational";
 import {
+  addThemeFavorite,
   getExploreMeetingCreateCrews,
   getExploreThemeDetail,
+  removeThemeFavorite,
 } from "@/shared/explore/client";
 
 const pushMock = vi.fn();
@@ -20,6 +22,8 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/shared/explore/client", () => ({
   getExploreThemeDetail: vi.fn(),
   getExploreMeetingCreateCrews: vi.fn(),
+  addThemeFavorite: vi.fn(),
+  removeThemeFavorite: vi.fn(),
 }));
 
 describe("ExploreThemeDetailPage", () => {
@@ -32,7 +36,7 @@ describe("ExploreThemeDetailPage", () => {
     cleanup();
   });
 
-  it("renders the theme detail and related themes", async () => {
+  it("renders the theme detail and reuses favorite cards for related themes", async () => {
     vi.mocked(getExploreThemeDetail).mockResolvedValue({
       themeId: 7,
       themeName: "사라진 서재",
@@ -43,24 +47,22 @@ describe("ExploreThemeDetailPage", () => {
       posterImageUrl: null,
       difficulty: "보통",
       runningTimeMinutes: 70,
-      description:
-        "첫 번째 문장입니다. 두 번째 문장입니다. 세 번째 문장입니다. 네 번째 문장입니다. 다섯 번째 문장입니다.",
+      description: "첫번째 문장입니다. 두번째 문장입니다. 세번째 문장입니다.",
       externalLink: "https://example.com/theme/7",
+      isFavorite: false,
       relatedThemes: [
         {
           themeId: 8,
-          themeName: "폐허의 방",
+          themeName: "닫힌 집",
           storeId: 3,
           storeName: "강남 이스케이프",
           regionLabel: "서울 강남",
           genre: "공포",
           posterImageUrl: null,
           difficulty: null,
-          activityLabel: null,
-          recommendedPlayers: null,
           runningTimeMinutes: null,
           favoriteCount: 5,
-          isFavorited: false,
+          isFavorite: true,
         },
       ],
     });
@@ -75,15 +77,86 @@ describe("ExploreThemeDetailPage", () => {
     expect(within(detailSection).getByText("장르 추리")).toBeInTheDocument();
     expect(within(detailSection).getByText("난이도 보통")).toBeInTheDocument();
     expect(within(detailSection).getByText("플레이 시간 70분")).toBeInTheDocument();
-    expect(within(detailSection).getByText("포스터 준비 중")).toBeInTheDocument();
+    expect(within(detailSection).getByRole("button", { name: "찜하기" })).toBeInTheDocument();
     expect(
       within(detailSection).getByRole("link", { name: "외부 예약 페이지 열기" }),
     ).toHaveAttribute("href", "https://example.com/theme/7");
 
     const relatedSection = screen.getByRole("region", { name: "같은 매장의 다른 테마" });
     expect(
-      within(relatedSection).getByRole("link", { name: "폐허의 방 상세 보기" }),
+      within(relatedSection).getByRole("link", { name: "닫힌 집 상세 보기" }),
     ).toHaveAttribute("href", "/explore/themes/8");
+    expect(within(relatedSection).getByRole("button", { name: "찜 해제" })).toBeInTheDocument();
+    expect(within(relatedSection).getByText("5")).toBeInTheDocument();
+  });
+
+  it("updates the theme detail favorite state immediately after a successful toggle response", async () => {
+    vi.mocked(getExploreThemeDetail).mockResolvedValue({
+      themeId: 7,
+      themeName: "사라진 서재",
+      storeId: 3,
+      storeName: "강남 이스케이프",
+      regionLabel: "서울 강남",
+      genre: "추리",
+      posterImageUrl: null,
+      difficulty: "보통",
+      runningTimeMinutes: 70,
+      description: "설명",
+      externalLink: null,
+      isFavorite: false,
+      relatedThemes: [],
+    });
+    vi.mocked(addThemeFavorite).mockResolvedValue({
+      themeId: 7,
+      isFavorite: true,
+      favoriteCount: 11,
+    });
+    vi.mocked(removeThemeFavorite).mockResolvedValue({
+      themeId: 7,
+      isFavorite: false,
+      favoriteCount: 10,
+    });
+
+    render(await ExploreThemeDetailPage({ params: Promise.resolve({ themeId: "7" }) }));
+
+    fireEvent.click(await screen.findByRole("button", { name: "찜하기" }));
+    expect(await screen.findByRole("button", { name: "찜 해제" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "찜 해제" }));
+    expect(await screen.findByRole("button", { name: "찜하기" })).toBeInTheDocument();
+  });
+
+  it("redirects guests to login when they try to favorite from the theme detail", async () => {
+    vi.mocked(getExploreThemeDetail).mockResolvedValue({
+      themeId: 7,
+      themeName: "사라진 서재",
+      storeId: 3,
+      storeName: "강남 이스케이프",
+      regionLabel: "서울 강남",
+      genre: "추리",
+      posterImageUrl: null,
+      difficulty: "보통",
+      runningTimeMinutes: 70,
+      description: "설명",
+      externalLink: null,
+      isFavorite: false,
+      relatedThemes: [],
+    });
+    vi.mocked(addThemeFavorite).mockRejectedValue(
+      new OperationalError({
+        code: "AUTH_UNAUTHENTICATED",
+        userMessage: "로그인이 필요해요.",
+        status: 401,
+      }),
+    );
+
+    render(await ExploreThemeDetailPage({ params: Promise.resolve({ themeId: "7" }) }));
+
+    fireEvent.click(await screen.findByRole("button", { name: "찜하기" }));
+
+    await waitFor(() => {
+      expect(pushMock).toHaveBeenCalledWith("/login?redirectTo=%2Fexplore%2Fthemes%2F7");
+    });
   });
 
   it("toggles the description between collapsed and expanded states", async () => {
@@ -98,8 +171,9 @@ describe("ExploreThemeDetailPage", () => {
       difficulty: "보통",
       runningTimeMinutes: 70,
       description:
-        "첫 번째 문장입니다. 두 번째 문장입니다. 세 번째 문장입니다. 네 번째 문장입니다. 다섯 번째 문장입니다. 여섯 번째 문장입니다. 일곱 번째 문장입니다.",
+        "첫번째 문장입니다. 두번째 문장입니다. 세번째 문장입니다. 네번째 문장입니다. 다섯번째 문장입니다. 여섯번째 문장입니다. 일곱번째 문장입니다. 여덟번째 문장입니다. 아홉번째 문장입니다. 열번째 문장입니다. 열한번째 문장입니다.",
       externalLink: null,
+      isFavorite: false,
       relatedThemes: [],
     });
 
@@ -134,6 +208,7 @@ describe("ExploreThemeDetailPage", () => {
       runningTimeMinutes: null,
       description: null,
       externalLink: null,
+      isFavorite: false,
       relatedThemes: [],
     });
 
@@ -162,11 +237,12 @@ describe("ExploreThemeDetailPage", () => {
       runningTimeMinutes: 70,
       description: "설명",
       externalLink: null,
+      isFavorite: false,
       relatedThemes: [],
     });
     vi.mocked(getExploreMeetingCreateCrews).mockResolvedValue({
       crews: [
-        { crewId: 11, crewName: "미드나잇 러너스" },
+        { crewId: 11, crewName: "미드나잇 러너즈" },
         { crewId: 12, crewName: "심야 탈출단" },
       ],
     });
@@ -176,7 +252,7 @@ describe("ExploreThemeDetailPage", () => {
     fireEvent.click(await screen.findByRole("button", { name: "이 테마로 모임 만들기" }));
 
     expect(await screen.findByRole("region", { name: "모임 만들기 크루 선택" })).toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText("미드나잇 러너스"));
+    fireEvent.click(screen.getByLabelText("미드나잇 러너즈"));
     fireEvent.click(screen.getByRole("button", { name: "선택한 크루로 모임 만들기" }));
 
     await waitFor(() => {
@@ -186,7 +262,7 @@ describe("ExploreThemeDetailPage", () => {
     });
   });
 
-  it("redirects guests to login and shows an empty-crew guide for members without crews", async () => {
+  it("redirects guests to login for meeting creation and shows an empty-crew guide for members without crews", async () => {
     vi.mocked(getExploreThemeDetail).mockResolvedValue({
       themeId: 7,
       themeName: "사라진 서재",
@@ -199,6 +275,7 @@ describe("ExploreThemeDetailPage", () => {
       runningTimeMinutes: 70,
       description: "설명",
       externalLink: null,
+      isFavorite: false,
       relatedThemes: [],
     });
     vi.mocked(getExploreMeetingCreateCrews).mockRejectedValueOnce(
@@ -233,6 +310,7 @@ describe("ExploreThemeDetailPage", () => {
       runningTimeMinutes: 70,
       description: "설명",
       externalLink: null,
+      isFavorite: false,
       relatedThemes: [],
     });
     vi.mocked(getExploreMeetingCreateCrews).mockResolvedValue({

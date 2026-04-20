@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { ExploreThemeCard } from "@/features/explore/components/ExploreThemeCard";
 import { getHome } from "@/shared/auth/client";
 import type {
   HomePublicCrewPreviewItem,
@@ -118,30 +119,20 @@ function PublicCrewPreviewCard({ crew }: { crew: HomePublicCrewPreviewItem }) {
 
 function ThemePreviewCard({ theme }: { theme: HomeThemeExplorePreviewItem }) {
   return (
-    <article
-      style={{
-        border: "1px solid #e4e4e7",
-        borderRadius: 16,
-        padding: 16,
-        display: "grid",
-        gap: 12,
-        background: "#fff",
+    <ExploreThemeCard
+      item={{
+        themeId: theme.themeId,
+        themeName: theme.themeName,
+        storeName: theme.storeName,
+        regionLabel: theme.regionName,
+        posterImageUrl: theme.thumbnailUrl,
+        favoriteCount: theme.favoriteCount,
+        isFavorite: theme.isFavorite,
+        runningTimeMinutes: null,
       }}
-    >
-      <PreviewImage
-        src={theme.thumbnailUrl}
-        alt={`${theme.themeName} 테마 이미지`}
-        fallbackLabel="테마 이미지 준비 중"
-      />
-      <div style={{ display: "grid", gap: 6 }}>
-        <strong>{theme.themeName}</strong>
-        <span>{theme.storeName}</span>
-        <span>{theme.regionName}</span>
-      </div>
-      <Link href={`/explore/themes/${theme.themeId}`} aria-label={`${theme.themeName} 테마 보기`}>
-        테마 보기
-      </Link>
-    </article>
+      redirectPath="/"
+      variant="preview"
+    />
   );
 }
 
@@ -207,8 +198,8 @@ export function HomePageClient({ notice = null }: HomePageClientProps) {
       <section style={{ display: "grid", gap: 16 }}>
         <h1>BangPot</h1>
         <p>방탈출 크루를 찾고, 모임을 만들고, 다음 약속까지 한 번에 이어보세요.</p>
-        {notice === "crew-left" ? <p>크루를 탈퇴했습니다.</p> : null}
-        {notice === "crew-deleted" ? <p>크루를 삭제했습니다.</p> : null}
+        {notice === "crew-left" ? <p>크루를 탈퇴했어요.</p> : null}
+        {notice === "crew-deleted" ? <p>크루를 삭제했어요.</p> : null}
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <Link href={publicCrewsHref}>공개 크루 탐색</Link>
           <Link href={createCrewHref}>크루 만들기</Link>
@@ -223,7 +214,7 @@ export function HomePageClient({ notice = null }: HomePageClientProps) {
                 <h2>내 크루</h2>
                 <p>
                   {home.myCrews.totalCount > 0
-                    ? `현재 ${home.myCrews.totalCount}개의 크루와 함께하고 있어요.`
+                    ? `현재 ${home.myCrews.totalCount}개의 크루를 확인하고 있어요.`
                     : "아직 소속된 크루가 없어요."}
                 </p>
               </div>
@@ -329,7 +320,7 @@ export function HomePageClient({ notice = null }: HomePageClientProps) {
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
           <div style={{ display: "grid", gap: 4 }}>
             <h2>방탈출 탐색</h2>
-            <p>지금 바로 살펴볼 수 있는 테마 미리보기를 모아뒀어요.</p>
+            <p>지금 바로 둘러볼 수 있는 테마 미리보기를 모아뒀어요.</p>
           </div>
           <Link href="/explore">전체 보기</Link>
         </div>

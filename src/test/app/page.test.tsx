@@ -9,6 +9,7 @@ const replaceMock = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     replace: replaceMock,
+    push: vi.fn(),
   }),
 }));
 
@@ -26,7 +27,7 @@ describe("Home page", () => {
     cleanup();
   });
 
-  it("renders the guest home hub with preview sections and a login prompt", async () => {
+  it("renders the guest home hub with preview sections, login guidance, and theme favorite buttons", async () => {
     vi.mocked(getHome).mockResolvedValue({
       isLoggedIn: false,
       cta: {
@@ -56,10 +57,12 @@ describe("Home page", () => {
         items: [
           {
             themeId: 31,
-            themeName: "인형의 집",
-            storeName: "홍대 이스케이프",
+            themeName: "심연의 집",
+            storeName: "마포 이스케이프",
             regionName: "서울 마포구",
             thumbnailUrl: null,
+            favoriteCount: 4,
+            isFavorite: false,
           },
         ],
       },
@@ -91,11 +94,13 @@ describe("Home page", () => {
     );
     expect(screen.getByText("크루 이미지 준비 중")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "방탈출 탐색" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "인형의 집 테마 보기" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "심연의 집 상세 보기" })).toHaveAttribute(
       "href",
       "/explore/themes/31",
     );
-    expect(screen.getByText("테마 이미지 준비 중")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "찜하기" })).toBeInTheDocument();
+    expect(screen.getByText("4")).toBeInTheDocument();
+    expect(screen.getByText("포스터 준비 중")).toBeInTheDocument();
   });
 
   it("shows personalized summaries for logged-in users", async () => {
@@ -109,11 +114,11 @@ describe("Home page", () => {
         items: [
           {
             crewId: 3,
-            crewName: "방팟 크루",
+            crewName: "방탈출 크루",
           },
           {
             crewId: 7,
-            crewName: "서울 탈출단",
+            crewName: "서울 탈출러",
           },
         ],
         totalCount: 2,
@@ -124,7 +129,7 @@ describe("Home page", () => {
             meetingId: 41,
             title: "금요일 방탈출",
             crewId: 3,
-            crewName: "방팟 크루",
+            crewName: "방탈출 크루",
             date: "2026-04-25",
             time: "19:00",
             status: "RECRUITING",
@@ -143,8 +148,8 @@ describe("Home page", () => {
     render(await Home({ searchParams: Promise.resolve({}) }));
 
     expect(await screen.findByRole("heading", { name: "내 크루" })).toBeInTheDocument();
-    expect(screen.getByText("현재 2개의 크루와 함께하고 있어요.")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "방팟 크루 크루로 이동" })).toHaveAttribute(
+    expect(screen.getByText("현재 2개의 크루를 확인하고 있어요.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "방탈출 크루 크루로 이동" })).toHaveAttribute(
       "href",
       "/crews/3",
     );
@@ -227,6 +232,6 @@ describe("Home page", () => {
 
     render(await Home({ searchParams: Promise.resolve({ notice: "crew-deleted" }) }));
 
-    expect(await screen.findByText("크루를 삭제했습니다.")).toBeInTheDocument();
+    expect(await screen.findByText("크루를 삭제했어요.")).toBeInTheDocument();
   });
 });

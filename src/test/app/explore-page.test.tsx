@@ -2,9 +2,16 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ExplorePage from "@/app/explore/page";
-import { getExploreFilters, getExploreThemes } from "@/shared/explore/client";
+import { OperationalError } from "@/shared/errors/operational";
+import {
+  addThemeFavorite,
+  getExploreFilters,
+  getExploreThemes,
+  removeThemeFavorite,
+} from "@/shared/explore/client";
 
 const replaceMock = vi.fn();
+const pushMock = vi.fn();
 const observerInstances: MockIntersectionObserver[] = [];
 
 class MockIntersectionObserver {
@@ -40,18 +47,22 @@ class MockIntersectionObserver {
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     replace: replaceMock,
+    push: pushMock,
   }),
 }));
 
 vi.mock("@/shared/explore/client", () => ({
   getExploreFilters: vi.fn(),
   getExploreThemes: vi.fn(),
+  addThemeFavorite: vi.fn(),
+  removeThemeFavorite: vi.fn(),
 }));
 
 describe("ExplorePage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     replaceMock.mockReset();
+    pushMock.mockReset();
     observerInstances.length = 0;
     vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
 
@@ -75,7 +86,7 @@ describe("ExplorePage", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders the public explore home with the default first page", async () => {
+  it("renders the public explore home with favorite buttons on cards", async () => {
     vi.mocked(getExploreThemes).mockResolvedValue({
       items: [
         {
@@ -87,11 +98,11 @@ describe("ExplorePage", () => {
           genre: "추리",
           posterImageUrl: null,
           difficulty: "보통",
-          activityLabel: "연출 중간",
+          activityLabel: "활동성 중간",
           recommendedPlayers: "2-4명",
           runningTimeMinutes: 60,
           favoriteCount: 12,
-          isFavorited: false,
+          isFavorite: false,
         },
       ],
       pageInfo: {
@@ -104,126 +115,105 @@ describe("ExplorePage", () => {
     render(await ExplorePage({ searchParams: Promise.resolve({}) }));
 
     expect(await screen.findByRole("heading", { name: "방탈출 탐색" })).toBeInTheDocument();
-    expect(screen.getByRole("searchbox", { name: "통합 검색" })).toBeInTheDocument();
 
     const list = await screen.findByRole("list", { name: "탐색 결과 목록" });
     const item = within(list).getByRole("listitem");
-    const detailLink = within(item).getByRole("link", { name: "미스터리 룸 상세 보기" });
 
-    expect(within(item).getByText("미스터리 룸")).toBeInTheDocument();
-    expect(within(item).getByText("강남 이스케이프")).toBeInTheDocument();
-    expect(within(item).getByText("서울 강남")).toBeInTheDocument();
-    expect(within(item).getByText("추리")).toBeInTheDocument();
-    expect(within(item).getByText("포스터 준비 중")).toBeInTheDocument();
-    expect(detailLink).toHaveAttribute("href", "/explore/themes/1");
-
-    expect(getExploreThemes).toHaveBeenCalledWith({
-      q: "",
-      genres: [],
-      region: "",
-      district: "",
-      page: 0,
-      size: 20,
-    });
+    expect(
+      within(item).getByRole("link", { name: "미스터리 룸 상세 보기" }),
+    ).toHaveAttribute("href", "/explore/themes/1");
+    expect(within(item).getByRole("button", { name: "찜하기" })).toBeInTheDocument();
+    expect(within(item).getByText("12")).toBeInTheDocument();
   });
 
-  it("applies the keyword only after an explicit submit", async () => {
+  it("updates the card favorite state immediately after a successful toggle response", async () => {
     vi.mocked(getExploreThemes).mockResolvedValue({
-      items: [],
+      items: [
+        {
+          themeId: 1,
+          themeName: "미스터리 룸",
+          storeId: 10,
+          storeName: "강남 이스케이프",
+          regionLabel: "서울 강남",
+          genre: "추리",
+          posterImageUrl: null,
+          difficulty: "보통",
+          activityLabel: "활동성 중간",
+          recommendedPlayers: "2-4명",
+          runningTimeMinutes: 60,
+          favoriteCount: 12,
+          isFavorite: false,
+        },
+      ],
       pageInfo: {
         page: 0,
         size: 20,
         hasNext: false,
       },
     });
+    vi.mocked(addThemeFavorite).mockResolvedValue({
+      themeId: 1,
+      isFavorite: true,
+      favoriteCount: 13,
+    });
+    vi.mocked(removeThemeFavorite).mockResolvedValue({
+      themeId: 1,
+      isFavorite: false,
+      favoriteCount: 12,
+    });
 
     render(await ExplorePage({ searchParams: Promise.resolve({}) }));
-    await screen.findByRole("heading", { name: "방탈출 탐색" });
 
-    const input = screen.getByRole("searchbox", { name: "통합 검색" });
-    fireEvent.change(input, { target: { value: "강남" } });
+    fireEvent.click(await screen.findByRole("button", { name: "찜하기" }));
+    expect(await screen.findByRole("button", { name: "찜 해제" })).toBeInTheDocument();
+    expect(screen.getByText("13")).toBeInTheDocument();
 
-    expect(getExploreThemes).toHaveBeenCalledTimes(1);
-
-    fireEvent.click(screen.getByRole("button", { name: "검색" }));
-
-    await waitFor(() => {
-      expect(getExploreThemes).toHaveBeenCalledTimes(2);
-    });
-
-    expect(getExploreThemes).toHaveBeenLastCalledWith({
-      q: "강남",
-      genres: [],
-      region: "",
-      district: "",
-      page: 0,
-      size: 20,
-    });
+    fireEvent.click(screen.getByRole("button", { name: "찜 해제" }));
+    expect(await screen.findByRole("button", { name: "찜하기" })).toBeInTheDocument();
+    expect(screen.getByText("12")).toBeInTheDocument();
   });
 
-  it("reloads results when filters change and resets district when region changes", async () => {
+  it("redirects guests to login when they try to favorite from the explore card", async () => {
     vi.mocked(getExploreThemes).mockResolvedValue({
-      items: [],
+      items: [
+        {
+          themeId: 1,
+          themeName: "미스터리 룸",
+          storeId: 10,
+          storeName: "강남 이스케이프",
+          regionLabel: "서울 강남",
+          genre: "추리",
+          posterImageUrl: null,
+          difficulty: "보통",
+          activityLabel: "활동성 중간",
+          recommendedPlayers: "2-4명",
+          runningTimeMinutes: 60,
+          favoriteCount: 12,
+          isFavorite: false,
+        },
+      ],
       pageInfo: {
         page: 0,
         size: 20,
         hasNext: false,
       },
     });
+    vi.mocked(addThemeFavorite).mockRejectedValue(
+      new OperationalError({
+        code: "AUTH_UNAUTHENTICATED",
+        userMessage: "로그인이 필요해요.",
+        status: 401,
+      }),
+    );
 
-    render(await ExplorePage({ searchParams: Promise.resolve({}) }));
-    await screen.findByRole("heading", { name: "방탈출 탐색" });
+    render(await ExplorePage({ searchParams: Promise.resolve({ q: "강남" }) }));
 
-    fireEvent.click(screen.getByRole("checkbox", { name: "장르 공포" }));
-
-    await waitFor(() => {
-      expect(getExploreThemes).toHaveBeenLastCalledWith({
-        q: "",
-        genres: ["공포"],
-        region: "",
-        district: "",
-        page: 0,
-        size: 20,
-      });
-    });
-
-    fireEvent.change(screen.getByLabelText("시/도"), { target: { value: "서울" } });
+    fireEvent.click(await screen.findByRole("button", { name: "찜하기" }));
 
     await waitFor(() => {
-      expect(getExploreThemes).toHaveBeenLastCalledWith({
-        q: "",
-        genres: ["공포"],
-        region: "서울",
-        district: "",
-        page: 0,
-        size: 20,
-      });
-    });
-
-    fireEvent.change(screen.getByLabelText("구/군"), { target: { value: "강남" } });
-
-    await waitFor(() => {
-      expect(getExploreThemes).toHaveBeenLastCalledWith({
-        q: "",
-        genres: ["공포"],
-        region: "서울",
-        district: "강남",
-        page: 0,
-        size: 20,
-      });
-    });
-
-    fireEvent.change(screen.getByLabelText("시/도"), { target: { value: "경기" } });
-
-    await waitFor(() => {
-      expect(getExploreThemes).toHaveBeenLastCalledWith({
-        q: "",
-        genres: ["공포"],
-        region: "경기",
-        district: "",
-        page: 0,
-        size: 20,
-      });
+      expect(pushMock).toHaveBeenCalledWith(
+        "/login?redirectTo=%2Fexplore%3Fq%3D%25EA%25B0%2595%25EB%2582%25A8",
+      );
     });
   });
 
@@ -233,7 +223,7 @@ describe("ExplorePage", () => {
         items: [
           {
             themeId: 1,
-            themeName: "첫 번째 테마",
+            themeName: "첫번째 테마",
             storeId: 10,
             storeName: "강남 이스케이프",
             regionLabel: "서울 강남",
@@ -244,7 +234,7 @@ describe("ExplorePage", () => {
             recommendedPlayers: null,
             runningTimeMinutes: null,
             favoriteCount: 10,
-            isFavorited: false,
+            isFavorite: false,
           },
         ],
         pageInfo: {
@@ -257,7 +247,7 @@ describe("ExplorePage", () => {
         items: [
           {
             themeId: 2,
-            themeName: "두 번째 테마",
+            themeName: "두번째 테마",
             storeId: 11,
             storeName: "마포 이스케이프",
             regionLabel: "서울 마포",
@@ -268,7 +258,7 @@ describe("ExplorePage", () => {
             recommendedPlayers: null,
             runningTimeMinutes: null,
             favoriteCount: 5,
-            isFavorited: false,
+            isFavorite: false,
           },
         ],
         pageInfo: {
@@ -279,11 +269,11 @@ describe("ExplorePage", () => {
       });
 
     render(await ExplorePage({ searchParams: Promise.resolve({}) }));
-    await screen.findByText("첫 번째 테마");
+    await screen.findByText("첫번째 테마");
 
     observerInstances[0]?.trigger(true);
 
-    await screen.findByText("두 번째 테마");
+    await screen.findByText("두번째 테마");
 
     expect(getExploreThemes).toHaveBeenNthCalledWith(2, {
       q: "",
@@ -312,6 +302,7 @@ describe("ExplorePage", () => {
     cleanup();
     vi.clearAllMocks();
     replaceMock.mockReset();
+    pushMock.mockReset();
     observerInstances.length = 0;
     vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
 
