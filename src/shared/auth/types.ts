@@ -92,6 +92,22 @@ export type MyMeetingLogsResponse = {
   };
 };
 
+export type FavoriteThemeSummaryItem = {
+  themeId: number;
+  themeName: string;
+  storeName: string;
+  regionName: string;
+  thumbnailUrl: string | null;
+  favoriteCount: number;
+  isFavorite: boolean;
+};
+
+export type FavoriteThemesSummaryResponse = {
+  items: FavoriteThemeSummaryItem[];
+  totalCount: number;
+  hasMore: boolean;
+};
+
 export type HomeResponse = {
   isLoggedIn: boolean;
   cta: {

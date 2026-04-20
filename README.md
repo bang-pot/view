@@ -559,6 +559,32 @@ npm.cmd run dev
 - 이번 라운드는 프로필 찜 요약, 프로필 찜 목록 상세, 추천 고도화, 알림 연계로 확장되지 않은 것을 확인했습니다.
 - 이번 라운드는 구현, 자동 검증, 수동 검증까지 모두 완료된 상태입니다.
 
+## Auth Round 14 프로필 찜 요약
+
+- 프로필 허브 안에 `찜한 테마` 요약 섹션을 추가했습니다.
+- `GET /api/users/me/favorites/summary`를 별도 consumer로 연결해 섹션 단위로만 로딩/에러를 처리합니다.
+- 요약 카드는 최대 5개까지 노출하고, 각 카드는 썸네일 또는 fallback, 테마명, 매장명, 지역명을 보여줍니다.
+- 카드 클릭 시 기존 테마 상세 `/explore/themes/{themeId}`로 이동합니다.
+- `전체보기`는 다음 라운드 진입점으로 `/profile/favorites` placeholder route에 연결했습니다.
+- 섹션 로딩 실패 시 프로필 허브 전체를 깨지 않고 섹션 내부에서만 `다시 시도`를 제공합니다.
+- 썸네일이 없거나 로드 실패하면 `테마 이미지 준비 중` fallback을 보여줍니다.
+
+### Auth Round 14 자동 검증
+
+- `npm.cmd run test -- src/test/app/profile-page.test.tsx src/test/shared/auth-client.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+### Auth Round 14 수동 검증
+
+- 로그인 사용자가 `/profile`에서 `찜한 테마` 요약 섹션을 볼 수 있고, 최신 찜 테마가 최대 5개까지만 노출되는 것을 확인했습니다.
+- 각 요약 카드에서 썸네일 또는 `테마 이미지 준비 중` fallback이 자연스럽게 보이고, 카드 클릭 시 기존 테마 상세 `/explore/themes/{themeId}`로 이동하는 것을 확인했습니다.
+- `전체보기`는 `/profile/favorites` placeholder route로 연결되고, 준비 중 안내와 `프로필 허브로 돌아가기` 흐름이 정상 동작하는 것을 확인했습니다.
+- 찜한 테마가 없는 계정에서는 `아직 찜한 테마가 없어요` 빈 상태와 `테마 둘러보기` CTA가 보이는 것을 확인했습니다.
+- 찜 요약 섹션 로딩 실패 시 프로필 허브 전체는 유지되고, 섹션 안에서만 에러 문구와 `다시 시도`가 동작하는 것을 확인했습니다.
+- 이번 라운드는 구현, 자동 검증, 수동 검증까지 모두 완료된 상태입니다.
+
 ## Crew Round 1 理쒖냼 湲곕뒫 ?먮쫫
 
 - `Create crew`

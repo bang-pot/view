@@ -7,6 +7,7 @@ import type {
   AuthProfileUpdateResponse,
   CancelPendingCrewResponse,
   CreatedMeetingsResponse,
+  FavoriteThemesSummaryResponse,
   HomeResponse,
   JoinedMeetingsResponse,
   MyMeetingLogsResponse,
@@ -154,6 +155,21 @@ export async function getMyMeetingLogs(input: {
     {
       code: "AUTH_MY_MEETING_LOGS_REQUEST_FAILED",
       message: "내 방탈로그 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getFavoriteThemesSummary(): Promise<FavoriteThemesSummaryResponse> {
+  return requestJson<FavoriteThemesSummaryResponse>(
+    getApiBaseUrl(),
+    "/api/users/me/favorites/summary",
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "AUTH_FAVORITE_THEMES_SUMMARY_REQUEST_FAILED",
+      message: "찜한 테마를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }

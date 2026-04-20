@@ -4,6 +4,7 @@ import {
   cancelPendingCrew,
   checkNicknameAvailability,
   completeProfile,
+  getFavoriteThemesSummary,
   getHome,
   getMyCalendar,
   getCreatedMeetings,
@@ -368,6 +369,45 @@ describe("auth client", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/backend/api/users/me/logs?page=0&size=20",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("requests the favorite themes summary from the profile summary API path", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          items: [
+            {
+              themeId: 301,
+              themeName: "포비든 룸",
+              storeName: "서울 이스케이프",
+              regionName: "서울 강남",
+              thumbnailUrl: null,
+              favoriteCount: 12,
+              isFavorite: true,
+            },
+          ],
+          totalCount: 1,
+          hasMore: false,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getFavoriteThemesSummary();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/users/me/favorites/summary",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",

@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ProfilePage from "@/app/profile/page";
 import {
+  getFavoriteThemesSummary,
   getMe,
   getMyCalendar,
   getProfile,
@@ -20,6 +21,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/shared/auth/client", () => ({
+  getFavoriteThemesSummary: vi.fn(),
   getMe: vi.fn(),
   getMyCalendar: vi.fn(),
   getProfile: vi.fn(),
@@ -47,6 +49,33 @@ function mockProfile() {
     joinedMeetingsCount: 4,
     myCrewsCount: 2,
     pendingCrewsCount: 1,
+  });
+}
+
+function mockFavoriteSummary() {
+  vi.mocked(getFavoriteThemesSummary).mockResolvedValue({
+    items: [
+      {
+        themeId: 301,
+        themeName: "포비든 룸",
+        storeName: "서울 이스케이프",
+        regionName: "서울 강남",
+        thumbnailUrl: null,
+        favoriteCount: 12,
+        isFavorite: true,
+      },
+      {
+        themeId: 302,
+        themeName: "딥 포레스트",
+        storeName: "방탈출 스테이션",
+        regionName: "서울 홍대",
+        thumbnailUrl: "https://cdn.example.com/theme-302.jpg",
+        favoriteCount: 9,
+        isFavorite: true,
+      },
+    ],
+    totalCount: 7,
+    hasMore: true,
   });
 }
 
@@ -82,6 +111,7 @@ describe("ProfilePage", () => {
   it("loads the profile hub and shows the calendar section with selectable schedules", async () => {
     mockFullUser();
     mockProfile();
+    mockFavoriteSummary();
     vi.mocked(getMyCalendar).mockResolvedValue({
       items: [
         {
@@ -135,6 +165,18 @@ describe("ProfilePage", () => {
       "href",
       "/profile/logs",
     );
+    expect(await screen.findByRole("heading", { name: "찜한 테마" })).toBeInTheDocument();
+    expect(screen.getByText("테마 이미지 준비 중")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "포비든 룸" })).toHaveAttribute(
+      "href",
+      "/explore/themes/301",
+    );
+    expect(screen.getAllByText("서울 이스케이프").length).toBeGreaterThan(0);
+    expect(screen.getByText("서울 강남")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "전체보기" })).toHaveAttribute(
+      "href",
+      "/profile/favorites",
+    );
     expect(screen.getByRole("link", { name: "회원탈퇴" })).toHaveAttribute(
       "href",
       "/profile/withdrawal",
@@ -150,7 +192,7 @@ describe("ProfilePage", () => {
     fireEvent.click(screen.getByRole("button", { name: "18일" }));
 
     expect(screen.getByText("토요일 리벤지")).toBeInTheDocument();
-    expect(screen.getByText("서울 이스케이프")).toBeInTheDocument();
+    expect(screen.getAllByText("서울 이스케이프").length).toBeGreaterThan(0);
     expect(screen.getByText("참여자")).toBeInTheDocument();
     expect(screen.getByText("취소")).toBeInTheDocument();
   });
@@ -158,6 +200,7 @@ describe("ProfilePage", () => {
   it("keeps the hub counts from get profile even when patch returns null counts", async () => {
     mockFullUser();
     mockProfile();
+    mockFavoriteSummary();
     vi.mocked(getMyCalendar).mockResolvedValue({
       items: [],
       totalCount: 0,
@@ -196,6 +239,7 @@ describe("ProfilePage", () => {
 
     mockFullUser();
     mockProfile();
+    mockFavoriteSummary();
     vi.mocked(getMyCalendar).mockResolvedValue({
       items: [],
       totalCount: 0,
@@ -227,6 +271,7 @@ describe("ProfilePage", () => {
   it("keeps the profile hub visible when the calendar section fails and allows retry", async () => {
     mockFullUser();
     mockProfile();
+    mockFavoriteSummary();
     vi.mocked(getMyCalendar)
       .mockRejectedValueOnce(new Error("calendar boom"))
       .mockResolvedValueOnce({
@@ -269,6 +314,7 @@ describe("ProfilePage", () => {
         requiredTermsAcceptedAt: null,
       });
     mockProfile();
+    mockFavoriteSummary();
     vi.mocked(getMyCalendar).mockResolvedValue({
       items: [],
       totalCount: 0,
@@ -284,5 +330,40 @@ describe("ProfilePage", () => {
       expect(logout).toHaveBeenCalledTimes(1);
       expect(replaceMock).toHaveBeenCalledWith("/login");
     });
+  });
+
+  it("keeps the profile hub visible when the favorites summary section fails and allows retry", async () => {
+    mockFullUser();
+    mockProfile();
+    vi.mocked(getFavoriteThemesSummary)
+      .mockRejectedValueOnce(new Error("favorites boom"))
+      .mockResolvedValueOnce({
+        items: [],
+        totalCount: 0,
+        hasMore: false,
+      });
+    vi.mocked(getMyCalendar).mockResolvedValue({
+      items: [],
+      totalCount: 0,
+    });
+
+    render(<ProfilePage />);
+
+    expect(await screen.findByText("bangpot")).toBeInTheDocument();
+    expect(
+      await screen.findByText("찜한 테마를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "다시 시도" }));
+
+    await waitFor(() => {
+      expect(getFavoriteThemesSummary).toHaveBeenCalledTimes(2);
+    });
+
+    expect(screen.getByText("아직 찜한 테마가 없어요")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "테마 둘러보기" })).toHaveAttribute(
+      "href",
+      "/explore",
+    );
   });
 });
