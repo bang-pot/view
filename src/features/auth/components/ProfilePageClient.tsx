@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 
 import { ProfileCalendarSection } from "@/features/auth/components/ProfileCalendarSection";
+import { ProfileFavoriteThemesSummarySection } from "@/features/auth/components/ProfileFavoriteThemesSummarySection";
 import { logoutAndConfirmGuest } from "@/features/auth/logout";
 import { getMe, getProfile, updateProfile } from "@/shared/auth/client";
 import type { AuthProfileHubResponse } from "@/shared/auth/types";
@@ -295,6 +296,8 @@ export function ProfilePageClient() {
       </section>
 
       <ProfileCalendarSection />
+
+      <ProfileFavoriteThemesSummarySection />
 
       <section
         aria-label="내 기록"
