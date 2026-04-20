@@ -505,6 +505,60 @@ npm.cmd run dev
 - 달력 섹션 로딩 실패 시 프로필 허브 전체는 유지되고, 달력 섹션 안에서만 에러 문구와 `다시 시도`가 보이는 것을 확인했습니다.
 - 이번 라운드는 구현, 자동 검증, 수동 검증까지 모두 완료된 상태입니다.
 
+## Auth Round 13 테마 찜하기 기능 오픈
+
+- explore 목록 카드
+  - `GET /api/explore/themes`의 `isFavorite` 값을 카드 찜 상태 source of truth로 사용합니다.
+  - 카드 우측 상단에 `찜하기` / `찜 해제` 버튼을 추가했습니다.
+  - 카드 전체 링크와 충돌하지 않도록 찜 버튼은 카드 링크 바깥 sibling action으로 분리했습니다.
+  - 클릭 성공 후에는 응답의 `isFavorite`, `favoriteCount`를 즉시 반영합니다.
+- theme detail
+  - `GET /api/explore/themes/{themeId}`의 `isFavorite` 값을 상세 찜 상태 source of truth로 사용합니다.
+  - 상단 주요 액션에 `찜하기` / `찜 해제` 버튼을 추가했습니다.
+  - 성공 시 응답 기준으로 상세 상태를 즉시 갱신합니다.
+- related themes
+  - 상세 응답의 `relatedThemes`도 `favoriteCount`, `isFavorite`를 함께 받습니다.
+  - 상세 하단 관련 테마는 같은 공용 카드와 같은 찜 버튼을 재사용합니다.
+- home preview
+  - `GET /api/home`의 `themeExplorePreview.items[]`도 `favoriteCount`, `isFavorite`를 함께 받습니다.
+  - 홈 `방탈출 탐색` 미리보기에서도 같은 공용 카드와 같은 찜 버튼을 재사용합니다.
+- 찜 write API
+  - `POST /api/themes/{themeId}/favorite`
+  - `DELETE /api/themes/{themeId}/favorite`
+  - backend가 no-op success를 보장하므로 프론트는 응답값만 반영합니다.
+- 비로그인 가드
+  - 찜 버튼 클릭 시 `AUTH_UNAUTHENTICATED`가 오면 기존 로그인 유도 방식으로 보냅니다.
+  - 카드에서는 현재 explore query를 포함한 경로를 `redirectTo`로 보냅니다.
+  - 상세에서는 현재 `/explore/themes/{themeId}` 경로를 `redirectTo`로 보냅니다.
+- 상태 / 에러 처리
+  - 요청 중에는 해당 버튼만 disabled 처리해 중복 클릭을 막습니다.
+  - 실패 시 목록/상세 전체를 깨지 않고 버튼 주변에서만 에러 문구를 보여줍니다.
+  - favorite count가 내려오는 경우 함께 갱신합니다.
+- 범위 제한
+  - 이번 라운드는 탐색 카드와 테마 상세의 찜 열기까지만 다룹니다.
+  - 프로필 찜 요약, 프로필 찜 목록 상세, 추천 고도화, 알림 연계는 열지 않습니다.
+
+### Auth Round 13 자동 검증
+
+- `npm.cmd run test -- src/test/shared/explore-client.test.tsx src/test/app/explore-page.test.tsx src/test/app/explore-theme-detail-page.test.tsx src/test/app/page.test.tsx src/test/shared/auth-client.test.tsx`
+- `npm.cmd run lint`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
+### Auth Round 13 수동 검증
+
+- 비로그인 사용자가 `/explore`와 `/explore/themes/{themeId}`에서 찜 버튼을 눌렀을 때 기존 로그인 유도 흐름으로 이동하는 것을 확인했습니다.
+- 로그인 사용자는 explore 카드에서 `찜하기` / `찜 해제`를 토글할 수 있고, 응답 직후 버튼 상태가 즉시 반영되는 것을 확인했습니다.
+- 로그인 사용자는 theme detail 상단에서도 같은 기준으로 `찜하기` / `찜 해제`를 토글할 수 있는 것을 확인했습니다.
+- related themes도 같은 공용 카드와 같은 찜 버튼을 사용하면서, 상세 상단과 같은 기준의 찜 상태를 보여주는 것을 확인했습니다.
+- home `방탈출 탐색` preview도 같은 공용 카드와 같은 찜 버튼을 사용하면서, explore 카드와 같은 기준의 찜 상태를 보여주는 것을 확인했습니다.
+- 프론트 내부에 `isFavorited` legacy 분기가 남지 않고, 카드성 theme 응답은 모두 `isFavorite`로 소비되는 것을 확인했습니다.
+- 요청 중에는 해당 버튼만 disabled 처리되어 중복 클릭이 방지되는 것을 확인했습니다.
+- 찜 버튼 클릭이 카드 전체 클릭과 충돌하지 않고, 카드 본문 클릭은 기존 상세 이동으로 유지되는 것을 확인했습니다.
+- 찜 요청 실패 시 explore 목록이나 detail 전체가 깨지지 않고, 버튼 주변에서만 에러 문구가 보이는 것을 확인했습니다.
+- 이번 라운드는 프로필 찜 요약, 프로필 찜 목록 상세, 추천 고도화, 알림 연계로 확장되지 않은 것을 확인했습니다.
+- 이번 라운드는 구현, 자동 검증, 수동 검증까지 모두 완료된 상태입니다.
+
 ## Crew Round 1 理쒖냼 湲곕뒫 ?먮쫫
 
 - `Create crew`

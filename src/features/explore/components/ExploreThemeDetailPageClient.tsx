@@ -16,6 +16,7 @@ import type {
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
 import { ExploreThemeCard } from "./ExploreThemeCard";
+import { ThemeFavoriteButton } from "./ThemeFavoriteButton";
 
 type ExploreThemeDetailPageClientProps = {
   themeId: number;
@@ -235,10 +236,26 @@ export function ExploreThemeDetailPageClient({
                 </span>
               </div>
 
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "start" }}>
                 <button type="button" onClick={handleOpenCrewPicker} disabled={!canStartMeetingCreate}>
                   이 테마로 모임 만들기
                 </button>
+                <ThemeFavoriteButton
+                  themeId={detail.themeId}
+                  initialIsFavorite={detail.isFavorite}
+                  redirectPath={`/explore/themes/${themeId}`}
+                  initialFavoriteCount={null}
+                  onChange={(nextState) => {
+                    setDetail((current) =>
+                      current
+                        ? {
+                            ...current,
+                            isFavorite: nextState.isFavorite,
+                          }
+                        : current,
+                    );
+                  }}
+                />
                 {detail.externalLink ? (
                   <a
                     href={detail.externalLink}
@@ -271,7 +288,10 @@ export function ExploreThemeDetailPageClient({
 
           {isCrewLoading ? <p>크루 목록을 불러오는 중입니다.</p> : null}
           {isCrewPickerOpen ? (
-            <section aria-label="모임 만들기 크루 선택" style={{ display: "grid", gap: 12, marginBottom: 32 }}>
+            <section
+              aria-label="모임 만들기 크루 선택"
+              style={{ display: "grid", gap: 12, marginBottom: 32 }}
+            >
               <h2>모임 만들기 크루 선택</h2>
               <p>어느 크루에서 이 테마로 모임을 만들지 먼저 선택해 주세요.</p>
               {crewErrorMessage ? <p>{crewErrorMessage}</p> : null}
@@ -326,7 +346,22 @@ export function ExploreThemeDetailPageClient({
               >
                 {detail.relatedThemes.slice(0, 4).map((relatedTheme) => (
                   <li key={relatedTheme.themeId}>
-                    <ExploreThemeCard item={relatedTheme} />
+                    <ExploreThemeCard
+                      item={{
+                        themeId: relatedTheme.themeId,
+                        themeName: relatedTheme.themeName,
+                        storeName: relatedTheme.storeName,
+                        regionLabel: relatedTheme.regionLabel,
+                        posterImageUrl: relatedTheme.posterImageUrl,
+                        favoriteCount: relatedTheme.favoriteCount,
+                        isFavorite: relatedTheme.isFavorite,
+                        genre: relatedTheme.genre,
+                        difficulty: relatedTheme.difficulty,
+                        runningTimeMinutes: relatedTheme.runningTimeMinutes,
+                      }}
+                      redirectPath={`/explore/themes/${themeId}`}
+                      variant="preview"
+                    />
                   </li>
                 ))}
               </ul>

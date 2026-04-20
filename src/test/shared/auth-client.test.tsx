@@ -136,6 +136,8 @@ describe("auth client", () => {
                 storeName: "방탈출 스토어",
                 regionName: "서울",
                 thumbnailUrl: null,
+                favoriteCount: 6,
+                isFavorite: false,
               },
             ],
           },

@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  addThemeFavorite,
   getExploreFilters,
   getExploreMeetingCreateCrews,
   getExploreThemeDetail,
   getExploreThemes,
+  removeThemeFavorite,
 } from "@/shared/explore/client";
 
 const ORIGINAL_ENV = { ...process.env };
@@ -31,7 +33,7 @@ describe("explore client", () => {
           regions: [
             {
               name: "서울",
-              districts: ["강남", "홍대"],
+              districts: ["강남", "성수"],
             },
           ],
         }),
@@ -60,7 +62,23 @@ describe("explore client", () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
-          items: [],
+          items: [
+            {
+              themeId: 1,
+              themeName: "강남 미스터리",
+              storeId: 10,
+              storeName: "강남 이스케이프",
+              regionLabel: "서울 강남",
+              genre: "추리",
+              posterImageUrl: null,
+              difficulty: "보통",
+              activityLabel: "활동성 중간",
+              recommendedPlayers: "2-4명",
+              runningTimeMinutes: 60,
+              favoriteCount: 9,
+              isFavorite: false,
+            },
+          ],
           pageInfo: {
             page: 0,
             size: 20,
@@ -95,7 +113,7 @@ describe("explore client", () => {
     );
   });
 
-  it("loads a public explore theme detail", async () => {
+  it("loads a public explore theme detail with favorite state", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -110,6 +128,7 @@ describe("explore client", () => {
           runningTimeMinutes: 70,
           description: "소개글",
           externalLink: "https://example.com/theme/7",
+          isFavorite: false,
           relatedThemes: [],
         }),
         {
@@ -161,6 +180,64 @@ describe("explore client", () => {
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",
+      }),
+    );
+  });
+
+  it("adds a theme favorite for the logged-in user", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          themeId: 7,
+          isFavorite: true,
+          favoriteCount: 13,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await addThemeFavorite(7);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/themes/7/favorite",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+      }),
+    );
+  });
+
+  it("removes a theme favorite for the logged-in user", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          themeId: 7,
+          isFavorite: false,
+          favoriteCount: 12,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await removeThemeFavorite(7);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/themes/7/favorite",
+      expect.objectContaining({
+        method: "DELETE",
+        credentials: "include",
       }),
     );
   });

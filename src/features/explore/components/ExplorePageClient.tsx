@@ -95,6 +95,10 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
     () => getDistrictOptions(filters, appliedQuery.region),
     [appliedQuery.region, filters],
   );
+  const redirectPath = useMemo(() => {
+    const queryString = toQueryString(appliedQuery);
+    return queryString ? `/explore?${queryString}` : "/explore";
+  }, [appliedQuery]);
 
   useEffect(() => {
     let isMounted = true;
@@ -380,7 +384,7 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
         >
           {items.map((item) => (
             <li key={item.themeId}>
-              <ExploreThemeCard item={item} />
+              <ExploreThemeCard item={item} redirectPath={redirectPath} />
             </li>
           ))}
         </ul>
