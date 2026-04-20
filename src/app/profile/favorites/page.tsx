@@ -1,10 +1,5 @@
-import { ProfileActivityPlaceholderPageClient } from "@/features/auth/components/ProfileActivityPlaceholderPageClient";
+import { ProfileFavoriteThemesPageClient } from "@/features/auth/components/ProfileFavoriteThemesPageClient";
 
 export default function ProfileFavoritesPage() {
-  return (
-    <ProfileActivityPlaceholderPageClient
-      title="찜한 테마"
-      requestedPath="/profile/favorites"
-    />
-  );
+  return <ProfileFavoriteThemesPageClient />;
 }

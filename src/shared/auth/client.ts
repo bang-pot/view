@@ -7,6 +7,7 @@ import type {
   AuthProfileUpdateResponse,
   CancelPendingCrewResponse,
   CreatedMeetingsResponse,
+  FavoriteThemesResponse,
   FavoriteThemesSummaryResponse,
   HomeResponse,
   JoinedMeetingsResponse,
@@ -170,6 +171,29 @@ export async function getFavoriteThemesSummary(): Promise<FavoriteThemesSummaryR
     {
       code: "AUTH_FAVORITE_THEMES_SUMMARY_REQUEST_FAILED",
       message: "찜한 테마를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    },
+  );
+}
+
+export async function getFavoriteThemes(input: {
+  page: number;
+  size: number;
+}): Promise<FavoriteThemesResponse> {
+  const params = new URLSearchParams({
+    page: String(input.page),
+    size: String(input.size),
+  });
+
+  return requestJson<FavoriteThemesResponse>(
+    getApiBaseUrl(),
+    `/api/users/me/favorites?${params.toString()}`,
+    {
+      credentials: "include",
+      cache: "no-store",
+    },
+    {
+      code: "AUTH_FAVORITE_THEMES_REQUEST_FAILED",
+      message: "찜한 테마 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
 }
