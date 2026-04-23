@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+﻿import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ProfileWithdrawalPage from "@/app/profile/withdrawal/page";
@@ -62,12 +62,11 @@ describe("ProfileWithdrawalPage", () => {
     vi.mocked(getWithdrawalCheck).mockResolvedValue({
       canWithdraw: true,
       blockingActiveCrews: [],
-      blockingParticipatingMeetings: [],
     });
 
     render(<ProfileWithdrawalPage />);
 
-    expect(await screen.findByRole("heading", { name: "삭제되는 것" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "지금은 괜찮아요" })).toBeInTheDocument();
     expect(screen.getByText("지금은 회원탈퇴 다음 단계로 진행할 수 있어요.")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "다음 단계로" }));
@@ -91,7 +90,6 @@ describe("ProfileWithdrawalPage", () => {
     vi.mocked(getWithdrawalCheck).mockResolvedValue({
       canWithdraw: true,
       blockingActiveCrews: [],
-      blockingParticipatingMeetings: [],
     });
 
     render(<ProfileWithdrawalPage />);
@@ -114,7 +112,6 @@ describe("ProfileWithdrawalPage", () => {
     vi.mocked(getWithdrawalCheck).mockResolvedValue({
       canWithdraw: true,
       blockingActiveCrews: [],
-      blockingParticipatingMeetings: [],
     });
     vi.mocked(withdrawUser).mockResolvedValue({
       withdrawnAt: "2026-04-19T10:00:00Z",
@@ -137,15 +134,12 @@ describe("ProfileWithdrawalPage", () => {
     });
 
     expect(await screen.findByText("회원탈퇴가 완료되었어요.")).toBeInTheDocument();
-    expect(
-      screen.getByText("재가입은 가능하지만 기존 데이터는 복구되지 않아요."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("재가입은 가능하지만 기존 데이터는 복구되지 않아요.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "로그인 화면으로" })).toBeInTheDocument();
   });
 
   it("prevents duplicate submissions while the withdrawal request is running", async () => {
-    let resolveWithdrawal: ((value: { withdrawnAt: string; canLogin: false }) => void) | null =
-      null;
+    let resolveWithdrawal: ((value: { withdrawnAt: string; canLogin: false }) => void) | null = null;
 
     vi.mocked(getMe).mockResolvedValue({
       authStatus: "FULL",
@@ -158,7 +152,6 @@ describe("ProfileWithdrawalPage", () => {
     vi.mocked(getWithdrawalCheck).mockResolvedValue({
       canWithdraw: true,
       blockingActiveCrews: [],
-      blockingParticipatingMeetings: [],
     });
     vi.mocked(withdrawUser).mockImplementation(
       () =>
@@ -201,7 +194,6 @@ describe("ProfileWithdrawalPage", () => {
       .mockResolvedValueOnce({
         canWithdraw: true,
         blockingActiveCrews: [],
-        blockingParticipatingMeetings: [],
       })
       .mockResolvedValueOnce({
         canWithdraw: false,
@@ -209,18 +201,6 @@ describe("ProfileWithdrawalPage", () => {
           {
             crewId: 17,
             crewName: "방탈출 크루",
-          },
-        ],
-        blockingParticipatingMeetings: [
-          {
-            meetingId: 51,
-            meetingTitle: "금요 방탈출",
-            crewId: 17,
-            crewName: "방탈출 크루",
-            meetingStatus: "RECRUITING",
-            date: "2026-04-20",
-            time: "19:00",
-            participationRole: "HOST",
           },
         ],
       });
@@ -245,6 +225,7 @@ describe("ProfileWithdrawalPage", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "정리해야 하는 크루" })).toBeInTheDocument();
     expect(screen.getByText("방탈출 크루")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "정리해야 하는 모임" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "탈퇴 사유 선택" })).not.toBeInTheDocument();
     expect(getWithdrawalCheck).toHaveBeenCalledTimes(2);
   });
@@ -263,7 +244,6 @@ describe("ProfileWithdrawalPage", () => {
       .mockResolvedValueOnce({
         canWithdraw: true,
         blockingActiveCrews: [],
-        blockingParticipatingMeetings: [],
       });
 
     render(<ProfileWithdrawalPage />);

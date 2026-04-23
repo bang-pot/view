@@ -138,6 +138,12 @@ export type UserSearchItem = {
 
 export type UserSearchResponse = {
   items: UserSearchItem[];
+  pageInfo: {
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+  };
 };
 
 export type HomeResponse = {
@@ -298,25 +304,9 @@ export type WithdrawalBlockingActiveCrew = {
   crewName: string;
 };
 
-export type WithdrawalBlockingMeetingStatus = "RECRUITING" | "RECRUITMENT_CLOSED";
-
-export type WithdrawalParticipationRole = "HOST" | "PARTICIPANT";
-
-export type WithdrawalBlockingParticipatingMeeting = {
-  meetingId: number;
-  meetingTitle: string;
-  crewId: number;
-  crewName: string;
-  meetingStatus: WithdrawalBlockingMeetingStatus;
-  date: string;
-  time: string;
-  participationRole: WithdrawalParticipationRole;
-};
-
 export type WithdrawalCheckResponse = {
   canWithdraw: boolean;
   blockingActiveCrews: WithdrawalBlockingActiveCrew[];
-  blockingParticipatingMeetings: WithdrawalBlockingParticipatingMeeting[];
 };
 
 export type WithdrawalReasonCode =
