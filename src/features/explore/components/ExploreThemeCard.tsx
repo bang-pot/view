@@ -13,7 +13,7 @@ export type ExploreThemeCardViewModel = {
   favoriteCount: number;
   isFavorite: boolean;
   genre?: string | null;
-  difficulty?: string | null;
+  difficulty?: number | null;
   activityLabel?: string | null;
   recommendedPlayers?: string | null;
   runningTimeMinutes?: number | null;

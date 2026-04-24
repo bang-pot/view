@@ -54,8 +54,8 @@ function buildMeetingCreatePath(
     params.set("genre", detail.genre);
   }
 
-  if (detail.difficulty) {
-    params.set("difficulty", detail.difficulty);
+  if (detail.difficulty !== null) {
+    params.set("difficulty", String(detail.difficulty));
   }
 
   if (detail.runningTimeMinutes !== null) {

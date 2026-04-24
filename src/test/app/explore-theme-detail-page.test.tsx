@@ -45,7 +45,7 @@ describe("ExploreThemeDetailPage", () => {
       regionLabel: "서울 강남",
       genre: "추리",
       posterImageUrl: null,
-      difficulty: "보통",
+      difficulty: 3,
       runningTimeMinutes: 70,
       description: "첫번째 문장입니다. 두번째 문장입니다. 세번째 문장입니다.",
       externalLink: "https://example.com/theme/7",
@@ -75,7 +75,7 @@ describe("ExploreThemeDetailPage", () => {
     expect(within(detailSection).getByText("강남 이스케이프")).toBeInTheDocument();
     expect(within(detailSection).getByText("서울 강남")).toBeInTheDocument();
     expect(within(detailSection).getByText("장르 추리")).toBeInTheDocument();
-    expect(within(detailSection).getByText("난이도 보통")).toBeInTheDocument();
+    expect(within(detailSection).getByText("난이도 3")).toBeInTheDocument();
     expect(within(detailSection).getByText("플레이 시간 70분")).toBeInTheDocument();
     expect(within(detailSection).getByRole("button", { name: "찜하기" })).toBeInTheDocument();
     expect(
@@ -99,7 +99,7 @@ describe("ExploreThemeDetailPage", () => {
       regionLabel: "서울 강남",
       genre: "추리",
       posterImageUrl: null,
-      difficulty: "보통",
+      difficulty: 3,
       runningTimeMinutes: 70,
       description: "설명",
       externalLink: null,
@@ -135,7 +135,7 @@ describe("ExploreThemeDetailPage", () => {
       regionLabel: "서울 강남",
       genre: "추리",
       posterImageUrl: null,
-      difficulty: "보통",
+      difficulty: 3,
       runningTimeMinutes: 70,
       description: "설명",
       externalLink: null,
@@ -168,7 +168,7 @@ describe("ExploreThemeDetailPage", () => {
       regionLabel: "서울 강남",
       genre: "추리",
       posterImageUrl: null,
-      difficulty: "보통",
+      difficulty: 3,
       runningTimeMinutes: 70,
       description:
         "첫번째 문장입니다. 두번째 문장입니다. 세번째 문장입니다. 네번째 문장입니다. 다섯번째 문장입니다. 여섯번째 문장입니다. 일곱번째 문장입니다. 여덟번째 문장입니다. 아홉번째 문장입니다. 열번째 문장입니다. 열한번째 문장입니다.",
@@ -233,7 +233,7 @@ describe("ExploreThemeDetailPage", () => {
       regionLabel: "서울 강남",
       genre: "추리",
       posterImageUrl: null,
-      difficulty: "보통",
+      difficulty: 3,
       runningTimeMinutes: 70,
       description: "설명",
       externalLink: null,
@@ -257,7 +257,7 @@ describe("ExploreThemeDetailPage", () => {
 
     await waitFor(() => {
       expect(pushMock).toHaveBeenCalledWith(
-        "/crews/11/meetings/new?themeName=%EC%82%AC%EB%9D%BC%EC%A7%84+%EC%84%9C%EC%9E%AC&storeName=%EA%B0%95%EB%82%A8+%EC%9D%B4%EC%8A%A4%EC%BC%80%EC%9D%B4%ED%94%84&regionLabel=%EC%84%9C%EC%9A%B8+%EA%B0%95%EB%82%A8&genre=%EC%B6%94%EB%A6%AC&difficulty=%EB%B3%B4%ED%86%B5&runningTimeMinutes=70",
+        "/crews/11/meetings/new?themeName=%EC%82%AC%EB%9D%BC%EC%A7%84+%EC%84%9C%EC%9E%AC&storeName=%EA%B0%95%EB%82%A8+%EC%9D%B4%EC%8A%A4%EC%BC%80%EC%9D%B4%ED%94%84&regionLabel=%EC%84%9C%EC%9A%B8+%EA%B0%95%EB%82%A8&genre=%EC%B6%94%EB%A6%AC&difficulty=3&runningTimeMinutes=70",
       );
     });
   });
@@ -271,7 +271,7 @@ describe("ExploreThemeDetailPage", () => {
       regionLabel: "서울 강남",
       genre: "추리",
       posterImageUrl: null,
-      difficulty: "보통",
+      difficulty: 3,
       runningTimeMinutes: 70,
       description: "설명",
       externalLink: null,
@@ -306,7 +306,7 @@ describe("ExploreThemeDetailPage", () => {
       regionLabel: "서울 강남",
       genre: "추리",
       posterImageUrl: null,
-      difficulty: "보통",
+      difficulty: 3,
       runningTimeMinutes: 70,
       description: "설명",
       externalLink: null,

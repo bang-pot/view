@@ -6,7 +6,7 @@ export type ExploreThemeCard = {
   regionLabel: string;
   genre: string | null;
   posterImageUrl: string | null;
-  difficulty: string | null;
+  difficulty: number | null;
   activityLabel: string | null;
   recommendedPlayers: string | null;
   runningTimeMinutes: number | null;
@@ -22,7 +22,7 @@ export type ExploreRelatedThemeCard = {
   regionLabel: string;
   genre: string | null;
   posterImageUrl: string | null;
-  difficulty: string | null;
+  difficulty: number | null;
   runningTimeMinutes: number | null;
   favoriteCount: number;
   isFavorite: boolean;
@@ -72,7 +72,7 @@ export type ExploreThemeDetail = {
   regionLabel: string;
   genre: string | null;
   posterImageUrl: string | null;
-  difficulty: string | null;
+  difficulty: number | null;
   runningTimeMinutes: number | null;
   description: string | null;
   externalLink: string | null;
