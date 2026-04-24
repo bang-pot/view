@@ -71,7 +71,7 @@ describe("explore client", () => {
               regionLabel: "서울 강남",
               genre: "추리",
               posterImageUrl: null,
-              difficulty: "보통",
+              difficulty: 3,
               activityLabel: "활동성 중간",
               recommendedPlayers: "2-4명",
               runningTimeMinutes: 60,
@@ -124,7 +124,7 @@ describe("explore client", () => {
           regionLabel: "서울 강남",
           genre: "추리",
           posterImageUrl: null,
-          difficulty: "보통",
+          difficulty: 3,
           runningTimeMinutes: 70,
           description: "소개글",
           externalLink: "https://example.com/theme/7",
@@ -176,7 +176,7 @@ describe("explore client", () => {
     await getExploreMeetingCreateCrews();
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "/backend/api/explore/meeting-create/crews",
+      "/backend/api/crews/me/meeting-create",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",

@@ -97,7 +97,7 @@ export async function getExploreMeetingCreateCrews(): Promise<ExploreMeetingCrea
 
   return requestJson<ExploreMeetingCreateCrewsResponse>(
     apiBaseUrl,
-    "/api/explore/meeting-create/crews",
+    "/api/crews/me/meeting-create",
     {
       method: "GET",
       credentials: "include",
