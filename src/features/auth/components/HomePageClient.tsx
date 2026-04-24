@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -19,18 +19,14 @@ type HomePageClientProps = {
 };
 
 function toCreateCrewHref(home: HomeResponse | null): string {
-  if (home?.cta.canCreateCrew) {
+  if (home?.isLoggedIn) {
     return "/crews/new";
   }
 
   return "/login?redirectTo=%2Fcrews%2Fnew";
 }
 
-function toPublicCrewsHref(home: HomeResponse | null): string {
-  if (home?.cta.canExplorePublicCrews === false) {
-    return "/login?redirectTo=%2Fcrews%2Fpublic";
-  }
-
+function toPublicCrewsHref(): string {
   return "/crews/public";
 }
 
@@ -102,12 +98,12 @@ function PublicCrewPreviewCard({ crew }: { crew: HomePublicCrewPreviewItem }) {
     >
       <PreviewImage
         src={crew.coverImageUrl}
-        alt={`${crew.crewName} 대표 이미지`}
+        alt={`${crew.crewName} 크루 이미지`}
         fallbackLabel="크루 이미지 준비 중"
       />
       <div style={{ display: "grid", gap: 6 }}>
         <strong>{crew.crewName}</strong>
-        <span>{crew.isPublic ? "공개 크루" : "비공개 크루"}</span>
+        <span>공개 크루</span>
         <span>멤버 {crew.memberCount}명</span>
       </div>
       <Link href={`/crews/public/${crew.crewId}`} aria-label={`${crew.crewName} 크루 보기`}>
@@ -142,7 +138,7 @@ export function HomePageClient({ notice = null }: HomePageClientProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const createCrewHref = useMemo(() => toCreateCrewHref(home), [home]);
-  const publicCrewsHref = useMemo(() => toPublicCrewsHref(home), [home]);
+  const publicCrewsHref = useMemo(() => toPublicCrewsHref(), []);
 
   async function loadHome() {
     setIsLoading(true);
@@ -199,7 +195,7 @@ export function HomePageClient({ notice = null }: HomePageClientProps) {
         <h1>BangPot</h1>
         <p>방탈출 크루를 찾고, 모임을 만들고, 다음 약속까지 한 번에 이어보세요.</p>
         {notice === "crew-left" ? <p>크루를 탈퇴했어요.</p> : null}
-        {notice === "crew-deleted" ? <p>크루를 삭제했어요.</p> : null}
+        {notice === "crew-deleted" ? <p>크루를 해체했어요.</p> : null}
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <Link href={publicCrewsHref}>공개 크루 탐색</Link>
           <Link href={createCrewHref}>크루 만들기</Link>

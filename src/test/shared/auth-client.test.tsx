@@ -108,10 +108,6 @@ describe("auth client", () => {
       new Response(
         JSON.stringify({
           isLoggedIn: false,
-          cta: {
-            canCreateCrew: false,
-            canExplorePublicCrews: true,
-          },
           myCrews: {
             items: [],
             totalCount: 0,
@@ -127,7 +123,6 @@ describe("auth client", () => {
                 crewName: "怨듦컻 ?щ（",
                 coverImageUrl: null,
                 memberCount: 12,
-                isPublic: true,
               },
             ],
           },

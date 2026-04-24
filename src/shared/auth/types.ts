@@ -148,10 +148,6 @@ export type UserSearchResponse = {
 
 export type HomeResponse = {
   isLoggedIn: boolean;
-  cta: {
-    canCreateCrew: boolean;
-    canExplorePublicCrews: boolean;
-  };
   myCrews: {
     items: HomeMyCrewPreviewItem[];
     totalCount: number;
@@ -190,7 +186,6 @@ export type HomePublicCrewPreviewItem = {
   crewName: string;
   coverImageUrl: string | null;
   memberCount: number;
-  isPublic: boolean;
 };
 
 export type HomeThemeExplorePreviewItem = {
