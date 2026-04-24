@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+﻿import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Home from "@/app/page";
@@ -30,10 +30,6 @@ describe("Home page", () => {
   it("renders the guest home hub with preview sections, login guidance, and theme favorite buttons", async () => {
     vi.mocked(getHome).mockResolvedValue({
       isLoggedIn: false,
-      cta: {
-        canCreateCrew: false,
-        canExplorePublicCrews: true,
-      },
       myCrews: {
         items: [],
         totalCount: 0,
@@ -49,7 +45,6 @@ describe("Home page", () => {
             crewName: "미스터리 크루",
             coverImageUrl: null,
             memberCount: 12,
-            isPublic: true,
           },
         ],
       },
@@ -57,7 +52,7 @@ describe("Home page", () => {
         items: [
           {
             themeId: 31,
-            themeName: "심연의 집",
+            themeName: "사연의 집",
             storeName: "마포 이스케이프",
             regionName: "서울 마포구",
             thumbnailUrl: null,
@@ -94,7 +89,7 @@ describe("Home page", () => {
     );
     expect(screen.getByText("크루 이미지 준비 중")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "방탈출 탐색" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "심연의 집 상세 보기" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "사연의 집 상세 보기" })).toHaveAttribute(
       "href",
       "/explore/themes/31",
     );
@@ -106,10 +101,6 @@ describe("Home page", () => {
   it("shows personalized summaries for logged-in users", async () => {
     vi.mocked(getHome).mockResolvedValue({
       isLoggedIn: true,
-      cta: {
-        canCreateCrew: true,
-        canExplorePublicCrews: true,
-      },
       myCrews: {
         items: [
           {
@@ -174,10 +165,6 @@ describe("Home page", () => {
       .mockRejectedValueOnce(new Error("boom"))
       .mockResolvedValueOnce({
         isLoggedIn: false,
-        cta: {
-          canCreateCrew: false,
-          canExplorePublicCrews: true,
-        },
         myCrews: {
           items: [],
           totalCount: 0,
@@ -210,10 +197,6 @@ describe("Home page", () => {
   it("shows notice messages after the redirect back home", async () => {
     vi.mocked(getHome).mockResolvedValue({
       isLoggedIn: true,
-      cta: {
-        canCreateCrew: true,
-        canExplorePublicCrews: true,
-      },
       myCrews: {
         items: [],
         totalCount: 0,
@@ -232,6 +215,6 @@ describe("Home page", () => {
 
     render(await Home({ searchParams: Promise.resolve({ notice: "crew-deleted" }) }));
 
-    expect(await screen.findByText("크루를 삭제했어요.")).toBeInTheDocument();
+    expect(await screen.findByText("크루를 해체했어요.")).toBeInTheDocument();
   });
 });

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+﻿import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   cancelPendingCrew,
@@ -108,10 +108,6 @@ describe("auth client", () => {
       new Response(
         JSON.stringify({
           isLoggedIn: false,
-          cta: {
-            canCreateCrew: false,
-            canExplorePublicCrews: true,
-          },
           myCrews: {
             items: [],
             totalCount: 0,
@@ -124,10 +120,9 @@ describe("auth client", () => {
             items: [
               {
                 crewId: 10,
-                crewName: "공개 크루",
+                crewName: "怨듦컻 ?щ（",
                 coverImageUrl: null,
                 memberCount: 12,
-                isPublic: true,
               },
             ],
           },
@@ -137,7 +132,7 @@ describe("auth client", () => {
                 themeId: 101,
                 themeName: "미스터리 룸",
                 storeName: "방탈출 스토어",
-                regionName: "서울",
+                regionName: "?쒖슱",
                 thumbnailUrl: null,
                 favoriteCount: 6,
                 isFavorite: false,
@@ -173,9 +168,9 @@ describe("auth client", () => {
           items: [
             {
               meetingId: 91,
-              meetingTitle: "토요일 방탈출",
+              meetingTitle: "수요일 방탈출",
               crewId: 7,
-              crewName: "방팟 크루",
+              crewName: "諛⑺뙚 ?щ（",
               date: "2026-05-02",
               time: "14:00",
               meetingStatus: "RECRUITING",
@@ -220,6 +215,12 @@ describe("auth client", () => {
               escapeCount: 0,
             },
           ],
+          pageInfo: {
+            page: 1,
+            size: 12,
+            totalElements: 33,
+            totalPages: 3,
+          },
         }),
         {
           status: 200,
@@ -233,11 +234,12 @@ describe("auth client", () => {
 
     await searchUsers({
       keyword: "bang",
+      page: 1,
       size: 12,
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "/backend/api/users/search?keyword=bang&size=12",
+      "/backend/api/users/search?keyword=bang&page=1&size=12",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",
@@ -328,12 +330,12 @@ describe("auth client", () => {
           items: [
             {
               meetingId: 31,
-              title: "토요일 방탈출",
+              title: "수요일 방탈출",
               status: "RECRUITING",
               date: "2026-04-20",
               time: "14:00",
               crewId: 7,
-              crewName: "방팟 크루",
+              crewName: "諛⑺뙚 ?щ（",
             },
           ],
           pageInfo: {
@@ -374,9 +376,9 @@ describe("auth client", () => {
             {
               meetingId: 41,
               title: "금요일 방탈출",
-              themeName: "더 킹덤",
+              themeName: "???밸뜡",
               crewId: 7,
-              crewName: "방팟 크루",
+              crewName: "諛⑺뙚 ?щ（",
               date: "2026-04-25",
               time: "19:00",
               status: "COMPLETED",
@@ -427,7 +429,7 @@ describe("auth client", () => {
               meetingTitle: "Friday Escape",
               meetingDate: "2026-04-18",
               createdAt: "2026-04-19T10:15:30Z",
-              excerpt: "내가 직접 쓴 방탈로그 요약",
+              excerpt: "?닿? 吏곸젒 ??諛⑺깉濡쒓렇 ?붿빟",
               coverPhotoUrl: "https://cdn.example.com/log-cover.jpg",
               photoCount: 3,
             },
@@ -469,9 +471,9 @@ describe("auth client", () => {
           items: [
             {
               themeId: 301,
-              themeName: "포비든 룸",
-              storeName: "서울 이스케이프",
-              regionName: "서울 강남",
+              themeName: "서비스 룸",
+              storeName: "?쒖슱 ?댁뒪耳?댄봽",
+              regionName: "?쒖슱 媛뺣궓",
               thumbnailUrl: null,
               favoriteCount: 12,
               isFavorite: true,
@@ -508,7 +510,7 @@ describe("auth client", () => {
           items: [
             {
               crewId: 17,
-              crewName: "방탈출 크루",
+              crewName: "諛⑺깉異??щ（",
               visibility: "PUBLIC",
               leaderNickname: "bangpot",
               coverImageUrl: null,
@@ -552,9 +554,9 @@ describe("auth client", () => {
             {
               joinRequestId: 91,
               crewId: 17,
-              crewName: "방탈출 크루",
+              crewName: "諛⑺깉異??щ（",
               requestedAt: "2026-04-17T09:00:00Z",
-              messageSummary: "주말 위주로 참여하고 싶어요.",
+              messageSummary: "二쇰쭚 ?꾩＜濡?李몄뿬?섍퀬 ?띠뼱??",
             },
           ],
           pageInfo: {
@@ -595,29 +597,7 @@ describe("auth client", () => {
           blockingActiveCrews: [
             {
               crewId: 17,
-              crewName: "방탈출 크루",
-            },
-          ],
-          blockingParticipatingMeetings: [
-            {
-              meetingId: 51,
-              meetingTitle: "금요 방탈출",
-              crewId: 17,
-              crewName: "방탈출 크루",
-              meetingStatus: "RECRUITING",
-              date: "2026-04-20",
-              time: "19:00",
-              participationRole: "HOST",
-            },
-            {
-              meetingId: 52,
-              meetingTitle: "주말 스터디 모임",
-              crewId: 18,
-              crewName: "서울 방탈출 클럽",
-              meetingStatus: "RECRUITMENT_CLOSED",
-              date: "2026-04-22",
-              time: "20:00",
-              participationRole: "PARTICIPANT",
+              crewName: "諛⑺깉異??щ（",
             },
           ],
         }),
@@ -661,7 +641,7 @@ describe("auth client", () => {
 
     await withdrawUser({
       reasonCode: "OTHER",
-      reasonDetail: "쉬어가려고 해요.",
+      reasonDetail: "?ъ뼱媛?ㅺ퀬 ?댁슂.",
       confirmationChecked: true,
     });
 
@@ -675,7 +655,7 @@ describe("auth client", () => {
         },
         body: JSON.stringify({
           reasonCode: "OTHER",
-          reasonDetail: "쉬어가려고 해요.",
+          reasonDetail: "?ъ뼱媛?ㅺ퀬 ?댁슂.",
           confirmationChecked: true,
         }),
       }),
@@ -686,7 +666,7 @@ describe("auth client", () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
-          joinRequestId: 91,
+          requestId: 91,
           crewId: 17,
         }),
         {
@@ -702,9 +682,9 @@ describe("auth client", () => {
     await cancelPendingCrew(91);
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "/backend/api/users/me/pending-crews/91",
+      "/backend/api/crews/join-requests/91/cancel",
       expect.objectContaining({
-        method: "DELETE",
+        method: "POST",
         credentials: "include",
       }),
     );
@@ -744,7 +724,7 @@ describe("auth client", () => {
         new Response(
           JSON.stringify({
             code: "AUTH_UNAUTHENTICATED",
-            message: "인증이 필요합니다.",
+            message: "?몄쬆???꾩슂?⑸땲??",
             requestId: "req-auth-1",
             fieldErrors: [],
           }),
@@ -760,8 +740,8 @@ describe("auth client", () => {
 
     await expect(getMe()).rejects.toMatchObject({
       code: "AUTH_UNAUTHENTICATED",
-      message: "인증이 필요합니다.",
-      userMessage: "인증이 필요합니다.",
+      message: "?몄쬆???꾩슂?⑸땲??",
+      userMessage: "?몄쬆???꾩슂?⑸땲??",
       status: 401,
       requestId: "req-auth-1",
       fieldErrors: [],
@@ -776,12 +756,12 @@ describe("auth client", () => {
         new Response(
           JSON.stringify({
             code: "COMMON_VALIDATION_ERROR",
-            message: "입력값이 올바르지 않습니다.",
+            message: "?낅젰媛믪씠 ?щ컮瑜댁? ?딆뒿?덈떎.",
             requestId: "req-complete-1",
             fieldErrors: [
               {
                 field: "nickname",
-                message: "닉네임은 비어 있을 수 없습니다.",
+                message: "?됰꽕?꾩? 鍮꾩뼱 ?덉쓣 ???놁뒿?덈떎.",
               },
             ],
           }),
@@ -802,13 +782,13 @@ describe("auth client", () => {
       }),
     ).rejects.toMatchObject({
       code: "COMMON_VALIDATION_ERROR",
-      message: "입력값이 올바르지 않습니다.",
+      message: "?낅젰媛믪씠 ?щ컮瑜댁? ?딆뒿?덈떎.",
       requestId: "req-complete-1",
       status: 400,
       fieldErrors: [
         {
           field: "nickname",
-          message: "닉네임은 비어 있을 수 없습니다.",
+          message: "?됰꽕?꾩? 鍮꾩뼱 ?덉쓣 ???놁뒿?덈떎.",
         },
       ],
     });
@@ -821,12 +801,12 @@ describe("auth client", () => {
         new Response(
           JSON.stringify({
             code: "COMMON_VALIDATION_ERROR",
-            message: "?낅젰媛믪씠 ?щ컮瑜댁? ?딆뒿?덈떎.",
+            message: "??낆젾揶쏅?????而?몴?? ??녿뮸??덈뼄.",
             requestId: "req-profile-1",
             fieldErrors: [
               {
                 field: "nickname",
-                message: "?됰꽕?꾩? 鍮꾩뼱 ?덉쓣 ???놁뒿?덈떎.",
+                message: "??곌퐬?袁? ??쑴堉???됱뱽 ????곷뮸??덈뼄.",
               },
             ],
           }),
@@ -846,13 +826,13 @@ describe("auth client", () => {
       }),
     ).rejects.toMatchObject({
       code: "COMMON_VALIDATION_ERROR",
-      message: "?낅젰媛믪씠 ?щ컮瑜댁? ?딆뒿?덈떎.",
+      message: "??낆젾揶쏅?????而?몴?? ??녿뮸??덈뼄.",
       requestId: "req-profile-1",
       status: 400,
       fieldErrors: [
         {
           field: "nickname",
-          message: "?됰꽕?꾩? 鍮꾩뼱 ?덉쓣 ???놁뒿?덈떎.",
+          message: "??곌퐬?袁? ??쑴堉???됱뱽 ????곷뮸??덈뼄.",
         },
       ],
       path: "/api/users/me",
@@ -902,3 +882,4 @@ describe("auth client", () => {
     );
   });
 });
+

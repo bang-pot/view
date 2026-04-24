@@ -70,6 +70,7 @@ export function UserSearchPanel({
     try {
       const response = await searchUsers({
         keyword: nextKeyword,
+        page: 0,
         size,
       });
 

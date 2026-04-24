@@ -64,11 +64,16 @@ export async function getProfile(): Promise<AuthProfileHubResponse> {
 
 export async function searchUsers(input: {
   keyword: string;
+  page?: number;
   size?: number;
 }): Promise<UserSearchResponse> {
   const params = new URLSearchParams({
     keyword: input.keyword,
   });
+
+  if (input.page !== undefined) {
+    params.set("page", String(input.page));
+  }
 
   if (input.size !== undefined) {
     params.set("size", String(input.size));
@@ -274,11 +279,14 @@ export async function getPendingCrews(input: {
 export async function cancelPendingCrew(
   joinRequestId: number,
 ): Promise<CancelPendingCrewResponse> {
-  return requestJson<CancelPendingCrewResponse>(
+  const response = await requestJson<{
+    requestId: number;
+    crewId: number;
+  }>(
     getApiBaseUrl(),
-    `/api/users/me/pending-crews/${joinRequestId}`,
+    `/api/crews/join-requests/${joinRequestId}/cancel`,
     {
-      method: "DELETE",
+      method: "POST",
       credentials: "include",
     },
     {
@@ -286,6 +294,11 @@ export async function cancelPendingCrew(
       message: "가입 신청 취소에 실패했어요. 잠시 후 다시 시도해 주세요.",
     },
   );
+
+  return {
+    joinRequestId: response.requestId,
+    crewId: response.crewId,
+  };
 }
 
 export async function getWithdrawalCheck(): Promise<WithdrawalCheckResponse> {

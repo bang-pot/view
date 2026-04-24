@@ -123,6 +123,12 @@ describe("MemberSearchPage", () => {
           escapeCount: 17,
         },
       ],
+      pageInfo: {
+        page: 0,
+        size: 20,
+        totalElements: 2,
+        totalPages: 1,
+      },
     });
 
     render(<MemberSearchPage />);
@@ -134,6 +140,7 @@ describe("MemberSearchPage", () => {
 
     expect(searchUsers).toHaveBeenCalledWith({
       keyword: "bang",
+      page: 0,
       size: 20,
     });
 
@@ -165,6 +172,12 @@ describe("MemberSearchPage", () => {
     });
     vi.mocked(searchUsers).mockResolvedValue({
       items: [],
+      pageInfo: {
+        page: 0,
+        size: 20,
+        totalElements: 0,
+        totalPages: 0,
+      },
     });
 
     render(<MemberSearchPage />);
@@ -199,6 +212,12 @@ describe("MemberSearchPage", () => {
             escapeCount: 0,
           },
         ],
+        pageInfo: {
+          page: 0,
+          size: 20,
+          totalElements: 1,
+          totalPages: 1,
+        },
       });
 
     render(<MemberSearchPage />);
