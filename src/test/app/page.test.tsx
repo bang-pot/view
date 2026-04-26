@@ -27,7 +27,7 @@ describe("Home page", () => {
     cleanup();
   });
 
-  it("renders the guest home hub with preview sections, login guidance, and theme favorite buttons", async () => {
+  it("renders the guest landing home with previews, primary actions, and theme favorite buttons", async () => {
     vi.mocked(getHome).mockResolvedValue({
       isLoggedIn: false,
       myCrews: {
@@ -65,30 +65,52 @@ describe("Home page", () => {
 
     render(await Home({ searchParams: Promise.resolve({}) }));
 
-    expect(await screen.findByRole("heading", { name: "BangPot" })).toBeInTheDocument();
-    expect(
-      screen.getByText("방탈출 크루를 찾고, 모임을 만들고, 다음 약속까지 한 번에 이어보세요."),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "공개 크루 탐색" })).toHaveAttribute(
+    expect(await screen.findByRole("banner")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "BangPot" })).toHaveAttribute(
+      "src",
+      "/brand/bangpot-logo-horizontal.svg",
+    );
+    expect(screen.getByRole("link", { name: "홈" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "크루 탐색" })).toHaveAttribute(
       "href",
       "/crews/public",
     );
-    expect(screen.getByRole("link", { name: "크루 만들기" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "방탈출 탐색" })).toHaveAttribute(
       "href",
-      "/login?redirectTo=%2Fcrews%2Fnew",
+      "/explore",
     );
+    expect(screen.queryByText("🔔")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("알림")).toBeInTheDocument();
     expect(
-      screen.getByText("로그인하면 내 크루와 다가오는 모임을 더 편하게 볼 수 있어요."),
+      screen.getByRole("heading", {
+        name: "하루 한 끝, 나의 탈출 함께할 사람과 함께.",
+      }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "카카오로 시작하기" })).toHaveAttribute(
+      "href",
+      "/login",
+    );
+    expect(screen.getByRole("link", { name: "크루 둘러보기" })).toHaveAttribute(
+      "href",
+      "/crews/public",
+    );
+    expect(screen.getByRole("heading", { name: "방팟과 함께라면" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "크루 매칭" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "활동 관리" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "기록 & 통계" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "내 크루" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "다가오는 모임" })).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "공개 크루 탐색" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "지금 모집 중인 크루" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "미스터리 크루 크루 보기" })).toHaveAttribute(
       "href",
       "/crews/public/11",
     );
-    expect(screen.getByText("크루 이미지 준비 중")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "방탈출 탐색" })).toBeInTheDocument();
+    expect(screen.getByText("이미지 준비 중")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "크루 더 보기" })).toHaveAttribute(
+      "href",
+      "/crews/public",
+    );
+    expect(screen.getByRole("heading", { name: "이번 주 인기 테마" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "사연의 집 상세 보기" })).toHaveAttribute(
       "href",
       "/explore/themes/31",
@@ -129,35 +151,70 @@ describe("Home page", () => {
         totalCount: 1,
       },
       publicCrewPreview: {
-        items: [],
+        items: [
+          {
+            crewId: 11,
+            crewName: "미스터리 크루",
+            coverImageUrl: null,
+            memberCount: 12,
+          },
+        ],
       },
       themeExplorePreview: {
-        items: [],
+        items: [
+          {
+            themeId: 31,
+            themeName: "사연의 집",
+            storeName: "마포 이스케이프",
+            regionName: "서울 마포구",
+            thumbnailUrl: null,
+            favoriteCount: 4,
+            isFavorite: true,
+          },
+        ],
       },
     });
 
     render(await Home({ searchParams: Promise.resolve({}) }));
 
-    expect(await screen.findByRole("heading", { name: "내 크루" })).toBeInTheDocument();
-    expect(screen.getByText("현재 2개의 크루를 확인하고 있어요.")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "오늘도 방탈출하러 가볼까요?" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("안녕하세요, 탈출왕님 👋")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "활동 확인하기" })).toHaveAttribute(
+      "href",
+      "/profile",
+    );
+    expect(screen.getByRole("heading", { name: "나의 활동" })).toBeInTheDocument();
+    expect(screen.getAllByText("내 크루")).toHaveLength(2);
+    expect(screen.getByText("2개")).toBeInTheDocument();
+    expect(screen.getByText("예정된 활동")).toBeInTheDocument();
+    expect(screen.getAllByText("1개")).toHaveLength(2);
+    expect(screen.getByText("둘러볼 테마")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "내 크루" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "방탈출 크루 크루로 이동" })).toHaveAttribute(
       "href",
       "/crews/3",
     );
-    expect(screen.getByRole("link", { name: "소속 크루 전체 보기" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "서울 탈출러 크루로 이동" })).toHaveAttribute(
       "href",
-      "/profile/crews",
+      "/crews/7",
     );
-    expect(screen.getByRole("heading", { name: "다가오는 모임" })).toBeInTheDocument();
-    expect(screen.getByText("곧 참여할 일정 1개가 있어요.")).toBeInTheDocument();
-    expect(screen.getByText("모집 중")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "금요일 방탈출 모임 보기" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "금요일 방탈출 다음 활동 보기" })).toHaveAttribute(
       "href",
       "/crews/3/meetings/41",
     );
-    expect(screen.getByRole("link", { name: "크루 만들기" })).toHaveAttribute("href", "/crews/new");
-    expect(screen.getByText("아직 공개 크루가 충분히 준비되지 않았어요.")).toBeInTheDocument();
-    expect(screen.getByText("아직 탐색할 테마가 준비되지 않았어요.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "크루 찾기" })).toHaveAttribute(
+      "href",
+      "/crews/public",
+    );
+    expect(screen.getByRole("heading", { name: "다른 크루도 둘러보세요" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "미스터리 크루 크루 보기" })).toHaveAttribute(
+      "href",
+      "/crews/public/11",
+    );
+    expect(screen.getByRole("heading", { name: "이번 주 인기 테마" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "찜 해제" })).toBeInTheDocument();
   });
 
   it("shows a retry affordance when the home payload fails to load", async () => {
