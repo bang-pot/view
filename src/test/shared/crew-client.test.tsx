@@ -19,6 +19,7 @@ import {
   getPendingCrewJoinRequests,
   getPublicCrewJoinView,
   getPublicCrews,
+  getMyCrewInvites,
   rejectCrewJoinRequest,
 } from "@/shared/crew/client";
 
@@ -131,15 +132,21 @@ describe("crew client", () => {
   it("loads public crews from the backend discovery contract", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(
-        JSON.stringify([
-          {
-            crewId: 11,
-            name: "BangPot Runners",
-            description: "Morning runners",
-            visibility: "PUBLIC",
-            imageUrl: null,
+        JSON.stringify({
+          items: [
+            {
+              crewId: 11,
+              name: "BangPot Runners",
+              description: "Morning runners",
+              imageUrl: null,
+            },
+          ],
+          pageInfo: {
+            page: 0,
+            size: 20,
+            hasNext: false,
           },
-        ]),
+        }),
         {
           status: 200,
           headers: {
@@ -150,10 +157,13 @@ describe("crew client", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    await getPublicCrews();
+    await getPublicCrews({
+      page: 0,
+      size: 20,
+    });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "/backend/api/crews/public",
+      "/backend/api/crews/public?page=0&size=20",
       expect.objectContaining({
         cache: "no-store",
       }),
@@ -745,5 +755,48 @@ describe("crew client", () => {
       status: 409,
       path: "/api/crews/11/invites",
     });
+  });
+
+  it("loads my crew invites with the paged backend contract", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          items: [
+            {
+              inviteId: 101,
+              crewId: 11,
+              crewName: "Night runners",
+              inviterNickname: "leader-one",
+              status: "PENDING",
+            },
+          ],
+          pageInfo: {
+            page: 0,
+            size: 20,
+            hasNext: false,
+          },
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getMyCrewInvites({
+      page: 0,
+      size: 20,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crew-invites/me?page=0&size=20",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
   });
 });

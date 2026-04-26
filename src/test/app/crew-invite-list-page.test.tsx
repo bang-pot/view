@@ -96,29 +96,36 @@ describe("CrewInviteListPage", () => {
       user: { id: 1, nickname: "bangpot" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
-    vi.mocked(getMyCrewInvites).mockResolvedValue([
-      {
-        inviteId: 101,
-        crewId: 11,
-        crewName: "Night runners",
-        inviterNickname: "leader-one",
-        status: "PENDING",
+    vi.mocked(getMyCrewInvites).mockResolvedValue({
+      items: [
+        {
+          inviteId: 101,
+          crewId: 11,
+          crewName: "Night runners",
+          inviterNickname: "leader-one",
+          status: "PENDING",
+        },
+        {
+          inviteId: 202,
+          crewId: 22,
+          crewName: "Dawn birds",
+          inviterNickname: "leader-two",
+          status: "APPROVED",
+        },
+        {
+          inviteId: 303,
+          crewId: 33,
+          crewName: "Moon walkers",
+          inviterNickname: "leader-three",
+          status: "PENDING",
+        },
+      ],
+      pageInfo: {
+        page: 0,
+        size: 20,
+        hasNext: false,
       },
-      {
-        inviteId: 202,
-        crewId: 22,
-        crewName: "Dawn birds",
-        inviterNickname: "leader-two",
-        status: "APPROVED",
-      },
-      {
-        inviteId: 303,
-        crewId: 33,
-        crewName: "Moon walkers",
-        inviterNickname: "leader-three",
-        status: "PENDING",
-      },
-    ]);
+    });
     vi.mocked(acceptCrewInvite).mockResolvedValue({
       inviteId: 101,
       crewId: 11,
@@ -133,6 +140,10 @@ describe("CrewInviteListPage", () => {
     render(<CrewInviteListPage />);
 
     expect(await screen.findByRole("heading", { name: "My invites" })).toBeInTheDocument();
+    expect(getMyCrewInvites).toHaveBeenCalledWith({
+      page: 0,
+      size: 20,
+    });
     expect(screen.getByText("Night runners")).toBeInTheDocument();
     expect(screen.getByText("Invited by: leader-one")).toBeInTheDocument();
     expect(screen.getAllByText("PENDING")).toHaveLength(2);
@@ -172,15 +183,22 @@ describe("CrewInviteListPage", () => {
       user: { id: 1, nickname: "bangpot" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
-    vi.mocked(getMyCrewInvites).mockResolvedValue([
-      {
-        inviteId: 101,
-        crewId: 11,
-        crewName: "Night runners",
-        inviterNickname: "leader-one",
-        status: "PENDING",
+    vi.mocked(getMyCrewInvites).mockResolvedValue({
+      items: [
+        {
+          inviteId: 101,
+          crewId: 11,
+          crewName: "Night runners",
+          inviterNickname: "leader-one",
+          status: "PENDING",
+        },
+      ],
+      pageInfo: {
+        page: 0,
+        size: 20,
+        hasNext: false,
       },
-    ]);
+    });
     vi.mocked(acceptCrewInvite).mockRejectedValue(
       new OperationalError({
         code: "CREW_INVITE_NOT_FOUND",
@@ -199,5 +217,61 @@ describe("CrewInviteListPage", () => {
     expect(
       await screen.findByText("이미 처리되었거나 존재하지 않는 초대입니다."),
     ).toBeInTheDocument();
+  });
+  it("loads the next invite page while keeping already loaded items", async () => {
+    vi.mocked(getMe).mockResolvedValue({
+      authStatus: "FULL",
+      completionRequired: false,
+      redirectTo: null,
+      requiredTermsVersion: "2026-03-25",
+      user: { id: 1, nickname: "bangpot" },
+      requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
+    });
+    vi.mocked(getMyCrewInvites)
+      .mockResolvedValueOnce({
+        items: [
+          {
+            inviteId: 101,
+            crewId: 11,
+            crewName: "Night runners",
+            inviterNickname: "leader-one",
+            status: "PENDING",
+          },
+        ],
+        pageInfo: {
+          page: 0,
+          size: 20,
+          hasNext: true,
+        },
+      })
+      .mockResolvedValueOnce({
+        items: [
+          {
+            inviteId: 202,
+            crewId: 22,
+            crewName: "Dawn birds",
+            inviterNickname: "leader-two",
+            status: "PENDING",
+          },
+        ],
+        pageInfo: {
+          page: 1,
+          size: 20,
+          hasNext: false,
+        },
+      });
+
+    render(<CrewInviteListPage />);
+
+    expect(await screen.findByText("Night runners")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Load more invites" }));
+
+    expect(await screen.findByText("Dawn birds")).toBeInTheDocument();
+    expect(screen.getByText("Night runners")).toBeInTheDocument();
+    expect(getMyCrewInvites).toHaveBeenNthCalledWith(2, {
+      page: 1,
+      size: 20,
+    });
   });
 });

@@ -27,8 +27,23 @@ export type PublicCrewSummary = {
   crewId: number;
   name: string;
   description: string | null;
-  visibility: CrewVisibility;
   imageUrl: string | null;
+};
+
+export type PublicCrewPageInfo = {
+  page: number;
+  size: number;
+  hasNext: boolean;
+};
+
+export type PublicCrewsResponse = {
+  items: PublicCrewSummary[];
+  pageInfo: PublicCrewPageInfo;
+};
+
+export type PublicCrewsQuery = {
+  page: number;
+  size: number;
 };
 
 export type CrewJoinViewResponse = {
@@ -147,6 +162,22 @@ export type MyCrewInvite = {
   crewName: string;
   inviterNickname: string;
   status: MyCrewInviteStatus;
+};
+
+export type MyCrewInvitesPageInfo = {
+  page: number;
+  size: number;
+  hasNext: boolean;
+};
+
+export type MyCrewInvitesResponse = {
+  items: MyCrewInvite[];
+  pageInfo: MyCrewInvitesPageInfo;
+};
+
+export type MyCrewInvitesQuery = {
+  page: number;
+  size: number;
 };
 
 export type CrewInviteAcceptResponse = {

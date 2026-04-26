@@ -22,9 +22,11 @@ import type {
   CrewRemoveMemberResponse,
   CrewTransferLeadershipResponse,
   CrewJoinViewResponse,
-  MyCrewInvite,
+  MyCrewInvitesQuery,
+  MyCrewInvitesResponse,
   PendingCrewJoinRequestSummary,
-  PublicCrewSummary,
+  PublicCrewsQuery,
+  PublicCrewsResponse,
   CrewVisibility,
   CrewVisibilityUpdateResponse,
 } from "@/shared/crew/types";
@@ -52,10 +54,15 @@ export async function createCrew(input: CrewCreateInput): Promise<CrewCreateResp
   );
 }
 
-export async function getPublicCrews(): Promise<PublicCrewSummary[]> {
-  return requestJson<PublicCrewSummary[]>(
+export async function getPublicCrews(query: PublicCrewsQuery): Promise<PublicCrewsResponse> {
+  const search = new URLSearchParams({
+    page: String(query.page),
+    size: String(query.size),
+  });
+
+  return requestJson<PublicCrewsResponse>(
     getApiBaseUrl(),
-    "/api/crews/public",
+    `/api/crews/public?${search.toString()}`,
     {
       cache: "no-store",
     },
@@ -398,10 +405,15 @@ export async function createCrewInvite(
   );
 }
 
-export async function getMyCrewInvites(): Promise<MyCrewInvite[]> {
-  return requestJson<MyCrewInvite[]>(
+export async function getMyCrewInvites(query: MyCrewInvitesQuery): Promise<MyCrewInvitesResponse> {
+  const search = new URLSearchParams({
+    page: String(query.page),
+    size: String(query.size),
+  });
+
+  return requestJson<MyCrewInvitesResponse>(
     getApiBaseUrl(),
-    "/api/crew-invites/me",
+    `/api/crew-invites/me?${search.toString()}`,
     {
       credentials: "include",
       cache: "no-store",
