@@ -1,0 +1,17 @@
+.logo {
+  display: block;
+  height: auto;
+  object-fit: contain;
+}
+
+.horizontal {
+  aspect-ratio: 625.11 / 128.42;
+}
+
+.stacked {
+  aspect-ratio: 370.37 / 236.18;
+}
+
+.symbol {
+  aspect-ratio: 81.8 / 125.54;
+}
