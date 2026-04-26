@@ -16,12 +16,31 @@ import type { MyCrewInvite } from "@/shared/crew/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
 const MY_INVITES_PATH = "/crew-invites";
+const PAGE_SIZE = 20;
+
+function mergeInvites(current: MyCrewInvite[], next: MyCrewInvite[]): MyCrewInvite[] {
+  const invitesById = new Map<number, MyCrewInvite>();
+
+  for (const invite of current) {
+    invitesById.set(invite.inviteId, invite);
+  }
+
+  for (const invite of next) {
+    invitesById.set(invite.inviteId, invite);
+  }
+
+  return Array.from(invitesById.values());
+}
 
 export function MyCrewInvitesPageClient() {
   const router = useRouter();
   const [items, setItems] = useState<MyCrewInvite[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loadMoreErrorMessage, setLoadMoreErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [activeInviteId, setActiveInviteId] = useState<number | null>(null);
 
   const pendingCount = useMemo(
@@ -50,13 +69,18 @@ export function MyCrewInvitesPageClient() {
           return;
         }
 
-        const response = await getMyCrewInvites();
+        const response = await getMyCrewInvites({
+          page: 0,
+          size: PAGE_SIZE,
+        });
 
         if (!isMounted) {
           return;
         }
 
-        setItems(response);
+        setItems(response.items);
+        setPage(response.pageInfo.page);
+        setHasNext(response.pageInfo.hasNext);
         setIsLoading(false);
       } catch (error) {
         reportOperationalError("crew.my_invites_load_failed", error, {
@@ -80,6 +104,31 @@ export function MyCrewInvitesPageClient() {
       isMounted = false;
     };
   }, [router]);
+
+  async function handleLoadMore() {
+    setIsLoadingMore(true);
+    setLoadMoreErrorMessage(null);
+
+    try {
+      const response = await getMyCrewInvites({
+        page: page + 1,
+        size: PAGE_SIZE,
+      });
+
+      setItems((current) => mergeInvites(current, response.items));
+      setPage(response.pageInfo.page);
+      setHasNext(response.pageInfo.hasNext);
+    } catch (error) {
+      reportOperationalError("crew.my_invites_load_more_failed", error, {
+        route: MY_INVITES_PATH,
+      });
+      setLoadMoreErrorMessage(
+        getUserMessage(error, "초대 목록을 더 불러오지 못했습니다. 잠시 뒤 다시 시도해 주세요."),
+      );
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }
 
   async function handleAccept(inviteId: number) {
     setActiveInviteId(inviteId);
@@ -180,6 +229,12 @@ export function MyCrewInvitesPageClient() {
           );
         })}
       </ul>
+      {loadMoreErrorMessage ? <p>{loadMoreErrorMessage}</p> : null}
+      {hasNext ? (
+        <button type="button" onClick={() => void handleLoadMore()} disabled={isLoadingMore}>
+          {isLoadingMore ? "Loading more invites..." : "Load more invites"}
+        </button>
+      ) : null}
     </main>
   );
 }
