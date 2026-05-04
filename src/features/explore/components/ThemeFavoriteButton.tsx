@@ -109,7 +109,7 @@ export function ThemeFavoriteButton({
       </button>
       {favoriteCount !== null ? (
         <span aria-label="찜 수" style={{ fontSize: 12, color: "#666" }}>
-          {favoriteCount}
+          {favoriteCount.toLocaleString()}
         </span>
       ) : null}
       {errorMessage ? <p style={{ margin: 0 }}>{errorMessage}</p> : null}
