@@ -18,16 +18,38 @@ type MeetingListPageClientProps = {
   crewId: string;
 };
 
+const PAGE_SIZE = 20;
+
 function buildPublicCrewPath(crewId: string): string {
   return `/crews/public/${crewId}`;
+}
+
+function mergeMeetings(
+  previousItems: MeetingListItem[],
+  nextItems: MeetingListItem[],
+): MeetingListItem[] {
+  const seen = new Set(previousItems.map((item) => item.meetingId));
+  const merged = [...previousItems];
+
+  for (const item of nextItems) {
+    if (!seen.has(item.meetingId)) {
+      merged.push(item);
+      seen.add(item.meetingId);
+    }
+  }
+
+  return merged;
 }
 
 export function MeetingListPageClient({ crewId }: MeetingListPageClientProps) {
   const router = useRouter();
   const [crewName, setCrewName] = useState<string | null>(null);
   const [items, setItems] = useState<MeetingListItem[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const crewIdNumber = Number(crewId);
   const hasValidCrewId = Number.isFinite(crewIdNumber);
@@ -43,14 +65,16 @@ export function MeetingListPageClient({ crewId }: MeetingListPageClientProps) {
 
     let isMounted = true;
 
-    void Promise.all([getCrewHub(crewIdNumber), getMeetings(crewIdNumber)])
-      .then(([crew, meetings]) => {
+    void Promise.all([getCrewHub(crewIdNumber), getMeetings(crewIdNumber, { page: 0, size: PAGE_SIZE })])
+      .then(([crew, meetingsResponse]) => {
         if (!isMounted) {
           return;
         }
 
         setCrewName(crew.name);
-        setItems(meetings);
+        setItems(meetingsResponse.items);
+        setPage(meetingsResponse.pageInfo.page);
+        setHasNext(meetingsResponse.pageInfo.hasNext);
         setIsLoading(false);
       })
       .catch((error) => {
@@ -82,6 +106,31 @@ export function MeetingListPageClient({ crewId }: MeetingListPageClientProps) {
       isMounted = false;
     };
   }, [crewIdNumber, hasValidCrewId, publicCrewPath, routePath, router]);
+
+  async function handleLoadMore() {
+    setIsLoadingMore(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await getMeetings(crewIdNumber, {
+        page: page + 1,
+        size: PAGE_SIZE,
+      });
+
+      setItems((currentItems) => mergeMeetings(currentItems, response.items));
+      setPage(response.pageInfo.page);
+      setHasNext(response.pageInfo.hasNext);
+    } catch (error) {
+      reportOperationalError("meeting.list_load_more_failed", error, {
+        route: routePath,
+      });
+      setErrorMessage(
+        getUserMessage(error, "모임 목록을 더 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."),
+      );
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }
 
   if (!hasValidCrewId) {
     return (
@@ -145,6 +194,11 @@ export function MeetingListPageClient({ crewId }: MeetingListPageClientProps) {
           ))}
         </ul>
       )}
+      {hasNext ? (
+        <button type="button" onClick={() => void handleLoadMore()} disabled={isLoadingMore}>
+          {isLoadingMore ? "불러오는 중" : "더 보기"}
+        </button>
+      ) : null}
     </main>
   );
 }

@@ -6,7 +6,8 @@ import type {
   CreateMeetingResponse,
   JoinMeetingResponse,
   MeetingDetail,
-  MeetingListItem,
+  MeetingListQuery,
+  MeetingListResponse,
   MeetingResult,
   MeetingResultRecordResponse,
   MeetingStatusUpdateResponse,
@@ -40,10 +41,18 @@ export async function createMeeting(
   );
 }
 
-export async function getMeetings(crewId: number): Promise<MeetingListItem[]> {
-  return requestJson<MeetingListItem[]>(
+export async function getMeetings(
+  crewId: number,
+  query: MeetingListQuery = { page: 0, size: 20 },
+): Promise<MeetingListResponse> {
+  const params = new URLSearchParams();
+
+  params.set("page", String(query.page));
+  params.set("size", String(query.size));
+
+  return requestJson<MeetingListResponse>(
     getApiBaseUrl(),
-    `/api/crews/${crewId}/meetings`,
+    `/api/crews/${crewId}/meetings?${params.toString()}`,
     {
       credentials: "include",
       cache: "no-store",
