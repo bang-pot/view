@@ -19,6 +19,7 @@
   line-height: 1;
   min-height: var(--button-min-height);
   padding: var(--button-padding-y) var(--button-padding-x);
+  text-decoration: none;
   transition:
     background-color 120ms ease,
     border-color 120ms ease,
@@ -48,6 +49,10 @@
   color: var(--color-button-disabled-text);
   cursor: not-allowed;
   transform: none;
+}
+
+.button[aria-disabled="true"] {
+  pointer-events: none;
 }
 
 .button[data-state="hover"]:not(:disabled) {

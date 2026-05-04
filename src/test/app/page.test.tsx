@@ -59,6 +59,24 @@ describe("Home page", () => {
             favoriteCount: 4,
             isFavorite: false,
           },
+          {
+            themeId: 32,
+            themeName: "타임머신",
+            storeName: "제로월드 홍대점",
+            regionName: "서울 마포구",
+            thumbnailUrl: null,
+            favoriteCount: 1412,
+            isFavorite: false,
+          },
+          {
+            themeId: 33,
+            themeName: "매트릭스",
+            storeName: "코드케이 강남점",
+            regionName: "서울 강남구",
+            thumbnailUrl: null,
+            favoriteCount: 1820,
+            isFavorite: false,
+          },
         ],
       },
     });
@@ -75,7 +93,7 @@ describe("Home page", () => {
       "href",
       "/crews/public",
     );
-    expect(screen.getByRole("link", { name: "방탈출 탐색" })).toHaveAttribute(
+    expect(screen.getAllByRole("link", { name: "방탈출 탐색" })[0]).toHaveAttribute(
       "href",
       "/explore",
     );
@@ -83,10 +101,14 @@ describe("Home page", () => {
     expect(screen.getByLabelText("알림")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "하루 한 끝, 나의 탈출 함께할 사람과 함께.",
+        name: "우리의 탈출이 기록되는 LOG, BANGLOG",
       }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "카카오로 시작하기" })).toHaveAttribute(
+    expect(screen.getByRole("img", { name: "방로그 히어로 일러스트" })).toHaveAttribute(
+      "src",
+      "/home/main_illust.svg",
+    );
+    expect(screen.getAllByRole("link", { name: "카카오로 시작하기" })[0]).toHaveAttribute(
       "href",
       "/login",
     );
@@ -94,10 +116,10 @@ describe("Home page", () => {
       "href",
       "/crews/public",
     );
-    expect(screen.getByRole("heading", { name: "방팟과 함께라면" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "크루 매칭" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "활동 관리" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "기록 & 통계" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "방로그와 함께라면" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "나와 딱 맞는 크루 찾기!" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "약속 잡기 쉽게!" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "방탈출 추억 남기기!" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "내 크루" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "다가오는 모임" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "지금 모집 중인 크루" })).toBeInTheDocument();
@@ -106,18 +128,42 @@ describe("Home page", () => {
       "/crews/public/11",
     );
     expect(screen.getByText("이미지 준비 중")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "크루 더 보기" })).toHaveAttribute(
-      "href",
-      "/crews/public",
-    );
-    expect(screen.getByRole("heading", { name: "이번 주 인기 테마" })).toBeInTheDocument();
+    const crewMoreLink = screen.getByRole("link", { name: "크루 더 보기" });
+    expect(crewMoreLink).toHaveAttribute("href", "/crews/public");
+    expect(
+      crewMoreLink.compareDocumentPosition(
+        screen.getByRole("link", { name: "미스터리 크루 크루 보기" }),
+      ) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "이번 주 인기 방탈출" })).toBeInTheDocument();
+    expect(
+      screen.getByText("좋아요 수 기준 · 본격 탐색은 방탈출 Explore에서"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Weekly · 최근 업데이트")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "이전 인기 방탈출" })).toBeDisabled();
+    const nextThemeButton = screen.getByRole("button", { name: "다음 인기 방탈출" });
+    expect(nextThemeButton).toBeEnabled();
+    expect(screen.getByRole("button", { name: "2위로 이동" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "3위로 이동" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "사연의 집 상세 보기" })).toHaveAttribute(
       "href",
       "/explore/themes/31",
     );
-    expect(screen.getByRole("button", { name: "찜하기" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "찜하기" })).toHaveLength(3);
     expect(screen.getByText("4")).toBeInTheDocument();
-    expect(screen.getByText("포스터 준비 중")).toBeInTheDocument();
+    expect(screen.getAllByText("포스터 준비 중")).toHaveLength(3);
+    expect(screen.getByText("◆ 마포 이스케이프")).toBeInTheDocument();
+    expect(screen.queryByText(/BANGLOG ·/)).not.toBeInTheDocument();
+    expect(screen.queryByText("자세히 보기")).not.toBeInTheDocument();
+    fireEvent.click(nextThemeButton);
+    expect(screen.getByRole("button", { name: "이전 인기 방탈출" })).toBeEnabled();
+    expect(screen.getByLabelText("비로그인 시작 안내")).toHaveTextContent(
+      "크루 탐색, 일정 등록, 기록까지",
+    );
+    expect(screen.getByRole("link", { name: "카카오로 시작" })).toHaveAttribute(
+      "href",
+      "/login",
+    );
   });
 
   it("shows personalized summaries for logged-in users", async () => {
@@ -213,8 +259,12 @@ describe("Home page", () => {
       "href",
       "/crews/public/11",
     );
-    expect(screen.getByRole("heading", { name: "이번 주 인기 테마" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "이번 주 인기 방탈출" })).toBeInTheDocument();
+    expect(
+      screen.getByText("좋아요 수 기준 · 본격 탐색은 방탈출 Explore에서"),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "찜 해제" })).toBeInTheDocument();
+    expect(screen.queryByLabelText("비로그인 시작 안내")).not.toBeInTheDocument();
   });
 
   it("shows a retry affordance when the home payload fails to load", async () => {

@@ -15,6 +15,10 @@ import type {
 import { getUserMessage } from "@/shared/errors/operational";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 import { BrandLogo } from "@/shared/ui/BrandLogo";
+import { Button } from "@/shared/ui/Button";
+import { Icon } from "@/shared/ui/Icon";
+import { IconButton } from "@/shared/ui/IconButton";
+import type { IconName } from "@/shared/ui/Icon";
 
 import styles from "./HomePageClient.module.css";
 
@@ -24,23 +28,51 @@ type HomePageClientProps = {
 
 const FEATURE_CARDS = [
   {
-    icon: "🧩",
-    title: "크루 매칭",
+    icon: "crew",
+    title: "나와 딱 맞는 크루 찾기!",
+    description: "나와 딱 맞는 크루에 가입하거나 크루를 만들어 방탈출을 즐겨보세요.",
+  },
+  {
+    icon: "calendar",
+    title: "약속 잡기 쉽게!",
     description: "성향과 스케줄에 맞는 크루를 찾아드려요.",
   },
   {
-    icon: "📅",
-    title: "활동 관리",
-    description: "예정된 방탈출 일정을 한눈에 확인하세요.",
+    icon: "log",
+    title: "방탈출 추억 남기기!",
+    description: "성향과 스케줄에 맞는 크루를 찾아드려요.",
   },
-  {
-    icon: "📊",
-    title: "기록 & 통계",
-    description: "탈출 기록과 성공률을 자동으로 분석해요.",
-  },
-] as const;
+] satisfies ReadonlyArray<{
+  description: string;
+  icon: IconName;
+  title: string;
+}>;
 
-const THEME_CARD_TONES = ["ink", "purple", "navy", "green", "blue", "red"] as const;
+const THEME_POSTER_TAGS = ["드라마", "공포", "추리", "SF"] as const;
+const THEME_TRACK_CARD_WIDTH = 240;
+const THEME_FEATURED_CARD_WIDTH = 300;
+
+type ThemePosterTag = (typeof THEME_POSTER_TAGS)[number];
+
+function toThemePosterTag(index: number): ThemePosterTag {
+  return THEME_POSTER_TAGS[index % THEME_POSTER_TAGS.length];
+}
+
+function toThemePosterToneClass(index: number): string {
+  if (index % 4 === 1) {
+    return styles.themePosterToneHorror;
+  }
+
+  if (index % 4 === 2) {
+    return styles.themePosterToneMystery;
+  }
+
+  if (index % 4 === 3) {
+    return styles.themePosterToneSf;
+  }
+
+  return styles.themePosterToneNavy;
+}
 
 function toCreateCrewHref(home: HomeResponse | null): string {
   if (home?.isLoggedIn) {
@@ -124,33 +156,46 @@ function HeroSection({
       <div className={styles.heroInner}>
         <div className={styles.heroCopy}>
           {isLoggedIn ? <p className={styles.heroGreeting}>안녕하세요, 탈출왕님 👋</p> : null}
-          <h1>
-            {isLoggedIn
-              ? "오늘도 방탈출하러 가볼까요?"
-              : "하루 한 끝, 나의 탈출 함께할 사람과 함께."}
+          <h1
+            aria-label={isLoggedIn ? undefined : "우리의 탈출이 기록되는 LOG, BANGLOG"}
+            className={isLoggedIn ? undefined : styles.heroGuestTitle}
+          >
+            {isLoggedIn ? (
+              "오늘도 방탈출하러 가볼까요?"
+            ) : (
+              <>
+                <span className={styles.heroTitleLine}>우리의 탈출이 기록되는 LOG,</span>
+                <span className={styles.heroBrandLine}>BANGLOG</span>
+              </>
+            )}
           </h1>
-          <p>
-            {isLoggedIn
-              ? home.upcomingMeetings.totalCount > 0
+          {isLoggedIn ? (
+            <p>
+              {home.upcomingMeetings.totalCount > 0
                 ? `예정된 활동이 ${home.upcomingMeetings.totalCount}개 있어요. 확인해보세요.`
-                : "오늘 함께할 크루와 새로운 방탈출 일정을 찾아보세요."
-              : "방탈출 좋아하는 사람들의 크루 매칭 플랫폼 같이 할 크루를 찾아보세요."}
-          </p>
+                : "오늘 함께할 크루와 새로운 방탈출 일정을 찾아보세요."}
+            </p>
+          ) : null}
           {notice === "crew-left" ? <p className={styles.notice}>크루를 탈퇴했어요.</p> : null}
           {notice === "crew-deleted" ? <p className={styles.notice}>크루를 해체했어요.</p> : null}
           <div className={styles.heroActions}>
             {isLoggedIn ? (
-              <Link href="/profile" className={styles.darkAction}>
+              <Button href="/profile" size="md" variant="primary" className={styles.homeActionButton}>
                 활동 확인하기
-              </Link>
+              </Button>
             ) : (
               <>
-                <Link href="/login" className={styles.primaryAction}>
+                <Button
+                  href="/login"
+                  size="md"
+                  variant="primary"
+                  className={`${styles.homeActionButton} ${styles.kakaoActionButton}`}
+                >
                   카카오로 시작하기
-                </Link>
-                <Link href="/crews/public" className={styles.secondaryAction}>
+                </Button>
+                <Button href="/crews/public" size="md" variant="ghost" className={styles.homeActionButton}>
                   크루 둘러보기
-                </Link>
+                </Button>
               </>
             )}
             {isLoggedIn ? null : (
@@ -160,7 +205,14 @@ function HeroSection({
             )}
           </div>
         </div>
-        <div className={styles.heroOrb} aria-hidden="true" />
+        <div className={styles.heroVisual}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/home/main_illust.svg"
+            alt="방로그 히어로 일러스트"
+            className={styles.heroIllustration}
+          />
+        </div>
       </div>
     </section>
   );
@@ -168,17 +220,19 @@ function HeroSection({
 
 function FeatureSection() {
   return (
-    <section className={styles.section}>
+    <section className={`${styles.section} ${styles.featureSection}`}>
       <div className={styles.sectionInner}>
-        <h2>방팟과 함께라면</h2>
+        <div className={styles.sectionTitleBlock}>
+          <h2>방로그와 함께라면</h2>
+          <p>방로그에서는 이런 활동을 할 수 있어요</p>
+        </div>
         <div className={styles.featureGrid}>
           {FEATURE_CARDS.map((feature) => (
             <article key={feature.title} className={styles.featureCard}>
-              <span className={styles.featureIcon} aria-hidden="true">
-                {feature.icon}
-              </span>
+              <span className={styles.featureNumber} aria-hidden="true" />
               <h3>{feature.title}</h3>
               <p>{feature.description}</p>
+              <Icon name={feature.icon} decorative className={styles.featureCardIcon} />
             </article>
           ))}
         </div>
@@ -194,15 +248,13 @@ function ActivityCard({
   value,
 }: {
   caption: string;
-  icon: string;
+  icon: IconName;
   label: string;
   value: string;
 }) {
   return (
     <article className={styles.activityCard}>
-      <span className={styles.featureIcon} aria-hidden="true">
-        {icon}
-      </span>
+      <Icon name={icon} decorative className={styles.activityIcon} />
       <span className={styles.activityLabel}>{label}</span>
       <strong>{value}</strong>
       <span className={styles.activityCaption}>{caption}</span>
@@ -217,7 +269,7 @@ function ActivitySection({ home }: { home: HomeResponse }) {
         <h2>나의 활동</h2>
         <div className={styles.activityGrid}>
           <ActivityCard
-            icon="👥"
+            icon="crew"
             label="내 크루"
             value={`${home.myCrews.totalCount}개`}
             caption={
@@ -225,7 +277,7 @@ function ActivitySection({ home }: { home: HomeResponse }) {
             }
           />
           <ActivityCard
-            icon="📅"
+            icon="calendar"
             label="예정된 활동"
             value={`${home.upcomingMeetings.totalCount}개`}
             caption={
@@ -235,7 +287,7 @@ function ActivitySection({ home }: { home: HomeResponse }) {
             }
           />
           <ActivityCard
-            icon="📊"
+            icon="log"
             label="둘러볼 테마"
             value={`${home.themeExplorePreview.items.length}개`}
             caption="이번 주 인기 테마"
@@ -304,9 +356,9 @@ function MyCrewSection({ home }: { home: HomeResponse }) {
             <p className={styles.emptyText}>아직 소속된 크루가 없어요.</p>
           )}
           <div className={styles.crewFindPanel}>
-            <Link href="/crews/public" className={styles.moreLink}>
+            <Button href="/crews/public" size="md" variant="ghost" className={styles.homeActionButton}>
               크루 찾기
-            </Link>
+            </Button>
           </div>
         </div>
       </div>
@@ -352,6 +404,15 @@ function PublicCrewSection({
             <h2>{title}</h2>
             <p>{description}</p>
           </div>
+          <Button
+            href="/crews/public"
+            size="md"
+            variant="ghost"
+            className={`${styles.sectionButton} ${styles.headerMoreButton}`}
+            rightIcon={<span className={styles.buttonSquareIcon} aria-hidden="true" />}
+          >
+            크루 더 보기
+          </Button>
         </div>
         {items.length > 0 ? (
           <div className={styles.crewGrid}>
@@ -362,86 +423,184 @@ function PublicCrewSection({
         ) : (
           <p className={styles.emptyText}>아직 공개 크루가 충분히 준비되지 않았어요.</p>
         )}
-        <div className={styles.centerAction}>
-          <Link href="/crews/public" className={styles.moreLink}>
-            크루 더 보기
-          </Link>
-        </div>
       </div>
     </section>
   );
 }
 
 function ThemePreviewCard({
+  isActive,
   index,
   theme,
 }: {
+  isActive: boolean;
   index: number;
   theme: HomeThemeExplorePreviewItem;
 }) {
-  const tone = THEME_CARD_TONES[index % THEME_CARD_TONES.length];
+  const tag = toThemePosterTag(index);
 
   return (
-    <article className={`${styles.themeCard} ${styles[`themeTone${tone}`]}`}>
-      <span className={styles.rankBadge}>{index + 1}</span>
-      <div className={styles.themeFavorite}>
-        <ThemeFavoriteButton
-          themeId={theme.themeId}
-          initialIsFavorite={theme.isFavorite}
-          initialFavoriteCount={theme.favoriteCount}
-          redirectPath="/"
-          variant="compact"
-        />
-      </div>
-      <Link
-        href={`/explore/themes/${theme.themeId}`}
-        aria-label={`${theme.themeName} 상세 보기`}
-        className={styles.themeLink}
-      >
-        {theme.thumbnailUrl ? (
-          <PreviewImage
-            src={theme.thumbnailUrl}
-            alt={`${theme.themeName} 포스터`}
-            fallbackLabel=""
-            className={styles.themeImage}
+    <article
+      className={`${styles.themeRankCard} ${isActive ? styles.themeRankCardActive : ""}`}
+      aria-current={isActive ? "true" : undefined}
+    >
+      <div className={`${styles.themePoster} ${toThemePosterToneClass(index)}`}>
+        <Link
+          href={`/explore/themes/${theme.themeId}`}
+          aria-label={`${theme.themeName} 상세 보기`}
+          className={styles.themeLink}
+        >
+          {theme.thumbnailUrl ? (
+            <PreviewImage
+              src={theme.thumbnailUrl}
+              alt={`${theme.themeName} 포스터`}
+              fallbackLabel=""
+              className={styles.themePosterImage}
+            />
+          ) : (
+            <span className={styles.themePosterFallback}>포스터 준비 중</span>
+          )}
+          <span className={styles.themePosterNoise} aria-hidden="true" />
+          <span className={styles.themePosterCopy}>
+            <span className={styles.themePosterKicker}>{tag}</span>
+            <strong className={styles.themePosterTitle}>{theme.themeName}</strong>
+            <span className={styles.themePosterStore}>{theme.storeName}</span>
+          </span>
+          <span className={styles.themeRankNumber} aria-hidden="true">
+            {index + 1}
+          </span>
+        </Link>
+        <div className={styles.themeFavorite}>
+          <ThemeFavoriteButton
+            themeId={theme.themeId}
+            initialIsFavorite={theme.isFavorite}
+            initialFavoriteCount={theme.favoriteCount}
+            redirectPath="/"
+            variant="compact"
           />
-        ) : (
-          <span className={styles.themePosterFallback}>포스터 준비 중</span>
-        )}
-        <span className={styles.themeInfo}>
+        </div>
+      </div>
+      <div className={styles.themeInfo}>
+        <div>
           <strong>{theme.themeName}</strong>
-          <span>{theme.storeName}</span>
-          <span>{theme.regionName}</span>
+          <span className={styles.themeGenreTag}>{tag}</span>
+        </div>
+        <span className={styles.themeInfoMeta}>
+          <span>◆ {theme.storeName}</span>
         </span>
-      </Link>
+      </div>
     </article>
   );
 }
 
 function ThemeExploreSection({ items }: { items: HomeThemeExplorePreviewItem[] }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const maxIndex = Math.max(items.length - 1, 0);
+  const safeActiveIndex = Math.min(activeIndex, maxIndex);
+
+  const goPrevious = () => {
+    setActiveIndex((currentIndex) => Math.max(currentIndex - 1, 0));
+  };
+
+  const goNext = () => {
+    setActiveIndex((currentIndex) => Math.min(currentIndex + 1, maxIndex));
+  };
+
   return (
-    <section className={styles.section}>
+    <section className={`${styles.section} ${styles.themeExploreSection}`}>
       <div className={styles.sectionInner}>
         <div className={styles.sectionHeader}>
           <div>
-            <h2>이번 주 인기 테마</h2>
-            <p>요즘 크루들이 많이 살펴본 방탈출 테마예요.</p>
+            <h2>이번 주 인기 방탈출</h2>
+            <p>좋아요 수 기준 · 본격 탐색은 방탈출 Explore에서</p>
           </div>
-          <Link href="/explore" className={styles.inlineLink}>
-            전체 보기
-          </Link>
+          <div className={styles.sectionHeaderActions}>
+            <Button
+              href="/explore"
+              size="md"
+              variant="ghost"
+              className={styles.sectionButton}
+              rightIcon={<span className={styles.buttonSquareIcon} aria-hidden="true" />}
+            >
+              방탈출 탐색
+            </Button>
+          </div>
         </div>
         {items.length > 0 ? (
-          <div className={styles.themeGrid}>
-            {items.map((theme, index) => (
-              <ThemePreviewCard key={theme.themeId} theme={theme} index={index} />
-            ))}
+          <div className={styles.themeRanking}>
+            <IconButton
+              type="button"
+              size="md"
+              variant="outline"
+              aria-label="이전 인기 방탈출"
+              className={`${styles.themeNavButton} ${styles.themeNavButtonLeft}`}
+              onClick={goPrevious}
+              disabled={safeActiveIndex === 0}
+            >
+              <Icon name="left" decorative />
+            </IconButton>
+            <div className={styles.themeViewport}>
+              <div
+                className={styles.themeTrack}
+                style={{
+                  transform: `translateX(calc(50% - ${
+                    THEME_FEATURED_CARD_WIDTH / 2
+                  }px - ${safeActiveIndex * THEME_TRACK_CARD_WIDTH}px))`,
+                }}
+              >
+                {items.map((theme, index) => (
+                  <ThemePreviewCard
+                    key={theme.themeId}
+                    theme={theme}
+                    index={index}
+                    isActive={index === safeActiveIndex}
+                  />
+                ))}
+              </div>
+            </div>
+            <IconButton
+              type="button"
+              size="md"
+              variant="outline"
+              aria-label="다음 인기 방탈출"
+              className={`${styles.themeNavButton} ${styles.themeNavButtonRight}`}
+              onClick={goNext}
+              disabled={safeActiveIndex === maxIndex}
+            >
+              <Icon name="right" decorative />
+            </IconButton>
+            <div className={styles.themeDots} aria-label="인기 방탈출 순위 선택">
+              {items.map((theme, index) => (
+                <button
+                  key={theme.themeId}
+                  type="button"
+                  aria-label={`${index + 1}위로 이동`}
+                  aria-current={index === safeActiveIndex ? "true" : undefined}
+                  className={`${styles.themeDot} ${
+                    index === safeActiveIndex ? styles.themeDotActive : ""
+                  }`}
+                  onClick={() => setActiveIndex(index)}
+                />
+              ))}
+            </div>
           </div>
         ) : (
           <p className={styles.emptyText}>아직 탐색할 테마가 준비되지 않았어요.</p>
         )}
       </div>
     </section>
+  );
+}
+
+function GuestStickyCta() {
+  return (
+    <aside className={styles.guestStickyCta} aria-label="비로그인 시작 안내">
+      <span>크루 탐색, 일정 등록, 기록까지</span>
+      <strong>로그인하면 바로 시작</strong>
+      <Button href="/login" size="sm" variant="primary" className={styles.guestStickyButton}>
+        카카오로 시작
+      </Button>
+    </aside>
   );
 }
 
@@ -508,9 +667,15 @@ export function HomePageClient({ notice = null }: HomePageClientProps) {
       <main className={styles.statePage}>
         <BrandLogo className={styles.stateLogo} />
         <p>{errorMessage}</p>
-        <button type="button" onClick={() => void loadHome()} className={styles.retryButton}>
+        <Button
+          type="button"
+          onClick={() => void loadHome()}
+          size="md"
+          variant="ghost"
+          className={styles.homeActionButton}
+        >
           다시 시도
-        </button>
+        </Button>
       </main>
     );
   }
@@ -544,6 +709,7 @@ export function HomePageClient({ notice = null }: HomePageClientProps) {
         <ThemeExploreSection items={home.themeExplorePreview.items} />
       </main>
       <HomeFooter />
+      {home.isLoggedIn ? null : <GuestStickyCta />}
     </div>
   );
 }

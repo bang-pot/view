@@ -49,4 +49,18 @@ describe("Button", () => {
     expect(screen.getByText("L")).toBeInTheDocument();
     expect(screen.getByText("R")).toBeInTheDocument();
   });
+
+  it("renders link buttons with the same primitive styles", () => {
+    render(
+      <Button href="/crews/public" size="md" variant="ghost">
+        Crew link button
+      </Button>,
+    );
+
+    const link = screen.getByRole("link", { name: "Crew link button" });
+
+    expect(link).toHaveAttribute("href", "/crews/public");
+    expect(link).toHaveAttribute("data-size", "md");
+    expect(link).toHaveAttribute("data-variant", "ghost");
+  });
 });
