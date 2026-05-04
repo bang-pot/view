@@ -18,7 +18,7 @@ import {
   getCrewInviteCandidates,
   getPendingCrewJoinRequests,
   getPublicCrewJoinView,
-  getPublicCrews,
+  getExploreCrews,
   getMyCrewInvites,
   rejectCrewJoinRequest,
 } from "@/shared/crew/client";
@@ -129,7 +129,7 @@ describe("crew client", () => {
     });
   });
 
-  it("loads public crews from the backend discovery contract", async () => {
+  it("loads explore crews from the backend discovery contract", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -139,6 +139,9 @@ describe("crew client", () => {
               name: "BangPot Runners",
               description: "Morning runners",
               imageUrl: null,
+              visibility: "PRIVATE",
+              leaderNickname: "leader-one",
+              memberCount: 12,
             },
           ],
           pageInfo: {
@@ -157,13 +160,15 @@ describe("crew client", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    await getPublicCrews({
+    await getExploreCrews({
       page: 0,
       size: 20,
+      keyword: "방탈",
+      sort: "MEMBER_COUNT_DESC",
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "/backend/api/crews/public?page=0&size=20",
+      "/backend/api/crews/explore?page=0&size=20&keyword=%EB%B0%A9%ED%83%88&sort=MEMBER_COUNT_DESC",
       expect.objectContaining({
         cache: "no-store",
       }),

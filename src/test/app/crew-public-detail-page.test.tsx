@@ -8,7 +8,6 @@ import {
 } from "@/shared/crew/client";
 
 vi.mock("@/shared/crew/client", () => ({
-  getPublicCrews: vi.fn(),
   getPublicCrewJoinView: vi.fn(),
   createCrewJoinRequest: vi.fn(),
 }));

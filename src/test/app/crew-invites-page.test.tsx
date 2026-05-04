@@ -23,7 +23,6 @@ vi.mock("@/shared/auth/client", () => ({
 
 vi.mock("@/shared/crew/client", () => ({
   createCrew: vi.fn(),
-  getPublicCrews: vi.fn(),
   getPublicCrewJoinView: vi.fn(),
   createCrewJoinRequest: vi.fn(),
   getPendingCrewJoinRequests: vi.fn(),

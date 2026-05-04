@@ -22,11 +22,11 @@ import type {
   CrewRemoveMemberResponse,
   CrewTransferLeadershipResponse,
   CrewJoinViewResponse,
+  ExploreCrewsQuery,
+  ExploreCrewsResponse,
   MyCrewInvitesQuery,
   MyCrewInvitesResponse,
   PendingCrewJoinRequestSummary,
-  PublicCrewsQuery,
-  PublicCrewsResponse,
   CrewVisibility,
   CrewVisibilityUpdateResponse,
 } from "@/shared/crew/types";
@@ -54,21 +54,27 @@ export async function createCrew(input: CrewCreateInput): Promise<CrewCreateResp
   );
 }
 
-export async function getPublicCrews(query: PublicCrewsQuery): Promise<PublicCrewsResponse> {
-  const search = new URLSearchParams({
-    page: String(query.page),
-    size: String(query.size),
-  });
+export async function getExploreCrews(query: ExploreCrewsQuery): Promise<ExploreCrewsResponse> {
+  const search = new URLSearchParams();
 
-  return requestJson<PublicCrewsResponse>(
+  search.set("page", String(query.page));
+  search.set("size", String(query.size));
+
+  const keyword = query.keyword?.trim();
+  if (keyword) {
+    search.set("keyword", keyword);
+  }
+  search.set("sort", query.sort ?? "LATEST");
+
+  return requestJson<ExploreCrewsResponse>(
     getApiBaseUrl(),
-    `/api/crews/public?${search.toString()}`,
+    `/api/crews/explore?${search.toString()}`,
     {
       cache: "no-store",
     },
     {
-      code: "CREW_PUBLIC_LIST_REQUEST_FAILED",
-      message: "공개 크루 목록을 불러오지 못했습니다. 잠시 뒤 다시 시도해 주세요.",
+      code: "CREW_EXPLORE_LIST_REQUEST_FAILED",
+      message: "크루 탐색 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
     },
   );
 }
