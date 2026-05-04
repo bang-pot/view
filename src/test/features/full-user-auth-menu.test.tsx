@@ -27,20 +27,17 @@ describe("FullUserAuthMenu", () => {
     cleanup();
   });
 
-  it("shows profile and logout entries for a full user menu", () => {
+  it("shows the remaining full user menu entries", () => {
     render(<FullUserAuthMenu route="/" />);
 
     const items = screen.getAllByRole("listitem");
 
-    expect(items).toHaveLength(4);
+    expect(items).toHaveLength(3);
     expect(screen.getByRole("link", { name: "Create crew" })).toHaveAttribute(
       "href",
       "/crews/new",
     );
-    expect(screen.getByRole("link", { name: "완료된 모임 아카이브" })).toHaveAttribute(
-      "href",
-      "/archive/meetings",
-    );
+    expect(screen.queryByRole("link", { name: /archive/i })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Profile" })).toHaveAttribute("href", "/profile");
     expect(screen.getByRole("button", { name: "Logout" })).toBeInTheDocument();
   });
