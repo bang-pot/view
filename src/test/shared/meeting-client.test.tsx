@@ -94,9 +94,16 @@ describe("meeting client", () => {
     );
   });
 
-  it("loads the crew meetings list", async () => {
+  it("loads the paged crew meetings list", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify([]), {
+      new Response(JSON.stringify({
+        items: [],
+        pageInfo: {
+          page: 1,
+          size: 2,
+          hasNext: true,
+        },
+      }), {
         status: 200,
         headers: {
           "Content-Type": "application/json",
@@ -105,10 +112,17 @@ describe("meeting client", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    await getMeetings(11);
+    await expect(getMeetings(11, { page: 1, size: 2 })).resolves.toEqual({
+      items: [],
+      pageInfo: {
+        page: 1,
+        size: 2,
+        hasNext: true,
+      },
+    });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "/backend/api/crews/11/meetings",
+      "/backend/api/crews/11/meetings?page=1&size=2",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",

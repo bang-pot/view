@@ -48,6 +48,11 @@ describe("CrewSchedulePage", () => {
   });
 
   it("renders the crew schedule calendar and shows selected date items in time order", async () => {
+    const currentMonth = new Date();
+    const currentMonthKey = `${currentMonth.getFullYear()}-${String(
+      currentMonth.getMonth() + 1,
+    ).padStart(2, "0")}`;
+
     vi.mocked(getCrewHub).mockResolvedValue({
       crewId: 11,
       name: "Night runners",
@@ -63,7 +68,7 @@ describe("CrewSchedulePage", () => {
         {
           meetingId: 201,
           themeName: "Abyss",
-          date: "2026-04-15",
+          date: `${currentMonthKey}-15`,
           time: "18:00",
           meetingStatus: "RECRUITING",
           recruitmentStatus: "OPEN",
@@ -74,7 +79,7 @@ describe("CrewSchedulePage", () => {
         {
           meetingId: 202,
           themeName: "Clock Tower",
-          date: "2026-04-15",
+          date: `${currentMonthKey}-15`,
           time: "20:00",
           meetingStatus: "COMPLETED",
           recruitmentStatus: "CLOSED",
@@ -85,7 +90,7 @@ describe("CrewSchedulePage", () => {
         {
           meetingId: 203,
           themeName: "Last Signal",
-          date: "2026-04-18",
+          date: `${currentMonthKey}-18`,
           time: "14:00",
           meetingStatus: "CANCELED",
           recruitmentStatus: "CLOSED",

@@ -44,7 +44,7 @@ export type CreateMeetingResponse = {
 
 export type MeetingListItem = {
   meetingId: number;
-  title?: string;
+  title: string;
   themeName: string;
   place: string;
   date: string;
@@ -52,6 +52,22 @@ export type MeetingListItem = {
   status: MeetingStatus;
   result: MeetingResult;
   capacity: number;
+};
+
+export type MeetingListPageInfo = {
+  page: number;
+  size: number;
+  hasNext: boolean;
+};
+
+export type MeetingListResponse = {
+  items: MeetingListItem[];
+  pageInfo: MeetingListPageInfo;
+};
+
+export type MeetingListQuery = {
+  page: number;
+  size: number;
 };
 
 export type MeetingDetail = {

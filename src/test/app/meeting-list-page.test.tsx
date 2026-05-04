@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import CrewMeetingsPage from "@/app/crews/[crewId]/meetings/page";
@@ -22,6 +22,19 @@ vi.mock("@/shared/meeting/client", () => ({
   getMeetings: vi.fn(),
 }));
 
+function mockCrewHub() {
+  vi.mocked(getCrewHub).mockResolvedValue({
+    crewId: 11,
+    name: "Night runners",
+    description: "Private crew for late runners",
+    visibility: "PRIVATE",
+    imageUrl: null,
+    myRole: "MEMBER",
+    hasNotice: false,
+    pendingJoinRequestCount: 0,
+  });
+}
+
 describe("MeetingsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -32,100 +45,117 @@ describe("MeetingsPage", () => {
     cleanup();
   });
 
-  it("renders the joined crew meeting list and links to create/detail pages", async () => {
-    vi.mocked(getCrewHub).mockResolvedValue({
-      crewId: 11,
-      name: "Night runners",
-      description: "Private crew for late runners",
-      visibility: "PRIVATE",
-      imageUrl: null,
-      myRole: "MEMBER",
-      hasNotice: false,
-      pendingJoinRequestCount: 0,
-    });
-    vi.mocked(getMeetings).mockResolvedValue([
-      {
-        meetingId: 99,
-        title: "금요일 한강 러닝",
-        themeName: "러닝",
-        place: "강남역",
-        date: "2026-04-20",
-        time: "19:30",
-        status: "RECRUITING",
-        result: "NOT_RECORDED",
-        capacity: 4,
+  it("renders the first paged crew meeting list response", async () => {
+    mockCrewHub();
+    vi.mocked(getMeetings).mockResolvedValue({
+      items: [
+        {
+          meetingId: 99,
+          title: "Friday Escape",
+          themeName: "Time Attack",
+          place: "Gangnam",
+          date: "2026-04-20",
+          time: "19:30",
+          status: "RECRUITING",
+          result: "NOT_RECORDED",
+          capacity: 4,
+        },
+      ],
+      pageInfo: {
+        page: 0,
+        size: 20,
+        hasNext: false,
       },
-    ]);
+    });
 
     render(await CrewMeetingsPage({ params: Promise.resolve({ crewId: "11" }) }));
 
-    expect(await screen.findByRole("heading", { name: "모임 목록" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "모임 만들기" })).toHaveAttribute(
-      "href",
-      "/crews/11/meetings/new",
-    );
+    const list = await screen.findByRole("list");
+    const item = within(list).getByRole("listitem");
 
-    const items = within(screen.getByRole("list", { name: "모임 목록" })).getAllByRole("listitem");
-    expect(within(items[0]).getByRole("link", { name: "금요일 한강 러닝" })).toHaveAttribute(
+    expect(getMeetings).toHaveBeenCalledWith(11, { page: 0, size: 20 });
+    expect(within(item).getByRole("link", { name: "Friday Escape" })).toHaveAttribute(
       "href",
       "/crews/11/meetings/99",
     );
-    expect(within(items[0]).getByText("테마명: 러닝")).toBeInTheDocument();
-    expect(within(items[0]).getByText("모집 상태: 모집 중")).toBeInTheDocument();
-    expect(within(items[0]).getByText("참여를 받고 있는 모임 상태예요.")).toBeInTheDocument();
-    expect(within(items[0]).getByText("결과 상태: NOT_RECORDED")).toBeInTheDocument();
+    expect(within(item).getByText("테마명: Time Attack")).toBeInTheDocument();
   });
 
-  it("shows the same auto-transition guidance for a recruitment closed meeting", async () => {
-    vi.mocked(getCrewHub).mockResolvedValue({
-      crewId: 11,
-      name: "Night runners",
-      description: "Private crew for late runners",
-      visibility: "PRIVATE",
-      imageUrl: null,
-      myRole: "MEMBER",
-      hasNotice: false,
-      pendingJoinRequestCount: 0,
-    });
-    vi.mocked(getMeetings).mockResolvedValue([
-      {
-        meetingId: 100,
-        title: "토요일 보드게임",
-        themeName: "보드게임",
-        place: "홍대",
-        date: "2026-04-21",
-        time: "20:00",
-        status: "RECRUITMENT_CLOSED",
-        result: "NOT_RECORDED",
-        capacity: 6,
-      },
-    ]);
+  it("loads the next meeting page and keeps the existing items", async () => {
+    mockCrewHub();
+    vi.mocked(getMeetings)
+      .mockResolvedValueOnce({
+        items: [
+          {
+            meetingId: 99,
+            title: "Friday Escape",
+            themeName: "Time Attack",
+            place: "Gangnam",
+            date: "2026-04-20",
+            time: "19:30",
+            status: "RECRUITING",
+            result: "NOT_RECORDED",
+            capacity: 4,
+          },
+        ],
+        pageInfo: {
+          page: 0,
+          size: 20,
+          hasNext: true,
+        },
+      })
+      .mockResolvedValueOnce({
+        items: [
+          {
+            meetingId: 100,
+            title: "Saturday Escape",
+            themeName: "Deep Blue",
+            place: "Hongdae",
+            date: "2026-04-21",
+            time: "20:00",
+            status: "RECRUITMENT_CLOSED",
+            result: "NOT_RECORDED",
+            capacity: 6,
+          },
+        ],
+        pageInfo: {
+          page: 1,
+          size: 20,
+          hasNext: false,
+        },
+      });
 
     render(await CrewMeetingsPage({ params: Promise.resolve({ crewId: "11" }) }));
 
-    const item = within(await screen.findByRole("list", { name: "모임 목록" })).getByRole("listitem");
-    expect(within(item).getByText("모집 상태: 모집 마감")).toBeInTheDocument();
-    expect(
-      within(item).getByText("정원 도달 또는 시작 시간이 지나 자동으로 모집이 마감될 수 있어요."),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "Friday Escape" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "더 보기" }));
+
+    await waitFor(() => {
+      expect(getMeetings).toHaveBeenLastCalledWith(11, { page: 1, size: 20 });
+    });
+
+    expect(screen.getByRole("link", { name: "Friday Escape" })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "Saturday Escape" })).toBeInTheDocument();
   });
 
   it("shows empty state and redirects non-members to the public crew introduction", async () => {
-    vi.mocked(getCrewHub).mockResolvedValue({
-      crewId: 11,
-      name: "Night runners",
-      description: "Private crew for late runners",
-      visibility: "PRIVATE",
-      imageUrl: null,
-      myRole: "MEMBER",
-      hasNotice: false,
-      pendingJoinRequestCount: 0,
+    mockCrewHub();
+    vi.mocked(getMeetings).mockResolvedValue({
+      items: [],
+      pageInfo: {
+        page: 0,
+        size: 20,
+        hasNext: false,
+      },
     });
-    vi.mocked(getMeetings).mockResolvedValue([]);
 
     render(await CrewMeetingsPage({ params: Promise.resolve({ crewId: "11" }) }));
 
-    expect(await screen.findByText("아직 등록된 모임이 없습니다.")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(getMeetings).toHaveBeenCalledWith(11, { page: 0, size: 20 });
+    });
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
 
     cleanup();
     vi.clearAllMocks();
@@ -136,7 +166,7 @@ describe("MeetingsPage", () => {
     vi.mocked(getCrewHub).mockRejectedValue(
       new OperationalError({
         code: "AUTH_ACCESS_DENIED",
-        message: "접근 권한이 없습니다.",
+        message: "Access denied.",
         requestId: "req-meeting-list-1",
         status: 403,
       }),
