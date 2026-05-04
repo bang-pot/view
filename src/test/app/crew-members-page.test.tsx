@@ -16,7 +16,6 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/shared/crew/client", () => ({
   createCrew: vi.fn(),
-  getPublicCrews: vi.fn(),
   getPublicCrewJoinView: vi.fn(),
   getCrewHub: vi.fn(),
   getCrewMembers: vi.fn(),

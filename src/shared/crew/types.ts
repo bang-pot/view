@@ -23,27 +23,45 @@ export type CrewCreateResponse = {
   myRole: string;
 };
 
-export type PublicCrewSummary = {
+export type ExploreCrewSort =
+  | "LATEST"
+  | "OLDEST"
+  | "MEMBER_COUNT_DESC"
+  | "MEMBER_COUNT_ASC";
+
+export const EXPLORE_CREW_SORT_LABELS: Record<ExploreCrewSort, string> = {
+  LATEST: "최신순",
+  OLDEST: "오래된순",
+  MEMBER_COUNT_DESC: "멤버 많은순",
+  MEMBER_COUNT_ASC: "멤버 적은순",
+};
+
+export type ExploreCrewCard = {
   crewId: number;
   name: string;
   description: string | null;
   imageUrl: string | null;
+  visibility: CrewVisibility;
+  leaderNickname: string;
+  memberCount: number;
 };
 
-export type PublicCrewPageInfo = {
+export type ExploreCrewPageInfo = {
   page: number;
   size: number;
   hasNext: boolean;
 };
 
-export type PublicCrewsResponse = {
-  items: PublicCrewSummary[];
-  pageInfo: PublicCrewPageInfo;
+export type ExploreCrewsResponse = {
+  items: ExploreCrewCard[];
+  pageInfo: ExploreCrewPageInfo;
 };
 
-export type PublicCrewsQuery = {
+export type ExploreCrewsQuery = {
   page: number;
   size: number;
+  keyword?: string;
+  sort?: ExploreCrewSort;
 };
 
 export type CrewJoinViewResponse = {
