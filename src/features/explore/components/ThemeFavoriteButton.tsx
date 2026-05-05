@@ -7,6 +7,8 @@ import { getUserMessage, isOperationalError } from "@/shared/errors/operational"
 import { addThemeFavorite, removeThemeFavorite } from "@/shared/explore/client";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
+import styles from "./ThemeFavoriteButton.module.css";
+
 type ThemeFavoriteButtonProps = {
   themeId: number;
   initialIsFavorite: boolean;
@@ -18,6 +20,10 @@ type ThemeFavoriteButtonProps = {
 
 function toLoginPath(redirectPath: string): string {
   return `/login?redirectTo=${encodeURIComponent(redirectPath)}`;
+}
+
+function cx(...classNames: Array<string | false | null | undefined>): string {
+  return classNames.filter(Boolean).join(" ");
 }
 
 export function ThemeFavoriteButton({
@@ -71,48 +77,34 @@ export function ThemeFavoriteButton({
         level: "warn",
         route: redirectPath,
       });
-      setErrorMessage(
-        getUserMessage(error, "찜 상태를 변경하지 못했어요. 잠시 후 다시 시도해 주세요."),
-      );
+      setErrorMessage(getUserMessage(error, "찜 상태를 변경하지 못했어요. 잠시 후 다시 시도해 주세요."));
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  const compact = variant === "compact";
+  const countLabel = favoriteCount === null ? "0" : favoriteCount.toLocaleString();
+  const buttonLabel = isFavorite ? "찜 해제" : "찜하기";
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gap: 6,
-        justifyItems: compact ? "end" : "start",
-      }}
-    >
+    <div className={cx(styles.root, variant === "compact" && styles.compact)}>
       <button
         type="button"
+        aria-label={buttonLabel}
         aria-pressed={isFavorite}
-        onClick={handleClick}
+        className={styles.button}
         disabled={isSubmitting}
-        style={{
-          border: "1px solid #d9d9d9",
-          borderRadius: 999,
-          padding: compact ? "6px 10px" : "8px 14px",
-          background: isFavorite ? "#111" : "#fff",
-          color: isFavorite ? "#fff" : "#111",
-          opacity: isSubmitting ? 0.6 : 1,
-          cursor: isSubmitting ? "not-allowed" : "pointer",
-          fontSize: compact ? 12 : 14,
-        }}
+        onClick={handleClick}
       >
-        {isSubmitting ? "처리 중..." : isFavorite ? "찜 해제" : "찜하기"}
+        <span aria-hidden="true">♡</span>
+        <span>{variant === "compact" ? countLabel : buttonLabel}</span>
       </button>
-      {favoriteCount !== null ? (
-        <span aria-label="찜 수" style={{ fontSize: 12, color: "#666" }}>
-          {favoriteCount.toLocaleString()}
+      {variant === "compact" ? null : (
+        <span className={styles.count} aria-label="찜 수">
+          {countLabel}
         </span>
-      ) : null}
-      {errorMessage ? <p style={{ margin: 0 }}>{errorMessage}</p> : null}
+      )}
+      {errorMessage ? <p className={styles.errorMessage}>{errorMessage}</p> : null}
     </div>
   );
 }
