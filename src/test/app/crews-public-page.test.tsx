@@ -76,7 +76,7 @@ describe("PublicCrewsPage", () => {
       ],
       pageInfo: {
         page: 0,
-        size: 20,
+        size: 6,
         hasNext: false,
       },
     });
@@ -84,6 +84,7 @@ describe("PublicCrewsPage", () => {
     render(<PublicCrewsPage />);
 
     expect(await screen.findByRole("heading", { name: "크루 탐색" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "전체 크루 (2)" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "BangPot Runners" })).toHaveAttribute(
       "href",
       "/crews/public/11",
@@ -91,17 +92,17 @@ describe("PublicCrewsPage", () => {
     expect(screen.getByText("Early morning running crew")).toBeInTheDocument();
     const privateCrew = screen.getByRole("link", { name: "BangPot Book Club" }).closest("article");
     expect(privateCrew).not.toBeNull();
-    expect(within(privateCrew!).getByText("비공개")).toBeInTheDocument();
-    expect(within(privateCrew!).getByText("크루장 book-leader")).toBeInTheDocument();
+    expect(within(privateCrew!).getByText("비공개 크루")).toBeInTheDocument();
+    expect(within(privateCrew!).getByText("book-leader")).toBeInTheDocument();
     expect(within(privateCrew!).getByText("멤버 3명")).toBeInTheDocument();
     expect(getExploreCrews).toHaveBeenCalledWith({
       page: 0,
-      size: 20,
+      size: 6,
       sort: "LATEST",
     });
   });
 
-  it("appends the next explore crew page when the sentinel enters the viewport", async () => {
+  it("appends the next explore crew page only after clicking 더 보기", async () => {
     vi.mocked(getExploreCrews)
       .mockResolvedValueOnce({
         items: [
@@ -117,7 +118,7 @@ describe("PublicCrewsPage", () => {
         ],
         pageInfo: {
           page: 0,
-          size: 20,
+          size: 6,
           hasNext: true,
         },
       })
@@ -135,7 +136,7 @@ describe("PublicCrewsPage", () => {
         ],
         pageInfo: {
           page: 1,
-          size: 20,
+          size: 6,
           hasNext: false,
         },
       });
@@ -147,7 +148,13 @@ describe("PublicCrewsPage", () => {
       "/crews/public/11",
     );
 
+    expect(screen.getByRole("button", { name: "더 보기" })).toBeInTheDocument();
+    expect(getExploreCrews).toHaveBeenCalledTimes(1);
+
     observerInstances[0]?.trigger(true);
+    expect(getExploreCrews).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole("button", { name: "더 보기" }));
 
     expect(await screen.findByRole("link", { name: "BangPot Book Club" })).toHaveAttribute(
       "href",
@@ -155,9 +162,112 @@ describe("PublicCrewsPage", () => {
     );
     expect(getExploreCrews).toHaveBeenNthCalledWith(2, {
       page: 1,
-      size: 20,
+      size: 6,
       sort: "LATEST",
     });
+  });
+
+  it("opens the crew detail modal from a crew card", async () => {
+    vi.mocked(getExploreCrews).mockResolvedValue({
+      items: [
+        {
+          crewId: 11,
+          name: "BangPot Runners",
+          description: "Early morning running crew",
+          imageUrl: null,
+          visibility: "PUBLIC",
+          leaderNickname: "runner-leader",
+          memberCount: 12,
+        },
+      ],
+      pageInfo: {
+        page: 0,
+        size: 6,
+        hasNext: false,
+      },
+    });
+
+    render(<PublicCrewsPage />);
+
+    fireEvent.click(await screen.findByRole("link", { name: "BangPot Runners" }));
+
+    expect(
+      screen.getByRole("dialog", {
+        name: "BangPot Runners",
+      }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "닫기" }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("opens the join greeting modal from the crew detail modal", async () => {
+    vi.mocked(getExploreCrews).mockResolvedValue({
+      items: [
+        {
+          crewId: 11,
+          name: "BangPot Runners",
+          description: "Early morning running crew",
+          imageUrl: null,
+          visibility: "PUBLIC",
+          leaderNickname: "runner-leader",
+          memberCount: 12,
+        },
+      ],
+      pageInfo: {
+        page: 0,
+        size: 6,
+        hasNext: false,
+      },
+    });
+
+    render(<PublicCrewsPage />);
+
+    fireEvent.click(await screen.findByRole("link", { name: "BangPot Runners" }));
+    fireEvent.click(screen.getByRole("button", { name: "가입하기" }));
+
+    expect(
+      screen.getByRole("dialog", {
+        name: /가입인사를 남겨보세요/,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("내용 작성하기")).toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByRole("presentation")[1]);
+
+    expect(
+      screen.getByRole("dialog", {
+        name: "BangPot Runners",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("dialog", {
+        name: /가입인사를 남겨보세요/,
+      }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "가입하기" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "보내기" }));
+
+    expect(
+      screen.getByRole("dialog", {
+        name: "크루장에게 가입인사를 전달했어요",
+      }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "완료" }));
+
+    expect(
+      screen.getByRole("dialog", {
+        name: "BangPot Runners",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("dialog", {
+        name: "크루장에게 가입인사를 전달했어요",
+      }),
+    ).not.toBeInTheDocument();
   });
 
   it("searches by keyword and reapplies sorting from the first page", async () => {
@@ -166,7 +276,7 @@ describe("PublicCrewsPage", () => {
         items: [],
         pageInfo: {
           page: 0,
-          size: 20,
+          size: 6,
           hasNext: false,
         },
       })
@@ -184,7 +294,7 @@ describe("PublicCrewsPage", () => {
         ],
         pageInfo: {
           page: 0,
-          size: 20,
+          size: 6,
           hasNext: false,
         },
       })
@@ -202,7 +312,7 @@ describe("PublicCrewsPage", () => {
         ],
         pageInfo: {
           page: 0,
-          size: 20,
+          size: 6,
           hasNext: false,
         },
       });
@@ -220,7 +330,7 @@ describe("PublicCrewsPage", () => {
     await waitFor(() => {
       expect(getExploreCrews).toHaveBeenNthCalledWith(2, {
         page: 0,
-        size: 20,
+        size: 6,
         keyword: "방탈",
         sort: "LATEST",
       });
@@ -237,7 +347,7 @@ describe("PublicCrewsPage", () => {
     await waitFor(() => {
       expect(getExploreCrews).toHaveBeenNthCalledWith(3, {
         page: 0,
-        size: 20,
+        size: 6,
         keyword: "방탈",
         sort: "MEMBER_COUNT_ASC",
       });
@@ -250,7 +360,7 @@ describe("PublicCrewsPage", () => {
         items: [],
         pageInfo: {
           page: 0,
-          size: 20,
+          size: 6,
           hasNext: false,
         },
       })
@@ -258,7 +368,7 @@ describe("PublicCrewsPage", () => {
         items: [],
         pageInfo: {
           page: 0,
-          size: 20,
+          size: 6,
           hasNext: false,
         },
       });

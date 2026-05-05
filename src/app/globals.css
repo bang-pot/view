@@ -5,13 +5,41 @@
   --foreground: var(--app-foreground);
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  font-size: var(--font-size-body-1);
+}
+
 body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: var(--font-size-body-1);
+  line-height: var(--line-height-body-1);
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
 }
 
-main {
-  padding: var(--space-12);
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
 }
