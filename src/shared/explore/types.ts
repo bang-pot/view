@@ -38,6 +38,8 @@ export type ExplorePageInfo = {
   page: number;
   size: number;
   hasNext: boolean;
+  totalElements: number;
+  totalPages: number;
 };
 
 export type ExploreThemesResponse = {

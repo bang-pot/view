@@ -83,6 +83,8 @@ describe("explore client", () => {
             page: 0,
             size: 20,
             hasNext: false,
+            totalElements: 1234,
+            totalPages: 62,
           },
         }),
         {
@@ -95,7 +97,7 @@ describe("explore client", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    await getExploreThemes({
+    const response = await getExploreThemes({
       q: "강남 미스터리",
       genres: ["공포", "추리"],
       region: "서울",
@@ -111,6 +113,8 @@ describe("explore client", () => {
         cache: "no-store",
       }),
     );
+    expect(response.pageInfo.totalElements).toBe(1234);
+    expect(response.pageInfo.totalPages).toBe(62);
   });
 
   it("loads a public explore theme detail with favorite state", async () => {
