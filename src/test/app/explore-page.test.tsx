@@ -86,6 +86,8 @@ describe("ExplorePage", () => {
         page: 0,
         size: 8,
         hasNext: false,
+        totalElements: 1234,
+        totalPages: 155,
       },
     });
 
@@ -94,6 +96,7 @@ describe("ExplorePage", () => {
     expect(await screen.findByRole("heading", { name: "방탈출 탐색" })).toBeInTheDocument();
     expect(screen.getByPlaceholderText("테마명, 매장명 검색")).toBeInTheDocument();
     expect(screen.getByRole("complementary", { name: "탐색 필터" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "방탈출 (1,234)" })).toBeInTheDocument();
 
     const list = await screen.findByRole("list", { name: "방탈출 탐색 결과 목록" });
     const item = within(list).getByRole("listitem");
@@ -105,7 +108,8 @@ describe("ExplorePage", () => {
     expect(within(item).getByRole("button", { name: "찜하기" })).toBeInTheDocument();
     expect(within(item).getByText("추리")).toBeInTheDocument();
     expect(within(item).getByText(/60분/)).toBeInTheDocument();
-    expect(within(item).getByText(/서울 강남/)).toBeInTheDocument();
+    expect(within(item).getByText(/강남 이스케이프/)).toBeInTheDocument();
+    expect(within(item).queryByText(/서울 강남/)).not.toBeInTheDocument();
   });
 
   it("opens the theme detail modal from a theme card and closes it", async () => {
@@ -124,6 +128,8 @@ describe("ExplorePage", () => {
         page: 0,
         size: 8,
         hasNext: false,
+        totalElements: 2,
+        totalPages: 1,
       },
     });
 
@@ -158,6 +164,8 @@ describe("ExplorePage", () => {
         page: 0,
         size: 8,
         hasNext: false,
+        totalElements: 1,
+        totalPages: 1,
       },
     });
     vi.mocked(getExploreMeetingCreateCrews).mockResolvedValue({
@@ -199,6 +207,8 @@ describe("ExplorePage", () => {
         page: 0,
         size: 8,
         hasNext: false,
+        totalElements: 1,
+        totalPages: 1,
       },
     });
     vi.mocked(addThemeFavorite).mockResolvedValue({
@@ -228,6 +238,8 @@ describe("ExplorePage", () => {
         page: 0,
         size: 8,
         hasNext: false,
+        totalElements: 1,
+        totalPages: 1,
       },
     });
     vi.mocked(addThemeFavorite).mockRejectedValue(
@@ -264,6 +276,8 @@ describe("ExplorePage", () => {
           page: 0,
           size: 8,
           hasNext: true,
+          totalElements: 2,
+          totalPages: 2,
         },
       })
       .mockResolvedValueOnce({
@@ -283,6 +297,8 @@ describe("ExplorePage", () => {
           page: 1,
           size: 8,
           hasNext: false,
+          totalElements: 2,
+          totalPages: 2,
         },
     });
 
@@ -310,6 +326,8 @@ describe("ExplorePage", () => {
         page: 0,
         size: 8,
         hasNext: false,
+        totalElements: 0,
+        totalPages: 0,
       },
     });
 

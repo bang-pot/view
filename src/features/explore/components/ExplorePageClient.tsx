@@ -159,7 +159,7 @@ function ThemeCard({
     item.runningTimeMinutes === null || item.runningTimeMinutes === undefined
       ? "시간 준비 중"
       : `${item.runningTimeMinutes}분`;
-  const regionLabel = item.regionLabel || item.storeName;
+  const storeLabel = item.storeName || item.regionLabel;
 
   return (
     <article className={styles.themeCard}>
@@ -213,7 +213,7 @@ function ThemeCard({
           <span aria-hidden="true">♥</span>
           {timeLabel}
           <span aria-hidden="true">◆</span>
-          {regionLabel}
+          {storeLabel}
         </p>
       </div>
     </article>
@@ -280,7 +280,7 @@ function RelatedThemeCard({
           <span aria-hidden="true">♡</span>
           {item.favoriteCount.toLocaleString()}
           <span aria-hidden="true">·</span>
-          {item.regionLabel || item.storeName}
+          {item.storeName || item.regionLabel}
         </p>
       </div>
     </article>
@@ -301,6 +301,7 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
   const [crewPickerErrorMessage, setCrewPickerErrorMessage] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(false);
+  const [totalElements, setTotalElements] = useState(0);
   const [sortLabel, setSortLabel] = useState("LATEST");
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -338,6 +339,7 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
       setErrorMessage(null);
       setLoadMoreErrorMessage(null);
       setHasNext(false);
+      setTotalElements(0);
     }
 
     const query: ExploreThemesQuery = {
@@ -358,6 +360,7 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
       );
       setPage(response.pageInfo.page);
       setHasNext(response.pageInfo.hasNext);
+      setTotalElements(response.pageInfo.totalElements);
     } catch (error) {
       reportOperationalError(
         mode === "append" ? "explore.themes_load_more_failed" : "explore.themes_load_failed",
@@ -383,6 +386,7 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
       }
 
       setItems([]);
+      setTotalElements(0);
       setErrorMessage(userMessage);
     } finally {
       if (!isMountedRef.current || requestVersionRef.current !== requestVersion) {
@@ -660,7 +664,7 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
 
           <div className={styles.resultArea}>
             <div className={styles.resultHeader}>
-              <h2 id="explore-list-heading">방탈출 ({items.length.toLocaleString()})</h2>
+              <h2 id="explore-list-heading">방탈출 ({totalElements.toLocaleString()})</h2>
               <label className={styles.sortLabel}>
                 <span className={styles.visuallyHidden}>정렬</span>
                 <select value={sortLabel} onChange={(event) => setSortLabel(event.target.value)}>
