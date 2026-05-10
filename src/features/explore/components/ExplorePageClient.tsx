@@ -93,13 +93,14 @@ function mergeItems(previousItems: ExploreThemeCardItem[], nextItems: ExploreThe
 
 function buildMeetingCreatePath(crewId: number, theme: ExploreThemeCardItem): string {
   const params = new URLSearchParams();
+  const primaryGenre = theme.genres[0];
 
   params.set("themeName", theme.themeName);
   params.set("storeName", theme.storeName);
   params.set("regionLabel", theme.regionLabel);
 
-  if (theme.genre) {
-    params.set("genre", theme.genre);
+  if (primaryGenre) {
+    params.set("genre", primaryGenre);
   }
 
   if (theme.difficulty !== null) {
@@ -119,6 +120,14 @@ function SearchIcon() {
 
 function SquareIcon() {
   return <span className={styles.squareIcon} aria-hidden="true" />;
+}
+
+function getPrimaryGenre(genres: string[]): string | null {
+  return genres[0] ?? null;
+}
+
+function formatGenres(genres: string[]): string {
+  return genres.length > 0 ? genres.join(", ") : "정보 준비 중";
 }
 
 function ExploreHeader() {
@@ -160,6 +169,7 @@ function ThemeCard({
       ? "시간 준비 중"
       : `${item.runningTimeMinutes}분`;
   const storeLabel = item.storeName || item.regionLabel;
+  const primaryGenre = getPrimaryGenre(item.genres);
 
   return (
     <article className={styles.themeCard}>
@@ -203,9 +213,9 @@ function ThemeCard({
               {item.themeName}
             </Link>
           </h3>
-          {item.genre ? (
+          {primaryGenre ? (
             <Chip size="sm" variant="normal" className={styles.genreChip}>
-              {item.genre}
+              {primaryGenre}
             </Chip>
           ) : null}
         </div>
@@ -270,9 +280,9 @@ function RelatedThemeCard({
               {item.themeName}
             </Link>
           </h4>
-          {item.genre ? (
+          {getPrimaryGenre(item.genres) ? (
             <Chip size="sm" variant="normal" className={styles.genreChip}>
-              {item.genre}
+              {getPrimaryGenre(item.genres)}
             </Chip>
           ) : null}
         </div>
@@ -768,7 +778,7 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
                   <div className={styles.themeMetaItem}>
                     <span className={styles.themeMetaIcon} aria-hidden="true" />
                     <span>테마 장르</span>
-                    <strong>{selectedTheme.genre ?? "정보 준비 중"}</strong>
+                    <strong>{formatGenres(selectedTheme.genres)}</strong>
                   </div>
                   <div className={styles.themeMetaItem}>
                     <span className={styles.themeMetaIcon} aria-hidden="true" />

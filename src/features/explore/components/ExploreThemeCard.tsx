@@ -12,7 +12,7 @@ export type ExploreThemeCardViewModel = {
   posterImageUrl: string | null;
   favoriteCount: number;
   isFavorite: boolean;
-  genre?: string | null;
+  genres?: string[];
   difficulty?: number | null;
   activityLabel?: string | null;
   recommendedPlayers?: string | null;
@@ -31,6 +31,10 @@ function toCardValue(value: string | number | null | undefined): string {
   }
 
   return String(value);
+}
+
+function toGenreValue(genres: string[] | undefined): string {
+  return genres && genres.length > 0 ? genres.join(", ") : "정보 준비 중";
 }
 
 export function ExploreThemeCard({
@@ -97,7 +101,7 @@ export function ExploreThemeCard({
           <span>{item.storeName}</span>
           <span>{item.regionLabel}</span>
 
-          {isPreview ? null : <span>{toCardValue(item.genre)}</span>}
+          {isPreview ? null : <span>{toGenreValue(item.genres)}</span>}
           {isPreview ? null : <span>난이도 {toCardValue(item.difficulty)}</span>}
           {isPreview ? null : <span>활동성 {toCardValue(item.activityLabel)}</span>}
           {isPreview ? null : <span>권장 인원 {toCardValue(item.recommendedPlayers)}</span>}

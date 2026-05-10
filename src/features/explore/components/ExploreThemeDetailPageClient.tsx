@@ -32,6 +32,10 @@ function toDetailValue(value: string | number | null, prefix: string): string {
   return `${prefix} ${value}`;
 }
 
+function toGenreDetailValue(genres: string[]): string {
+  return genres.length > 0 ? `장르 ${genres.join(", ")}` : "장르 정보 준비 중";
+}
+
 function shouldCollapseDescription(description: string | null): boolean {
   if (!description) {
     return false;
@@ -45,13 +49,14 @@ function buildMeetingCreatePath(
   detail: ExploreThemeDetail,
 ): string {
   const params = new URLSearchParams();
+  const primaryGenre = detail.genres[0];
 
   params.set("themeName", detail.themeName);
   params.set("storeName", detail.storeName);
   params.set("regionLabel", detail.regionLabel);
 
-  if (detail.genre) {
-    params.set("genre", detail.genre);
+  if (primaryGenre) {
+    params.set("genre", primaryGenre);
   }
 
   if (detail.difficulty !== null) {
@@ -227,7 +232,7 @@ export function ExploreThemeDetailPageClient({
               <div style={{ display: "grid", gap: 8 }}>
                 <strong>{detail.storeName}</strong>
                 <span>{detail.regionLabel}</span>
-                <span>{toDetailValue(detail.genre, "장르")}</span>
+                <span>{toGenreDetailValue(detail.genres)}</span>
                 <span>{toDetailValue(detail.difficulty, "난이도")}</span>
                 <span>
                   {detail.runningTimeMinutes === null
@@ -355,7 +360,7 @@ export function ExploreThemeDetailPageClient({
                         posterImageUrl: relatedTheme.posterImageUrl,
                         favoriteCount: relatedTheme.favoriteCount,
                         isFavorite: relatedTheme.isFavorite,
-                        genre: relatedTheme.genre,
+                        genres: relatedTheme.genres,
                         difficulty: relatedTheme.difficulty,
                         runningTimeMinutes: relatedTheme.runningTimeMinutes,
                       }}

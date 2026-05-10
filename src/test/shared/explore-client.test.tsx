@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+﻿import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   addThemeFavorite,
@@ -69,7 +69,7 @@ describe("explore client", () => {
               storeId: 10,
               storeName: "강남 이스케이프",
               regionLabel: "서울 강남",
-              genre: "추리",
+              genres: ["추리"],
               posterImageUrl: null,
               difficulty: 3,
               activityLabel: "활동성 중간",
@@ -126,7 +126,7 @@ describe("explore client", () => {
           storeId: 3,
           storeName: "강남 이스케이프",
           regionLabel: "서울 강남",
-          genre: "추리",
+          genres: ["추리"],
           posterImageUrl: null,
           difficulty: 3,
           runningTimeMinutes: 70,

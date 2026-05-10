@@ -4,7 +4,7 @@ export type ExploreThemeCard = {
   storeId: number;
   storeName: string;
   regionLabel: string;
-  genre: string | null;
+  genres: string[];
   posterImageUrl: string | null;
   difficulty: number | null;
   activityLabel: string | null;
@@ -20,7 +20,7 @@ export type ExploreRelatedThemeCard = {
   storeId: number;
   storeName: string;
   regionLabel: string;
-  genre: string | null;
+  genres: string[];
   posterImageUrl: string | null;
   difficulty: number | null;
   runningTimeMinutes: number | null;
@@ -72,7 +72,7 @@ export type ExploreThemeDetail = {
   storeId: number;
   storeName: string;
   regionLabel: string;
-  genre: string | null;
+  genres: string[];
   posterImageUrl: string | null;
   difficulty: number | null;
   runningTimeMinutes: number | null;
