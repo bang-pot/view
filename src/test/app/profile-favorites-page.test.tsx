@@ -110,7 +110,7 @@ describe("ProfileFavoritesPage", () => {
     expect(screen.getByText("Bangpot Favorite")).toBeInTheDocument();
     expect(screen.getByText("Escape Hub")).toBeInTheDocument();
     expect(screen.getByText("Seoul")).toBeInTheDocument();
-    expect(screen.getByText("테마 이미지 준비 중")).toBeInTheDocument();
+    expect(await screen.findByText("테마 이미지 준비 중")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Bangpot Favorite/ })).toHaveAttribute(
       "href",
       "/explore/themes/701",
