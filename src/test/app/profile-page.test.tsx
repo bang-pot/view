@@ -166,7 +166,7 @@ describe("ProfilePage", () => {
       "/profile/logs",
     );
     expect(await screen.findByRole("heading", { name: "찜한 테마" })).toBeInTheDocument();
-    expect(screen.getByText("테마 이미지 준비 중")).toBeInTheDocument();
+    expect(await screen.findByText("테마 이미지 준비 중")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "포비든 룸" })).toHaveAttribute(
       "href",
       "/explore/themes/301",
