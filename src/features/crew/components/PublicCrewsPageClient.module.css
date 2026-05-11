@@ -440,9 +440,9 @@
 }
 
 .modalContent {
-  padding: 28px 32px 28px;
+  padding: 24px 32px 28px;
   display: grid;
-  gap: 24px;
+  gap: 22px;
 }
 
 .modalContent h2 {
@@ -455,22 +455,22 @@
 .modalMetaGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  gap: 24px;
 }
 
 .modalMetaItem {
   min-width: 0;
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-columns: 56px minmax(0, 1fr);
   grid-template-rows: auto auto;
-  column-gap: 12px;
+  column-gap: 14px;
   align-items: center;
 }
 
 .modalMetaIcon {
   grid-row: 1 / span 2;
-  width: 44px;
-  height: 44px;
+  width: 56px;
+  height: 56px;
   border-radius: var(--radius-full);
   background: var(--color-background-placeholder);
 }
@@ -492,26 +492,33 @@
   white-space: nowrap;
 }
 
+.modalDivider {
+  width: 100%;
+  height: 1px;
+  margin: 0;
+  border: 0;
+  background: var(--color-border-default);
+}
+
 .modalInfoBox {
-  min-height: 128px;
+  min-height: 112px;
   padding: 18px 20px;
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-md);
   display: grid;
   align-content: start;
   gap: 12px;
+  box-shadow: 0 2px 8px rgb(15 23 42 / 0.04);
 }
 
-.modalInfoBox h3,
-.modalPolicyItem h3 {
+.modalInfoBox h3 {
   margin: 0;
   font-size: var(--font-size-label-2);
   line-height: var(--line-height-label-2);
   font-weight: 900;
 }
 
-.modalInfoBox p,
-.modalPolicyItem p {
+.modalInfoBox p {
   margin: 0;
   color: var(--color-text-secondary);
   font-size: var(--font-size-label-2);
@@ -525,13 +532,67 @@
 
 .modalPolicyItem {
   min-height: 48px;
-  padding: 12px 16px;
+  padding: 0;
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-md);
-  display: grid;
-  grid-template-columns: 64px minmax(0, 1fr);
+  background: var(--color-white);
+  box-shadow: 0 2px 8px rgb(15 23 42 / 0.04);
+}
+
+.modalPolicyItem summary {
+  min-height: 48px;
+  padding: 0 18px;
+  display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: var(--space-12);
+  cursor: pointer;
+  list-style: none;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-label-2);
+  line-height: var(--line-height-label-2);
+  font-weight: 900;
+}
+
+.modalPolicyItem summary::-webkit-details-marker {
+  display: none;
+}
+
+.modalPolicyItem p {
+  margin: 4px 18px 18px;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-label-2);
+  line-height: 1.7;
+}
+
+.policyToggleIcon {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-full);
+  background: var(--color-background-placeholder);
+  position: relative;
+}
+
+.policyToggleIcon::before,
+.policyToggleIcon::after {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 1.5px;
+  border-radius: var(--radius-full);
+  background: var(--color-text-secondary);
+  transform: translate(-50%, -50%);
+  content: "";
+}
+
+.policyToggleIcon::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.modalPolicyItem[open] .policyToggleIcon::after {
+  display: none;
 }
 
 .modalFooter {

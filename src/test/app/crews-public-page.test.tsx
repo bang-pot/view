@@ -191,10 +191,22 @@ describe("PublicCrewsPage", () => {
 
     fireEvent.click(await screen.findByRole("link", { name: "BangPot Runners" }));
 
+    const detailDialog = screen.getByRole("dialog", {
+      name: "BangPot Runners",
+    });
+
+    expect(detailDialog).toBeInTheDocument();
+    expect(within(detailDialog).getByText("한줄 크루 소개")).toBeInTheDocument();
+    expect(within(detailDialog).getByText("공개 여부")).toBeInTheDocument();
+    expect(within(detailDialog).getByText("크루 인원")).toBeInTheDocument();
+    expect(within(detailDialog).getByText("크루장")).toBeInTheDocument();
+    expect(within(detailDialog).getByText("참여 기준")).toBeInTheDocument();
+    expect(within(detailDialog).getAllByText("크루 문화")).toHaveLength(2);
     expect(
-      screen.getByRole("dialog", {
-        name: "BangPot Runners",
-      }),
+      within(detailDialog).getByText((_, element) =>
+        element?.tagName.toLowerCase() === "p" &&
+        (element.textContent?.includes("정기 모임에 한 달 2회 이상 참여를 권장합니다.") ?? false),
+      ),
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "닫기" }));

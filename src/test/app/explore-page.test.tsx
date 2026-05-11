@@ -107,7 +107,8 @@ describe("ExplorePage", () => {
     );
     expect(within(item).getByRole("button", { name: "찜하기" })).toBeInTheDocument();
     expect(within(item).getByText("추리")).toBeInTheDocument();
-    expect(within(item).getByText(/60분/)).toBeInTheDocument();
+    expect(within(item).getByLabelText("찜 12")).toBeInTheDocument();
+    expect(within(item).getByLabelText("매장 강남 이스케이프")).toBeInTheDocument();
     expect(within(item).getByText(/강남 이스케이프/)).toBeInTheDocument();
     expect(within(item).queryByText(/서울 강남/)).not.toBeInTheDocument();
   });
@@ -225,10 +226,12 @@ describe("ExplorePage", () => {
     render(await ExplorePage({ searchParams: Promise.resolve({}) }));
 
     fireEvent.click(await screen.findByRole("button", { name: "찜하기" }));
-    expect(await screen.findByRole("button", { name: "찜 해제" })).toHaveTextContent("13");
+    await screen.findByRole("button", { name: "찜 해제" });
+    expect(await screen.findByLabelText("찜 13")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "찜 해제" }));
-    expect(await screen.findByRole("button", { name: "찜하기" })).toHaveTextContent("12");
+    await screen.findByRole("button", { name: "찜하기" });
+    expect(await screen.findByLabelText("찜 12")).toBeInTheDocument();
   });
 
   it("redirects guests to login when they try to favorite from the explore card", async () => {

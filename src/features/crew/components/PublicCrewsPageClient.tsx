@@ -405,24 +405,43 @@ export function PublicCrewsPageClient() {
                   </div>
                 </div>
 
+                <hr className={styles.modalDivider} />
+
                 <section className={styles.modalInfoBox}>
                   <h3>한줄 크루 소개</h3>
                   <p>{selectedCrew.description ?? "소개가 아직 없습니다."}</p>
                 </section>
 
+                <hr className={styles.modalDivider} />
+
                 <div className={styles.modalPolicyList} aria-label="크루 상세 정보">
-                  <section className={styles.modalPolicyItem}>
-                    <h3>정책 1</h3>
-                    <p>{selectedCrew.description ?? "크루 활동 안내가 준비 중입니다."}</p>
-                  </section>
-                  <section className={styles.modalPolicyItem}>
-                    <h3>정책 2</h3>
-                    <p>정기 모임 일정과 참여 방식은 크루장 안내에 따라 확인해 주세요.</p>
-                  </section>
-                  <section className={styles.modalPolicyItem}>
-                    <h3>정책 3</h3>
-                    <p>비공개 크루는 가입 신청 전 안내를 확인한 뒤 진행할 수 있습니다.</p>
-                  </section>
+                  <details className={styles.modalPolicyItem} open>
+                    <summary>
+                      <span>참여 기준</span>
+                      <span className={styles.policyToggleIcon} aria-hidden="true" />
+                    </summary>
+                    <p>
+                      정기 모임에 한 달 2회 이상 참여를 권장합니다.
+                      <br />
+                      참여가 어려운 경우에는 사전에 크루장에게 미리 알려주세요.
+                      <br />
+                      장기간 미참여 시 크루 운영 상황에 따라 크루원 자격이 조정될 수 있습니다.
+                    </p>
+                  </details>
+                  <details className={styles.modalPolicyItem}>
+                    <summary>
+                      <span>크루 문화</span>
+                      <span className={styles.policyToggleIcon} aria-hidden="true" />
+                    </summary>
+                    <p>서로의 취향을 존중하고 즐거운 방탈출 경험을 함께 만들어가요.</p>
+                  </details>
+                  <details className={styles.modalPolicyItem}>
+                    <summary>
+                      <span>크루 문화</span>
+                      <span className={styles.policyToggleIcon} aria-hidden="true" />
+                    </summary>
+                    <p>약속 시간을 지키고 모임 변경 사항은 미리 공유해 주세요.</p>
+                  </details>
                 </div>
               </div>
             </div>
