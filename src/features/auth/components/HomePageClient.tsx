@@ -486,6 +486,10 @@ function ThemePreviewCard({
           <span className={styles.themeGenreTag}>{tag}</span>
         </div>
         <span className={styles.themeInfoMeta}>
+          <span aria-label={`찜 ${theme.favoriteCount.toLocaleString()}`}>
+            <span aria-hidden="true">♡</span>
+            <span>{theme.favoriteCount.toLocaleString()}</span>
+          </span>
           <span>◆ {theme.storeName}</span>
         </span>
       </div>
