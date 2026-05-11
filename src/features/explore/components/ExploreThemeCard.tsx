@@ -98,6 +98,13 @@ export function ExploreThemeCard({
 
         <div style={{ padding: 16, display: "grid", gap: 8 }}>
           <strong style={{ paddingRight: 88 }}>{item.themeName}</strong>
+          <span
+            aria-label={`찜 ${item.favoriteCount.toLocaleString()}`}
+            style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+          >
+            <span aria-hidden="true">♡</span>
+            <span>{item.favoriteCount.toLocaleString()}</span>
+          </span>
           <span>{item.storeName}</span>
           <span>{item.regionLabel}</span>
 
