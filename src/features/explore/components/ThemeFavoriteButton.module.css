@@ -6,10 +6,9 @@
 
 .compact {
   position: absolute;
-  top: 12px;
-  left: 50%;
+  top: 10px;
+  left: 10px;
   z-index: 2;
-  transform: translateX(-50%);
   justify-items: center;
 }
 
@@ -47,8 +46,9 @@
 }
 
 .compact .button {
+  width: 28px;
   min-height: 28px;
-  padding: 0 12px;
+  padding: 0;
   border: 0;
   background: rgb(17 17 17 / 0.72);
   color: var(--color-white);

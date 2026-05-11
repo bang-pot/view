@@ -97,7 +97,7 @@ export function ThemeFavoriteButton({
         onClick={handleClick}
       >
         <span aria-hidden="true">♡</span>
-        <span>{variant === "compact" ? countLabel : buttonLabel}</span>
+        {variant === "compact" ? null : <span>{buttonLabel}</span>}
       </button>
       {variant === "compact" ? null : (
         <span className={styles.count} aria-label="찜 수">

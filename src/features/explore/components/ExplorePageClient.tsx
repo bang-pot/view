@@ -126,6 +126,10 @@ function getPrimaryGenre(genres: string[]): string | null {
   return genres[0] ?? null;
 }
 
+function getStoreNameLabel(storeName: string): string {
+  return storeName || "매장 정보 준비 중";
+}
+
 function formatGenres(genres: string[]): string {
   return genres.length > 0 ? genres.join(", ") : "정보 준비 중";
 }
@@ -158,17 +162,15 @@ function ExploreHeader() {
 function ThemeCard({
   item,
   onOpen,
+  onFavoriteChange,
   redirectPath,
 }: {
   item: ExploreThemeCardItem;
   onOpen: (theme: ExploreThemeCardItem) => void;
+  onFavoriteChange: (themeId: number, input: { isFavorite: boolean; favoriteCount: number }) => void;
   redirectPath: string;
 }) {
-  const timeLabel =
-    item.runningTimeMinutes === null || item.runningTimeMinutes === undefined
-      ? "시간 준비 중"
-      : `${item.runningTimeMinutes}분`;
-  const storeLabel = item.storeName || item.regionLabel;
+  const storeLabel = getStoreNameLabel(item.storeName);
   const primaryGenre = getPrimaryGenre(item.genres);
 
   return (
@@ -180,6 +182,7 @@ function ThemeCard({
           initialFavoriteCount={item.favoriteCount}
           redirectPath={redirectPath}
           variant="compact"
+          onChange={(input) => onFavoriteChange(item.themeId, input)}
         />
         <Link
           href={`/explore/themes/${item.themeId}`}
@@ -220,10 +223,14 @@ function ThemeCard({
           ) : null}
         </div>
         <p className={styles.themeMeta}>
-          <span aria-hidden="true">♥</span>
-          {timeLabel}
-          <span aria-hidden="true">◆</span>
-          {storeLabel}
+          <span className={styles.themeMetaItem} aria-label={`찜 ${item.favoriteCount.toLocaleString()}`}>
+            <span className={styles.metaHeartIcon} aria-hidden="true" />
+            {item.favoriteCount.toLocaleString()}
+          </span>
+          <span className={styles.themeMetaItem} aria-label={`매장 ${storeLabel}`}>
+            <span className={styles.metaStoreIcon} aria-hidden="true" />
+            {storeLabel}
+          </span>
         </p>
       </div>
     </article>
@@ -233,10 +240,12 @@ function ThemeCard({
 function RelatedThemeCard({
   item,
   onOpen,
+  onFavoriteChange,
   redirectPath,
 }: {
   item: ExploreThemeCardItem;
   onOpen: (theme: ExploreThemeCardItem) => void;
+  onFavoriteChange: (themeId: number, input: { isFavorite: boolean; favoriteCount: number }) => void;
   redirectPath: string;
 }) {
   return (
@@ -248,6 +257,7 @@ function RelatedThemeCard({
           initialFavoriteCount={item.favoriteCount}
           redirectPath={redirectPath}
           variant="compact"
+          onChange={(input) => onFavoriteChange(item.themeId, input)}
         />
         <Link
           href={`/explore/themes/${item.themeId}`}
@@ -287,10 +297,14 @@ function RelatedThemeCard({
           ) : null}
         </div>
         <p>
-          <span aria-hidden="true">♡</span>
-          {item.favoriteCount.toLocaleString()}
-          <span aria-hidden="true">·</span>
-          {item.storeName || item.regionLabel}
+          <span className={styles.themeMetaItem} aria-label={`찜 ${item.favoriteCount.toLocaleString()}`}>
+            <span className={styles.metaHeartIcon} aria-hidden="true" />
+            {item.favoriteCount.toLocaleString()}
+          </span>
+          <span className={styles.themeMetaItem} aria-label={`매장 ${getStoreNameLabel(item.storeName)}`}>
+            <span className={styles.metaStoreIcon} aria-hidden="true" />
+            {getStoreNameLabel(item.storeName)}
+          </span>
         </p>
       </div>
     </article>
@@ -559,6 +573,23 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
         .slice(0, 4)
     : [];
   const selectedCrew = crews.find((crew) => String(crew.crewId) === selectedCrewId) ?? null;
+  const handleThemeFavoriteChange = useCallback(
+    (themeId: number, input: { isFavorite: boolean; favoriteCount: number }) => {
+      setItems((previousItems) =>
+        previousItems.map((item) =>
+          item.themeId === themeId
+            ? { ...item, isFavorite: input.isFavorite, favoriteCount: input.favoriteCount }
+            : item,
+        ),
+      );
+      setSelectedTheme((previousTheme) =>
+        previousTheme && previousTheme.themeId === themeId
+          ? { ...previousTheme, isFavorite: input.isFavorite, favoriteCount: input.favoriteCount }
+          : previousTheme,
+      );
+    },
+    [],
+  );
 
   return (
     <div className={styles.page}>
@@ -703,7 +734,12 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
               <ul className={styles.themeGrid} aria-label="방탈출 탐색 결과 목록">
                 {items.map((item) => (
                   <li key={item.themeId}>
-                    <ThemeCard item={item} onOpen={setSelectedTheme} redirectPath={redirectPath} />
+                    <ThemeCard
+                      item={item}
+                      onOpen={setSelectedTheme}
+                      onFavoriteChange={handleThemeFavoriteChange}
+                      redirectPath={redirectPath}
+                    />
                   </li>
                 ))}
               </ul>
@@ -775,17 +811,17 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
                 </div>
 
                 <div className={styles.themeMetaGrid}>
-                  <div className={styles.themeMetaItem}>
+                  <div className={styles.themeDetailMetaItem}>
                     <span className={styles.themeMetaIcon} aria-hidden="true" />
                     <span>테마 장르</span>
                     <strong>{formatGenres(selectedTheme.genres)}</strong>
                   </div>
-                  <div className={styles.themeMetaItem}>
+                  <div className={styles.themeDetailMetaItem}>
                     <span className={styles.themeMetaIcon} aria-hidden="true" />
                     <span>인원</span>
                     <strong>{selectedTheme.recommendedPlayers ?? "정보 준비 중"}</strong>
                   </div>
-                  <div className={styles.themeMetaItem}>
+                  <div className={styles.themeDetailMetaItem}>
                     <span className={styles.themeMetaIcon} aria-hidden="true" />
                     <span>소요시간</span>
                     <strong>
@@ -803,7 +839,6 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
                     풀어가는 방탈출 테마입니다. 자세한 소개와 난이도 정보는 곧 연결될
                     상세 데이터로 채워질 예정입니다.
                   </p>
-                  <button type="button">더보기 &gt;</button>
                 </section>
 
                 <section className={styles.relatedSection} aria-labelledby="related-themes-heading">
@@ -818,6 +853,7 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
                           <RelatedThemeCard
                             item={item}
                             onOpen={setSelectedTheme}
+                            onFavoriteChange={handleThemeFavoriteChange}
                             redirectPath={redirectPath}
                           />
                         </li>
