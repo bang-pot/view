@@ -5,6 +5,8 @@ import { useEffect, useRef, useState, type TouchEvent } from "react";
 
 import { getMe } from "@/shared/auth/client";
 import { resolveProtectedDestination } from "@/shared/auth/guards";
+import { getCrewHub } from "@/shared/crew/client";
+import type { CrewHubResponse } from "@/shared/crew/types";
 import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
 import {
   getCrewGallery,
@@ -16,6 +18,11 @@ import type {
   CrewGalleryItem,
 } from "@/shared/gallery/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
+import {
+  createCrewWorkspaceFallback,
+  CrewWorkspaceShell,
+} from "@/features/crew/components/CrewPageClient";
+import crewWorkspaceStyles from "@/features/crew/components/CrewPageClient.module.css";
 
 type CrewGalleryPageClientProps = {
   crewId: string;
@@ -48,12 +55,31 @@ function getPhotoPlaceholderText(order?: number): string {
     : "대표 사진 준비 중";
 }
 
+function GalleryPlaceholderGrid() {
+  return (
+    <ul className={crewWorkspaceStyles.placeholderGrid} aria-label="사진첩 미리보기">
+      {Array.from({ length: 6 }, (_, index) => (
+        <li key={`gallery-placeholder-${index + 1}`}>
+          <article className={crewWorkspaceStyles.placeholderCard}>
+            <div className={crewWorkspaceStyles.placeholderImage}>이미지 준비 중</div>
+            <div className={crewWorkspaceStyles.placeholderMeta}>
+              <strong>방탈 사진 {index + 1}</strong>
+              <span>모임 사진이 등록되면 이곳에 보여요.</span>
+            </div>
+          </article>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function CrewGalleryPageClient({ crewId }: CrewGalleryPageClientProps) {
   const router = useRouter();
   const hasBootstrappedRef = useRef(false);
   const swipeStartXRef = useRef<number | null>(null);
 
   const [items, setItems] = useState<CrewGalleryItem[]>([]);
+  const [crew, setCrew] = useState<CrewHubResponse | null>(null);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -109,15 +135,27 @@ export function CrewGalleryPageClient({ crewId }: CrewGalleryPageClientProps) {
           return;
         }
 
-        const response = await getCrewGallery(crewIdNumber, {
-          page: 0,
-          size: PAGE_SIZE,
-        });
+        const [crewResult, galleryResult] = await Promise.allSettled([
+          getCrewHub(crewIdNumber),
+          getCrewGallery(crewIdNumber, {
+            page: 0,
+            size: PAGE_SIZE,
+          }),
+        ]);
 
         if (!isMounted) {
           return;
         }
 
+        if (crewResult.status === "fulfilled") {
+          setCrew(crewResult.value);
+        }
+
+        if (galleryResult.status !== "fulfilled") {
+          throw galleryResult.reason;
+        }
+
+        const response = galleryResult.value;
         setItems(response.items);
         setPage(response.pageInfo.page);
         setHasNext(response.pageInfo.hasNext);
@@ -375,22 +413,33 @@ export function CrewGalleryPageClient({ crewId }: CrewGalleryPageClientProps) {
     );
   }
 
+  const resolvedCrew = crew ?? createCrewWorkspaceFallback(crewId);
+
   if (isLoading) {
     return (
-      <main>
-        <h1>크루 사진첩</h1>
-        <p>크루 사진첩을 불러오는 중입니다.</p>
-      </main>
+      <CrewWorkspaceShell activeMenu="gallery" crew={resolvedCrew} crewId={crewId}>
+        <section className={crewWorkspaceStyles.tabPanel}>
+          <h1>사진첩 준비 중</h1>
+          <p>크루 사진첩을 불러오는 중입니다.</p>
+          <GalleryPlaceholderGrid />
+        </section>
+      </CrewWorkspaceShell>
     );
   }
 
   return (
-    <main>
+    <CrewWorkspaceShell activeMenu="gallery" crew={resolvedCrew} crewId={crewId}>
+      <section className={crewWorkspaceStyles.tabPanel}>
       <h1>크루 사진첩</h1>
       <p>사진이 등록된 완료된 모임만 모아보고 있어요.</p>
 
       {errorMessage ? <p>{errorMessage}</p> : null}
-      {!errorMessage && items.length === 0 ? <p>아직 사진이 없네요.</p> : null}
+      {!errorMessage && items.length === 0 ? (
+        <>
+          <p>아직 사진이 없네요.</p>
+          <GalleryPlaceholderGrid />
+        </>
+      ) : null}
 
       {items.length > 0 ? (
         <>
@@ -688,6 +737,7 @@ export function CrewGalleryPageClient({ crewId }: CrewGalleryPageClientProps) {
           </div>
         </div>
       ) : null}
-    </main>
+      </section>
+    </CrewWorkspaceShell>
   );
 }

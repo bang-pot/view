@@ -84,6 +84,22 @@ describe("CrewLogFeedPage", () => {
     ).toHaveAttribute("href", "/crews/11/logs/501");
   });
 
+  it("renders the crew workspace shell while the log feed is loading", async () => {
+    vi.mocked(getMe).mockReturnValue(new Promise(() => undefined));
+
+    render(
+      await CrewLogFeedPage({
+        params: Promise.resolve({ crewId: "11" }),
+      }),
+    );
+
+    expect(screen.getByRole("navigation", { name: "현재 위치" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "방탈로그" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByText("크루 방탈로그 피드를 불러오는 중입니다.")).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "방탈로그 미리보기" })).toBeInTheDocument();
+    expect(screen.getAllByText("기록 준비 중")).toHaveLength(6);
+  });
+
   it("redirects guests to login before loading the feed", async () => {
     vi.mocked(getMe).mockResolvedValue({
       authStatus: "GUEST",
@@ -198,6 +214,8 @@ describe("CrewLogFeedPage", () => {
     );
 
     expect(await screen.findByText("아직 등록된 방탈로그가 없어요.")).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "방탈로그 미리보기" })).toBeInTheDocument();
+    expect(screen.getAllByText("기록 준비 중")).toHaveLength(6);
 
     cleanup();
     vi.clearAllMocks();

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import { getCrewHub } from "@/shared/crew/client";
@@ -18,10 +19,31 @@ type CrewPageClientProps = {
   crewId: string;
 };
 
+export type CrewWorkspaceMenuKey =
+  | "plaza"
+  | "policies"
+  | "members"
+  | "schedule"
+  | "meetings"
+  | "gallery"
+  | "logs";
+
 type MenuItem = {
+  key: CrewWorkspaceMenuKey;
   label: string;
   href: string;
-  active?: boolean;
+};
+
+type CrewWorkspaceShellProps = {
+  activeMenu: CrewWorkspaceMenuKey;
+  children: ReactNode;
+  crew: CrewHubResponse;
+  crewId: string;
+};
+
+type CrewWorkspaceStatePageProps = {
+  children: ReactNode;
+  title?: string;
 };
 
 const MEMBER_COUNT_PLACEHOLDER = 5;
@@ -94,108 +116,53 @@ function SquareIcon() {
 }
 
 function LeaderAvatar() {
-  return <span className={styles.leaderAvatar} aria-hidden="true">화</span>;
+  return (
+    <span className={styles.leaderAvatar} aria-hidden="true">
+      화
+    </span>
+  );
 }
 
-export function CrewPageClient({ crewId }: CrewPageClientProps) {
-  const router = useRouter();
-  const [crew, setCrew] = useState<CrewHubResponse | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function CrewWorkspaceStatePage({ children, title }: CrewWorkspaceStatePageProps) {
+  return (
+    <main className={styles.statePage}>
+      {title ? <h1>{title}</h1> : null}
+      {children}
+    </main>
+  );
+}
 
-  const crewIdNumber = Number(crewId);
-  const hasValidCrewId = Number.isFinite(crewIdNumber);
-  const publicCrewPath = useMemo(() => buildPublicCrewPath(crewId), [crewId]);
-  const meetingsPath = useMemo(() => `/crews/${crewId}/meetings`, [crewId]);
-  const schedulePath = useMemo(() => `/crews/${crewId}/schedule`, [crewId]);
-  const logsPath = useMemo(() => `/crews/${crewId}/logs`, [crewId]);
-  const galleryPath = useMemo(() => `/crews/${crewId}/gallery`, [crewId]);
-  const policiesPath = useMemo(() => `/crews/${crewId}/policies`, [crewId]);
-  const membersPath = useMemo(() => `/crews/${crewId}/members`, [crewId]);
-  const settingsPath = useMemo(() => `/crews/${crewId}/settings`, [crewId]);
-  const manageJoinRequestsPath = useMemo(() => `/crews/${crewId}/join-requests`, [crewId]);
+export function createCrewWorkspaceFallback(crewId: string, name = "크루"): CrewHubResponse {
+  return {
+    crewId: Number(crewId),
+    name,
+    description: "함께 방탈출을 즐기는 크루입니다.",
+    visibility: "PUBLIC",
+    imageUrl: null,
+    myRole: "MEMBER",
+    hasNotice: false,
+    pendingJoinRequestCount: 0,
+  };
+}
 
-  useEffect(() => {
-    if (!hasValidCrewId) {
-      return;
-    }
-
-    let isMounted = true;
-
-    void getCrewHub(crewIdNumber)
-      .then((response) => {
-        if (!isMounted) {
-          return;
-        }
-
-        setCrew(response);
-        setIsLoading(false);
-      })
-      .catch((error) => {
-        const shouldRedirect =
-          isOperationalError(error) &&
-          (error.code === "AUTH_ACCESS_DENIED" || error.code === "AUTH_UNAUTHENTICATED");
-
-        reportOperationalError("crew.hub_load_failed", error, {
-          level: shouldRedirect ? "warn" : "error",
-          route: `/crews/${crewId}`,
-        });
-
-        if (!isMounted) {
-          return;
-        }
-
-        if (shouldRedirect) {
-          router.replace(publicCrewPath);
-          return;
-        }
-
-        setErrorMessage(
-          getUserMessage(error, "크루 홈을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
-        );
-        setIsLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [crewId, crewIdNumber, hasValidCrewId, publicCrewPath, router]);
-
-  if (!hasValidCrewId) {
-    return (
-      <main className={styles.statePage}>
-        <h1>크루 홈</h1>
-        <p>올바르지 않은 크루 경로입니다.</p>
-      </main>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <main className={styles.statePage}>
-        <p>크루 홈을 불러오고 있습니다.</p>
-      </main>
-    );
-  }
-
-  if (!crew) {
-    return (
-      <main className={styles.statePage}>
-        <h1>크루 홈</h1>
-        <p>{errorMessage ?? "크루 홈을 불러오지 못했어요."}</p>
-      </main>
-    );
-  }
-
+export function CrewWorkspaceShell({ activeMenu, children, crew, crewId }: CrewWorkspaceShellProps) {
   const leader = isLeader(crew.myRole);
+  const meetingsPath = `/crews/${crewId}/meetings`;
+  const schedulePath = `/crews/${crewId}/schedule`;
+  const logsPath = `/crews/${crewId}/logs`;
+  const galleryPath = `/crews/${crewId}/gallery`;
+  const policiesPath = `/crews/${crewId}/policies`;
+  const membersPath = `/crews/${crewId}/members`;
+  const settingsPath = `/crews/${crewId}/settings`;
+  const manageJoinRequestsPath = `/crews/${crewId}/join-requests`;
   const menuItems: MenuItem[] = [
-    { label: "광장", href: `/crews/${crew.crewId}`, active: true },
-    { label: "정책", href: policiesPath },
-    { label: "크루원", href: membersPath },
-    { label: "방장 일정", href: schedulePath },
-    { label: "방탈 모집", href: meetingsPath },
-    { label: "사진첩", href: galleryPath },
-    { label: "방탈로그", href: logsPath },
+    { key: "plaza", label: "광장", href: `/crews/${crewId}` },
+    { key: "policies", label: "정책", href: policiesPath },
+    { key: "members", label: "크루원", href: membersPath },
+    { key: "schedule", label: "방장 일정", href: schedulePath },
+    { key: "meetings", label: "방탈 모집", href: meetingsPath },
+    { key: "gallery", label: "사진첩", href: galleryPath },
+    { key: "logs", label: "방탈로그", href: logsPath },
   ];
 
   return (
@@ -249,10 +216,10 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
           <nav className={styles.crewNav} aria-label="크루 내부 메뉴">
             {menuItems.map((item) => (
               <Link
-                key={item.label}
+                key={item.key}
                 href={item.href}
-                aria-current={item.active ? "page" : undefined}
-                className={item.active ? styles.activeMenu : undefined}
+                aria-current={item.key === activeMenu ? "page" : undefined}
+                className={item.key === activeMenu ? styles.activeMenu : undefined}
               >
                 {item.label}
               </Link>
@@ -282,70 +249,167 @@ export function CrewPageClient({ crewId }: CrewPageClientProps) {
             </div>
           </section>
 
-          <section className={styles.shoutBox} aria-labelledby="crew-shout-heading">
-            <div className={styles.panelHeader}>
-              <h2 id="crew-shout-heading">오늘의 한마디</h2>
-            </div>
-            <div className={styles.shoutCloud} aria-label="크루 한마디 목록">
-              {shoutMessages.map((message, index) => (
-                <span
-                  key={`${message}-${index}`}
-                  className={`${styles.shoutBubble} ${styles[`bubbleTone${(index % 6) + 1}`]}`}
-                >
-                  {message}
-                </span>
-              ))}
-            </div>
-            <label className={styles.shoutInputLabel}>
-              <span className={styles.visuallyHidden}>오늘의 한마디 입력</span>
-              <input placeholder="한마디 남길 메시지를 입력하세요" />
-              <span aria-hidden="true">✎</span>
-            </label>
-          </section>
-
-          <section className={styles.schedulePanel} aria-labelledby="weekly-schedule-heading">
-            <div className={styles.panelHeader}>
-              <h2 id="weekly-schedule-heading">주간 일정</h2>
-              <TextButton leftIcon={<SquareIcon />} size="sm" variant="primary">
-                Text Button
-              </TextButton>
-            </div>
-            <ul>
-              {weeklySchedules.map((schedule) => (
-                <li key={`${schedule.date}-${schedule.title}`}>
-                  <span>{schedule.date}</span>
-                  <strong>{schedule.title}</strong>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className={styles.logPanel} aria-labelledby="recent-logs-heading">
-            <div className={styles.panelHeader}>
-              <h2 id="recent-logs-heading">최근 방탈로그</h2>
-              <Link href={logsPath}>전체 보기 -&gt;</Link>
-            </div>
-            <ul>
-              {recentLogs.map((log) => (
-                <li key={log.title}>
-                  <article className={`${styles.logCard} ${log.hasImages ? "" : styles.textOnlyLogCard}`}>
-                    {log.hasImages ? (
-                      <div className={`${styles.logThumb} ${log.tone === "blue" ? styles.logThumbBlue : ""}`}>
-                        <span>+2장</span>
-                      </div>
-                    ) : null}
-                    <div>
-                      <h3>{log.title}</h3>
-                      <p>{log.body}</p>
-                      <span>[공포] 서울 이스케이프룸 · 1시간 전</span>
-                    </div>
-                  </article>
-                </li>
-              ))}
-            </ul>
-          </section>
+          {children}
         </div>
       </div>
     </main>
+  );
+}
+
+function CrewDashboardContent({ crewId }: { crewId: string }) {
+  const logsPath = `/crews/${crewId}/logs`;
+
+  return (
+    <>
+      <section className={styles.shoutBox} aria-labelledby="crew-shout-heading">
+        <div className={styles.panelHeader}>
+          <h2 id="crew-shout-heading">오늘의 한마디</h2>
+        </div>
+        <div className={styles.shoutCloud} aria-label="크루 한마디 목록">
+          {shoutMessages.map((message, index) => (
+            <span
+              key={`${message}-${index}`}
+              className={`${styles.shoutBubble} ${styles[`bubbleTone${(index % 6) + 1}`]}`}
+            >
+              {message}
+            </span>
+          ))}
+        </div>
+        <label className={styles.shoutInputLabel}>
+          <span className={styles.visuallyHidden}>오늘의 한마디 입력</span>
+          <input placeholder="한마디 남길 메시지를 입력하세요" />
+          <span aria-hidden="true">✎</span>
+        </label>
+      </section>
+
+      <section className={styles.schedulePanel} aria-labelledby="weekly-schedule-heading">
+        <div className={styles.panelHeader}>
+          <h2 id="weekly-schedule-heading">주간 일정</h2>
+          <TextButton leftIcon={<SquareIcon />} size="sm" variant="primary">
+            Text Button
+          </TextButton>
+        </div>
+        <ul>
+          {weeklySchedules.map((schedule) => (
+            <li key={`${schedule.date}-${schedule.title}`}>
+              <span>{schedule.date}</span>
+              <strong>{schedule.title}</strong>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className={styles.logPanel} aria-labelledby="recent-logs-heading">
+        <div className={styles.panelHeader}>
+          <h2 id="recent-logs-heading">최근 방탈로그</h2>
+          <Link href={logsPath}>전체 보기 -&gt;</Link>
+        </div>
+        <ul>
+          {recentLogs.map((log) => (
+            <li key={log.title}>
+              <article className={`${styles.logCard} ${log.hasImages ? "" : styles.textOnlyLogCard}`}>
+                {log.hasImages ? (
+                  <div className={`${styles.logThumb} ${log.tone === "blue" ? styles.logThumbBlue : ""}`}>
+                    <span>+2장</span>
+                  </div>
+                ) : null}
+                <div>
+                  <h3>{log.title}</h3>
+                  <p>{log.body}</p>
+                  <span>[공포] 서울 이스케이프룸 · 1시간 전</span>
+                </div>
+              </article>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </>
+  );
+}
+
+export function CrewPageClient({ crewId }: CrewPageClientProps) {
+  const router = useRouter();
+  const [crew, setCrew] = useState<CrewHubResponse | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const crewIdNumber = Number(crewId);
+  const hasValidCrewId = Number.isFinite(crewIdNumber);
+  const publicCrewPath = useMemo(() => buildPublicCrewPath(crewId), [crewId]);
+
+  useEffect(() => {
+    if (!hasValidCrewId) {
+      return;
+    }
+
+    let isMounted = true;
+
+    void getCrewHub(crewIdNumber)
+      .then((response) => {
+        if (!isMounted) {
+          return;
+        }
+
+        setCrew(response);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        const shouldRedirect =
+          isOperationalError(error) &&
+          (error.code === "AUTH_ACCESS_DENIED" || error.code === "AUTH_UNAUTHENTICATED");
+
+        reportOperationalError("crew.hub_load_failed", error, {
+          level: shouldRedirect ? "warn" : "error",
+          route: `/crews/${crewId}`,
+        });
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (shouldRedirect) {
+          router.replace(publicCrewPath);
+          return;
+        }
+
+        setErrorMessage(
+          getUserMessage(error, "크루 홈을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
+        );
+        setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [crewId, crewIdNumber, hasValidCrewId, publicCrewPath, router]);
+
+  if (!hasValidCrewId) {
+    return (
+      <CrewWorkspaceStatePage title="크루 홈">
+        <p>올바르지 않은 크루 경로입니다.</p>
+      </CrewWorkspaceStatePage>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <CrewWorkspaceStatePage>
+        <p>크루 홈을 불러오고 있습니다.</p>
+      </CrewWorkspaceStatePage>
+    );
+  }
+
+  if (!crew) {
+    return (
+      <CrewWorkspaceStatePage title="크루 홈">
+        <p>{errorMessage ?? "크루 홈을 불러오지 못했어요."}</p>
+      </CrewWorkspaceStatePage>
+    );
+  }
+
+  return (
+    <CrewWorkspaceShell activeMenu="plaza" crew={crew} crewId={crewId}>
+      <CrewDashboardContent crewId={crewId} />
+    </CrewWorkspaceShell>
   );
 }

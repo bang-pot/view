@@ -6,10 +6,17 @@ import { useEffect, useRef, useState } from "react";
 
 import { getMe } from "@/shared/auth/client";
 import { resolveProtectedDestination } from "@/shared/auth/guards";
+import { getCrewHub } from "@/shared/crew/client";
+import type { CrewHubResponse } from "@/shared/crew/types";
 import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
 import { getCrewLogFeed } from "@/shared/log/client";
 import type { CrewLogFeedItem } from "@/shared/log/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
+import {
+  createCrewWorkspaceFallback,
+  CrewWorkspaceShell,
+} from "@/features/crew/components/CrewPageClient";
+import crewWorkspaceStyles from "@/features/crew/components/CrewPageClient.module.css";
 
 type CrewLogFeedPageClientProps = {
   crewId: string;
@@ -46,10 +53,29 @@ function getExcerpt(excerpt: string): string {
   return excerpt.trim() || "후기 요약이 아직 없습니다.";
 }
 
+function LogPlaceholderGrid() {
+  return (
+    <ul className={crewWorkspaceStyles.placeholderGrid} aria-label="방탈로그 미리보기">
+      {Array.from({ length: 6 }, (_, index) => (
+        <li key={`log-placeholder-${index + 1}`}>
+          <article className={crewWorkspaceStyles.placeholderCard}>
+            <div className={crewWorkspaceStyles.placeholderImage}>기록 준비 중</div>
+            <div className={crewWorkspaceStyles.placeholderMeta}>
+              <strong>방탈로그 {index + 1}</strong>
+              <span>크루 기록이 등록되면 이곳에 보여요.</span>
+            </div>
+          </article>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const hasBootstrappedRef = useRef(false);
+  const [crew, setCrew] = useState<CrewHubResponse | null>(null);
   const [items, setItems] = useState<CrewLogFeedItem[]>([]);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(false);
@@ -90,15 +116,27 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
           return;
         }
 
-        const response = await getCrewLogFeed(crewIdNumber, {
-          page: 0,
-          size: PAGE_SIZE,
-        });
+        const [crewResult, feedResult] = await Promise.allSettled([
+          getCrewHub(crewIdNumber),
+          getCrewLogFeed(crewIdNumber, {
+            page: 0,
+            size: PAGE_SIZE,
+          }),
+        ]);
 
         if (!isMounted) {
           return;
         }
 
+        if (crewResult.status === "fulfilled") {
+          setCrew(crewResult.value);
+        }
+
+        if (feedResult.status !== "fulfilled") {
+          throw feedResult.reason;
+        }
+
+        const response = feedResult.value;
         setItems(response.items);
         setPage(response.pageInfo.page);
         setHasNext(response.pageInfo.hasNext);
@@ -171,23 +209,34 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
     );
   }
 
+  const resolvedCrew = crew ?? createCrewWorkspaceFallback(crewId);
+
   if (isLoading) {
     return (
-      <main>
-        <h1>크루 방탈로그</h1>
-        <p>크루 방탈로그 피드를 불러오는 중입니다.</p>
-      </main>
+      <CrewWorkspaceShell activeMenu="logs" crew={resolvedCrew} crewId={crewId}>
+        <section className={crewWorkspaceStyles.tabPanel}>
+          <h1>방탈로그 준비 중</h1>
+          <p>크루 방탈로그 피드를 불러오는 중입니다.</p>
+          <LogPlaceholderGrid />
+        </section>
+      </CrewWorkspaceShell>
     );
   }
 
   return (
-    <main>
+    <CrewWorkspaceShell activeMenu="logs" crew={resolvedCrew} crewId={crewId}>
+      <section className={crewWorkspaceStyles.tabPanel}>
       <h1>크루 방탈로그</h1>
       <p>크루원이 남긴 기록을 최신 작성순으로 다시 읽어보세요.</p>
 
       {noticeMessage ? <p>{noticeMessage}</p> : null}
       {errorMessage ? <p>{errorMessage}</p> : null}
-      {!errorMessage && items.length === 0 ? <p>아직 등록된 방탈로그가 없어요.</p> : null}
+      {!errorMessage && items.length === 0 ? (
+        <>
+          <p>아직 등록된 방탈로그가 없어요.</p>
+          <LogPlaceholderGrid />
+        </>
+      ) : null}
 
       {!errorMessage && items.length > 0 ? (
         <>
@@ -273,6 +322,7 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
           )}
         </>
       ) : null}
-    </main>
+      </section>
+    </CrewWorkspaceShell>
   );
 }

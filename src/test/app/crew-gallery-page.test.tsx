@@ -74,6 +74,22 @@ describe("CrewGalleryPage", () => {
     expect(screen.getByText("+ 2장")).toBeInTheDocument();
   });
 
+  it("renders the crew workspace shell while the gallery is loading", async () => {
+    vi.mocked(getMe).mockReturnValue(new Promise(() => undefined));
+
+    render(
+      await CrewGalleryPage({
+        params: Promise.resolve({ crewId: "11" }),
+      }),
+    );
+
+    expect(screen.getByRole("navigation", { name: "현재 위치" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "사진첩" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByText("크루 사진첩을 불러오는 중입니다.")).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "사진첩 미리보기" })).toBeInTheDocument();
+    expect(screen.getAllByText("이미지 준비 중")).toHaveLength(6);
+  });
+
   it("opens a modal detail and lightbox without losing the loaded list", async () => {
     vi.mocked(getMe).mockResolvedValue({
       authStatus: "FULL",
@@ -377,6 +393,8 @@ describe("CrewGalleryPage", () => {
     );
 
     expect(await screen.findByText("아직 사진이 없네요.")).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "사진첩 미리보기" })).toBeInTheDocument();
+    expect(screen.getAllByText("이미지 준비 중")).toHaveLength(6);
 
     cleanup();
     vi.clearAllMocks();
