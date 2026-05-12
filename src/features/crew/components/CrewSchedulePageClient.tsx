@@ -5,9 +5,15 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { getCrewHub, getCrewSchedule } from "@/shared/crew/client";
-import type { CrewScheduleItem, CrewScheduleMeetingStatus } from "@/shared/crew/types";
+import type { CrewHubResponse, CrewScheduleItem, CrewScheduleMeetingStatus } from "@/shared/crew/types";
 import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
 import { reportOperationalError } from "@/shared/monitoring/operations";
+
+import {
+  createCrewWorkspaceFallback,
+  CrewWorkspaceShell,
+} from "./CrewPageClient";
+import styles from "./CrewPageClient.module.css";
 
 type CrewSchedulePageClientProps = {
   crewId: string;
@@ -105,7 +111,7 @@ function toStatusLabel(status: CrewScheduleMeetingStatus, isCanceled: boolean): 
 
 export function CrewSchedulePageClient({ crewId }: CrewSchedulePageClientProps) {
   const router = useRouter();
-  const [crewName, setCrewName] = useState<string | null>(null);
+  const [crew, setCrew] = useState<CrewHubResponse | null>(null);
   const [hubErrorMessage, setHubErrorMessage] = useState<string | null>(null);
   const [isHubLoading, setIsHubLoading] = useState(true);
   const [scheduleItems, setScheduleItems] = useState<CrewScheduleItem[]>([]);
@@ -136,7 +142,7 @@ export function CrewSchedulePageClient({ crewId }: CrewSchedulePageClientProps) 
           return;
         }
 
-        setCrewName(response.name);
+        setCrew(response);
         setHubErrorMessage(null);
         setIsHubLoading(false);
       })
@@ -171,7 +177,7 @@ export function CrewSchedulePageClient({ crewId }: CrewSchedulePageClientProps) 
   }, [crewIdNumber, hasValidCrewId, publicCrewPath, routePath, router]);
 
   useEffect(() => {
-    if (!hasValidCrewId || isHubLoading || hubErrorMessage || !crewName) {
+    if (!hasValidCrewId || isHubLoading || hubErrorMessage || !crew) {
       return;
     }
 
@@ -228,7 +234,7 @@ export function CrewSchedulePageClient({ crewId }: CrewSchedulePageClientProps) 
     };
   }, [
     crewIdNumber,
-    crewName,
+    crew,
     hasValidCrewId,
     hubErrorMessage,
     isHubLoading,
@@ -268,7 +274,7 @@ export function CrewSchedulePageClient({ crewId }: CrewSchedulePageClientProps) 
     );
   }
 
-  if (hubErrorMessage || !crewName) {
+  if (hubErrorMessage || !crew) {
     return (
       <main>
         <h1>일정</h1>
@@ -278,11 +284,14 @@ export function CrewSchedulePageClient({ crewId }: CrewSchedulePageClientProps) 
     );
   }
 
+  const resolvedCrew = crew ?? createCrewWorkspaceFallback(crewId);
+
   return (
-    <main style={{ display: "grid", gap: 20 }}>
+    <CrewWorkspaceShell activeMenu="schedule" crew={resolvedCrew} crewId={crewId}>
+      <section className={styles.tabPanel} style={{ display: "grid", gap: 20 }}>
       <header style={{ display: "grid", gap: 6 }}>
         <h1>일정</h1>
-        <p>{crewName} 크루의 방탈 일정을 확인할 수 있어요.</p>
+        <p>{resolvedCrew.name} 크루의 방탈 일정을 확인할 수 있어요.</p>
         <div>
           <Link href={hubPath}>크루 허브로 돌아가기</Link>
         </div>
@@ -458,6 +467,7 @@ export function CrewSchedulePageClient({ crewId }: CrewSchedulePageClientProps) 
           </aside>
         </section>
       )}
-    </main>
+      </section>
+    </CrewWorkspaceShell>
   );
 }

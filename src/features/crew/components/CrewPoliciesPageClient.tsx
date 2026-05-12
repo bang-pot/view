@@ -1,13 +1,19 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
 import { getCrewHub, getCrewPolicies } from "@/shared/crew/client";
 import type { CrewHubResponse, CrewPolicy } from "@/shared/crew/types";
+import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
 import { reportOperationalError } from "@/shared/monitoring/operations";
+import { Button } from "@/shared/ui/Button";
+
+import {
+  CrewWorkspaceShell,
+  CrewWorkspaceStatePage,
+} from "./CrewPageClient";
+import styles from "./CrewPageClient.module.css";
 
 type CrewPoliciesPageClientProps = {
   crewId: string;
@@ -36,7 +42,6 @@ export function CrewPoliciesPageClient({ crewId }: CrewPoliciesPageClientProps) 
   const crewIdNumber = Number(crewId);
   const hasValidCrewId = Number.isFinite(crewIdNumber);
   const publicCrewPath = useMemo(() => buildPublicCrewPath(crewId), [crewId]);
-  const hubPath = useMemo(() => `/crews/${crewId}`, [crewId]);
 
   useEffect(() => {
     if (!hasValidCrewId) {
@@ -95,72 +100,82 @@ export function CrewPoliciesPageClient({ crewId }: CrewPoliciesPageClientProps) 
 
   if (!hasValidCrewId) {
     return (
-      <main>
-        <h1>정책</h1>
+      <CrewWorkspaceStatePage title="정책">
         <p>잘못된 크루 경로입니다.</p>
-      </main>
+      </CrewWorkspaceStatePage>
     );
   }
 
   if (isLoading) {
     return (
-      <main>
+      <CrewWorkspaceStatePage>
         <p>크루 정책을 불러오고 있습니다.</p>
-      </main>
+      </CrewWorkspaceStatePage>
     );
   }
 
   if (errorMessage || !crew) {
     return (
-      <main>
-        <h1>정책</h1>
+      <CrewWorkspaceStatePage title="정책">
         <p>{errorMessage ?? "크루 정책을 불러오지 못했습니다."}</p>
-        <Link href={hubPath}>크루 허브로 돌아가기</Link>
-      </main>
+      </CrewWorkspaceStatePage>
     );
   }
 
   const leader = isLeader(crew.myRole);
 
   return (
-    <main>
-      <h1>정책</h1>
-      <p>가입한 크루원만 볼 수 있는 읽기 전용 정책 페이지입니다.</p>
-      <Link href={hubPath}>크루 허브로 돌아가기</Link>
+    <CrewWorkspaceShell activeMenu="policies" crew={crew} crewId={crewId}>
+      <section className={styles.policyPanel} aria-labelledby="crew-policies-heading">
+        <div className={styles.policyHeader}>
+          <h2 id="crew-policies-heading">크루 정책</h2>
+          <span>{policies.length}개 정책</span>
+        </div>
 
-      {policies.length === 0 ? (
-        <section aria-label="정책 빈 상태">
-          <p>자유로운 분위기로 운영되고 있네요</p>
-          {leader ? (
-            <button type="button" disabled>
-              정책 추가하러 가기
-            </button>
-          ) : null}
-        </section>
-      ) : (
-        <ul aria-label="정책 목록">
-          {policies.map((policy) => {
-            const expanded = expandedPolicyIds.includes(policy.policyId);
+        {policies.length === 0 ? (
+          <div className={styles.policyEmpty} aria-label="정책 빈 상태">
+            <span className={styles.policyEmptyVisual} aria-hidden="true" />
+            <p className={styles.policyEmptyTitle}>자유로운 분위기로 운영되고 있네요</p>
+            <p className={styles.policyEmptyDescription}>아직 등록된 정책이 없습니다.</p>
+            {leader ? (
+              <Button type="button" className={styles.policyEmptyButton}>
+                정책 추가하러 가기 →
+              </Button>
+            ) : null}
+          </div>
+        ) : (
+          <ul className={styles.policyList} aria-label="크루 정책 목록">
+            {policies.map((policy) => {
+              const expanded = expandedPolicyIds.includes(policy.policyId);
 
-            return (
-              <li key={policy.policyId}>
-                <article>
-                  <button type="button" onClick={() => togglePolicy(policy.policyId)}>
-                    {policy.title}
-                  </button>
-                  {expanded ? (
-                    <div>
-                      {formatPolicyContent(policy.content).map((line, index) => (
-                        <p key={`${policy.policyId}-${index}`}>{line}</p>
-                      ))}
-                    </div>
-                  ) : null}
-                </article>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </main>
+              return (
+                <li key={policy.policyId}>
+                  <article className={styles.policyCard}>
+                    <button
+                      type="button"
+                      className={styles.policyToggle}
+                      aria-expanded={expanded}
+                      onClick={() => togglePolicy(policy.policyId)}
+                    >
+                      <span>{policy.title}</span>
+                      <span className={styles.policyToggleIcon} aria-hidden="true">
+                        {expanded ? "-" : "+"}
+                      </span>
+                    </button>
+                    {expanded ? (
+                      <div className={styles.policyContent}>
+                        {formatPolicyContent(policy.content).map((line, index) => (
+                          <p key={`${policy.policyId}-${index}`}>{line}</p>
+                        ))}
+                      </div>
+                    ) : null}
+                  </article>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+    </CrewWorkspaceShell>
   );
 }

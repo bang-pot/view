@@ -44,8 +44,8 @@ describe("CrewPoliciesPage", () => {
   it("renders accordion policy cards for joined crew members", async () => {
     vi.mocked(getCrewHub).mockResolvedValue({
       crewId: 11,
-      name: "Night runners",
-      description: "Private crew for late runners",
+      name: "서울 탈출러",
+      description: "함께 탈출하는 서울 친구들",
       visibility: "PRIVATE",
       imageUrl: null,
       myRole: "MEMBER",
@@ -67,13 +67,18 @@ describe("CrewPoliciesPage", () => {
 
     render(await CrewPoliciesPage({ params: Promise.resolve({ crewId: "11" }) }));
 
-    expect(await screen.findByRole("heading", { name: "정책" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "크루 허브로 돌아가기" })).toHaveAttribute(
-      "href",
-      "/crews/11",
+    expect(await screen.findByRole("heading", { name: "서울 탈출러" })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "현재 위치" })).toHaveTextContent(
+      "홈 > 크루탐색 > 서울 탈출러",
     );
+    expect(screen.getByRole("region", { name: "크루 요약" })).toHaveTextContent("크루원");
+    expect(screen.getByRole("link", { name: "정책" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByText("공지사항")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "오늘의 한마디" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "크루 정책" })).toBeInTheDocument();
+    expect(screen.getByText("2개 정책")).toBeInTheDocument();
 
-    const items = within(screen.getByRole("list", { name: "정책 목록" })).getAllByRole("listitem");
+    const items = within(screen.getByRole("list", { name: "크루 정책 목록" })).getAllByRole("listitem");
     expect(within(items[0]).getByRole("button", { name: "모임 규칙" })).toBeInTheDocument();
     expect(within(items[0]).queryByText("지각 금지")).not.toBeInTheDocument();
 
@@ -103,17 +108,18 @@ describe("CrewPoliciesPage", () => {
     render(await CrewPoliciesPage({ params: Promise.resolve({ crewId: "11" }) }));
 
     expect(await screen.findByText("자유로운 분위기로 운영되고 있네요")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "정책 추가하러 가기" })).toBeDisabled();
+    expect(screen.getByText("아직 등록된 정책이 없습니다.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "정책 추가하러 가기 →" })).toBeEnabled();
   });
 
-  it("keeps the empty state read-only for normal crew members", async () => {
+  it("keeps the empty state read-only for non-leader members", async () => {
     vi.mocked(getCrewHub).mockResolvedValue({
       crewId: 11,
       name: "Night runners",
       description: "Private crew for late runners",
       visibility: "PRIVATE",
       imageUrl: null,
-      myRole: "MEMBER",
+      myRole: "ADMIN",
       hasNotice: false,
       pendingJoinRequestCount: 0,
     });
@@ -122,7 +128,8 @@ describe("CrewPoliciesPage", () => {
     render(await CrewPoliciesPage({ params: Promise.resolve({ crewId: "11" }) }));
 
     expect(await screen.findByText("자유로운 분위기로 운영되고 있네요")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "정책 추가하러 가기" })).not.toBeInTheDocument();
+    expect(screen.getByText("아직 등록된 정책이 없습니다.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "정책 추가하러 가기 →" })).not.toBeInTheDocument();
   });
 
   it("shows a safe failure state and redirects non-members to the public crew introduction", async () => {

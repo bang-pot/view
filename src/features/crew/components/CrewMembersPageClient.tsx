@@ -6,10 +6,21 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { getMe } from "@/shared/auth/client";
-import { getCrewMembers, removeCrewMember, transferCrewLeadership } from "@/shared/crew/client";
-import type { CrewMember } from "@/shared/crew/types";
+import {
+  getCrewHub,
+  getCrewMembers,
+  removeCrewMember,
+  transferCrewLeadership,
+} from "@/shared/crew/client";
+import type { CrewHubResponse, CrewMember } from "@/shared/crew/types";
 import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
 import { reportOperationalError } from "@/shared/monitoring/operations";
+
+import {
+  createCrewWorkspaceFallback,
+  CrewWorkspaceShell,
+} from "./CrewPageClient";
+import styles from "./CrewPageClient.module.css";
 
 type CrewMembersPageClientProps = {
   crewId: string;
@@ -41,8 +52,13 @@ function compareMembers(left: CrewMember, right: CrewMember): number {
   return Date.parse(right.joinedAt) - Date.parse(left.joinedAt);
 }
 
+function isCrewHubResponse(value: unknown): value is CrewHubResponse {
+  return typeof value === "object" && value !== null && "crewId" in value && "name" in value;
+}
+
 export function CrewMembersPageClient({ crewId }: CrewMembersPageClientProps) {
   const router = useRouter();
+  const [crew, setCrew] = useState<CrewHubResponse | null>(null);
   const [members, setMembers] = useState<CrewMember[]>([]);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -70,14 +86,18 @@ export function CrewMembersPageClient({ crewId }: CrewMembersPageClientProps) {
 
     let isMounted = true;
 
-    void Promise.allSettled([getCrewMembers(crewIdNumber), getMe()])
-      .then(([membersResult, meResult]) => {
+    void Promise.allSettled([getCrewHub(crewIdNumber), getCrewMembers(crewIdNumber), getMe()])
+      .then(([crewResult, membersResult, meResult]) => {
         if (!isMounted) {
           return;
         }
 
         if (membersResult.status !== "fulfilled") {
           throw membersResult.reason;
+        }
+
+        if (crewResult.status === "fulfilled" && isCrewHubResponse(crewResult.value)) {
+          setCrew(crewResult.value);
         }
 
         setMembers([...membersResult.value].sort(compareMembers));
@@ -262,8 +282,11 @@ export function CrewMembersPageClient({ crewId }: CrewMembersPageClientProps) {
     );
   }
 
+  const resolvedCrew = crew ?? createCrewWorkspaceFallback(crewId);
+
   return (
-    <main>
+    <CrewWorkspaceShell activeMenu="members" crew={resolvedCrew} crewId={crewId}>
+      <section className={styles.tabPanel}>
       <h1>크루원</h1>
       <p>가입한 크루원만 볼 수 있는 내부 전용 목록입니다.</p>
       <Link href={hubPath}>크루 허브로 돌아가기</Link>
@@ -321,6 +344,7 @@ export function CrewMembersPageClient({ crewId }: CrewMembersPageClientProps) {
           ))}
         </ul>
       )}
-    </main>
+      </section>
+    </CrewWorkspaceShell>
   );
 }

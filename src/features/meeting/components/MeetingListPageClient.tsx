@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { getCrewHub } from "@/shared/crew/client";
+import type { CrewHubResponse } from "@/shared/crew/types";
 import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
+import {
+  createCrewWorkspaceFallback,
+  CrewWorkspaceShell,
+} from "@/features/crew/components/CrewPageClient";
+import crewWorkspaceStyles from "@/features/crew/components/CrewPageClient.module.css";
 import { getMeetings } from "@/shared/meeting/client";
 import {
   getMeetingStatusDescription,
@@ -43,7 +49,7 @@ function mergeMeetings(
 
 export function MeetingListPageClient({ crewId }: MeetingListPageClientProps) {
   const router = useRouter();
-  const [crewName, setCrewName] = useState<string | null>(null);
+  const [crew, setCrew] = useState<CrewHubResponse | null>(null);
   const [items, setItems] = useState<MeetingListItem[]>([]);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(false);
@@ -71,7 +77,7 @@ export function MeetingListPageClient({ crewId }: MeetingListPageClientProps) {
           return;
         }
 
-        setCrewName(crew.name);
+        setCrew(crew);
         setItems(meetingsResponse.items);
         setPage(meetingsResponse.pageInfo.page);
         setHasNext(meetingsResponse.pageInfo.hasNext);
@@ -159,10 +165,13 @@ export function MeetingListPageClient({ crewId }: MeetingListPageClientProps) {
     );
   }
 
+  const resolvedCrew = crew ?? createCrewWorkspaceFallback(crewId);
+
   return (
-    <main>
+    <CrewWorkspaceShell activeMenu="meetings" crew={resolvedCrew} crewId={crewId}>
+      <section className={crewWorkspaceStyles.tabPanel}>
       <h1>모임 목록</h1>
-      {crewName ? <p>{crewName} 크루의 모임입니다.</p> : null}
+      {resolvedCrew.name ? <p>{resolvedCrew.name} 크루의 모임입니다.</p> : null}
       <Link href={hubPath}>크루 허브로 돌아가기</Link>
       <div>
         <Link href={createPath}>모임 만들기</Link>
@@ -199,6 +208,7 @@ export function MeetingListPageClient({ crewId }: MeetingListPageClientProps) {
           {isLoadingMore ? "불러오는 중" : "더 보기"}
         </button>
       ) : null}
-    </main>
+      </section>
+    </CrewWorkspaceShell>
   );
 }
