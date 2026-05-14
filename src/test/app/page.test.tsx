@@ -35,8 +35,12 @@ describe("Home page", () => {
         totalCount: 0,
       },
       upcomingMeetings: {
-        items: [],
+        nearestMeeting: null,
         totalCount: 0,
+      },
+      activityRecord: {
+        completedCount: 0,
+        successRate: 0,
       },
       publicCrewPreview: {
         items: [
@@ -183,18 +187,17 @@ describe("Home page", () => {
         totalCount: 2,
       },
       upcomingMeetings: {
-        items: [
-          {
-            meetingId: 41,
-            title: "금요일 방탈출",
-            crewId: 3,
-            crewName: "방탈출 크루",
-            date: "2026-04-25",
-            time: "19:00",
-            status: "RECRUITING",
-          },
-        ],
+        nearestMeeting: {
+          meetingId: 41,
+          themeName: "금요일 방탈출",
+          date: "2026-04-25",
+          time: "19:00",
+        },
         totalCount: 1,
+      },
+      activityRecord: {
+        completedCount: 8,
+        successRate: 75,
       },
       publicCrewPreview: {
         items: [
@@ -235,8 +238,12 @@ describe("Home page", () => {
     expect(screen.getAllByText("내 크루")).toHaveLength(2);
     expect(screen.getByText("2개")).toBeInTheDocument();
     expect(screen.getByText("예정된 활동")).toBeInTheDocument();
-    expect(screen.getAllByText("1개")).toHaveLength(2);
-    expect(screen.getByText("둘러볼 테마")).toBeInTheDocument();
+    expect(screen.getByText("1개")).toBeInTheDocument();
+    expect(screen.getByText("금요일 방탈출 · 2026-04-25 19:00")).toBeInTheDocument();
+    expect(screen.getByText("활동 기록")).toBeInTheDocument();
+    expect(screen.getByText("8회")).toBeInTheDocument();
+    expect(screen.getByText("성공률 75%")).toBeInTheDocument();
+    expect(screen.queryByText("둘러볼 테마")).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "내 크루" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "방탈출 크루 크루로 이동" })).toHaveAttribute(
       "href",
@@ -245,10 +252,6 @@ describe("Home page", () => {
     expect(screen.getByRole("link", { name: "서울 탈출러 크루로 이동" })).toHaveAttribute(
       "href",
       "/crews/7",
-    );
-    expect(screen.getByRole("link", { name: "금요일 방탈출 다음 활동 보기" })).toHaveAttribute(
-      "href",
-      "/crews/3/meetings/41",
     );
     expect(screen.getByRole("link", { name: "크루 찾기" })).toHaveAttribute(
       "href",
@@ -277,8 +280,12 @@ describe("Home page", () => {
           totalCount: 0,
         },
         upcomingMeetings: {
-          items: [],
+          nearestMeeting: null,
           totalCount: 0,
+        },
+        activityRecord: {
+          completedCount: 0,
+          successRate: 0,
         },
         publicCrewPreview: {
           items: [],
@@ -309,8 +316,12 @@ describe("Home page", () => {
         totalCount: 0,
       },
       upcomingMeetings: {
-        items: [],
+        nearestMeeting: null,
         totalCount: 0,
+      },
+      activityRecord: {
+        completedCount: 0,
+        successRate: 0,
       },
       publicCrewPreview: {
         items: [],

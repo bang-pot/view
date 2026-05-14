@@ -153,8 +153,12 @@ export type HomeResponse = {
     totalCount: number;
   };
   upcomingMeetings: {
-    items: HomeUpcomingMeetingPreviewItem[];
+    nearestMeeting: HomeUpcomingMeetingPreviewItem | null;
     totalCount: number;
+  };
+  activityRecord: {
+    completedCount: number;
+    successRate: number;
   };
   publicCrewPreview: {
     items: HomePublicCrewPreviewItem[];
@@ -169,16 +173,11 @@ export type HomeMyCrewPreviewItem = {
   crewName: string;
 };
 
-export type HomeUpcomingMeetingStatus = "RECRUITING" | "RECRUITMENT_CLOSED";
-
 export type HomeUpcomingMeetingPreviewItem = {
   meetingId: number;
-  title: string;
-  crewId: number;
-  crewName: string;
+  themeName: string;
   date: string;
   time: string;
-  status: HomeUpcomingMeetingStatus;
 };
 
 export type HomePublicCrewPreviewItem = {

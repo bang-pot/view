@@ -113,8 +113,12 @@ describe("auth client", () => {
             totalCount: 0,
           },
           upcomingMeetings: {
-            items: [],
+            nearestMeeting: null,
             totalCount: 0,
+          },
+          activityRecord: {
+            completedCount: 0,
+            successRate: 0,
           },
           publicCrewPreview: {
             items: [
