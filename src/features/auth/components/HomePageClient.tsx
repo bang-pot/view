@@ -9,8 +9,6 @@ import type {
   HomePublicCrewPreviewItem,
   HomeResponse,
   HomeThemeExplorePreviewItem,
-  HomeUpcomingMeetingPreviewItem,
-  HomeUpcomingMeetingStatus,
 } from "@/shared/auth/types";
 import { getUserMessage } from "@/shared/errors/operational";
 import { reportOperationalError } from "@/shared/monitoring/operations";
@@ -80,14 +78,6 @@ function toCreateCrewHref(home: HomeResponse | null): string {
   }
 
   return "/login?redirectTo=%2Fcrews%2Fnew";
-}
-
-function toMeetingStatusLabel(status: HomeUpcomingMeetingStatus): string {
-  if (status === "RECRUITMENT_CLOSED") {
-    return "모집 마감";
-  }
-
-  return "모집 중";
 }
 
 type PreviewImageProps = {
@@ -263,6 +253,8 @@ function ActivityCard({
 }
 
 function ActivitySection({ home }: { home: HomeResponse }) {
+  const nearestMeeting = home.upcomingMeetings.nearestMeeting;
+
   return (
     <section className={styles.section}>
       <div className={styles.sectionInner}>
@@ -281,28 +273,21 @@ function ActivitySection({ home }: { home: HomeResponse }) {
             label="예정된 활동"
             value={`${home.upcomingMeetings.totalCount}개`}
             caption={
-              home.upcomingMeetings.items[0]
-                ? `${home.upcomingMeetings.items[0].date} ${home.upcomingMeetings.items[0].time}`
+              nearestMeeting
+                ? `${nearestMeeting.themeName} · ${nearestMeeting.date} ${nearestMeeting.time}`
                 : "예정된 일정이 없어요"
             }
           />
           <ActivityCard
             icon="log"
-            label="둘러볼 테마"
-            value={`${home.themeExplorePreview.items.length}개`}
-            caption="이번 주 인기 테마"
+            label="활동 기록"
+            value={`${home.activityRecord.completedCount}회`}
+            caption={`성공률 ${home.activityRecord.successRate}%`}
           />
         </div>
       </div>
     </section>
   );
-}
-
-function findNextMeeting(
-  crewId: number,
-  meetings: HomeUpcomingMeetingPreviewItem[],
-): HomeUpcomingMeetingPreviewItem | null {
-  return meetings.find((meeting) => meeting.crewId === crewId) ?? null;
 }
 
 function MyCrewSection({ home }: { home: HomeResponse }) {
@@ -317,40 +302,26 @@ function MyCrewSection({ home }: { home: HomeResponse }) {
         <div className={styles.myCrewLayout}>
           {home.myCrews.items.length > 0 ? (
             <div className={styles.ownedCrewGrid}>
-              {home.myCrews.items.map((crew) => {
-                const nextMeeting = findNextMeeting(crew.crewId, home.upcomingMeetings.items);
-
-                return (
-                  <article
-                    key={crew.crewId}
-                    className={styles.ownedCrewCard}
+              {home.myCrews.items.map((crew) => (
+                <article
+                  key={crew.crewId}
+                  className={styles.ownedCrewCard}
+                >
+                  <span className={styles.ownedCrewImage}>
+                    <span className={styles.crewAvatar}>A</span>
+                  </span>
+                  <Link
+                    href={`/crews/${crew.crewId}`}
+                    aria-label={`${crew.crewName} 크루로 이동`}
+                    className={styles.ownedCrewName}
                   >
-                    <span className={styles.ownedCrewImage}>
-                      <span className={styles.crewAvatar}>A</span>
-                    </span>
-                    <Link
-                      href={`/crews/${crew.crewId}`}
-                      aria-label={`${crew.crewName} 크루로 이동`}
-                      className={styles.ownedCrewName}
-                    >
-                      {crew.crewName}
-                    </Link>
-                    <span className={styles.crewMeta}>활동 중인 크루</span>
-                    <span className={styles.crewBadge}>크루</span>
-                    {nextMeeting ? (
-                      <Link
-                        href={`/crews/${nextMeeting.crewId}/meetings/${nextMeeting.meetingId}`}
-                        aria-label={`${nextMeeting.title} 다음 활동 보기`}
-                        className={styles.nextMeetingLink}
-                        >
-                          {toMeetingStatusLabel(nextMeeting.status)} · {nextMeeting.title}
-                        </Link>
-                    ) : (
-                      <span className={styles.nextMeetingText}>다음 활동 없음</span>
-                    )}
-                  </article>
-                );
-              })}
+                    {crew.crewName}
+                  </Link>
+                  <span className={styles.crewMeta}>활동 중인 크루</span>
+                  <span className={styles.crewBadge}>크루</span>
+                  <span className={styles.nextMeetingText}>크루 홈에서 활동 확인</span>
+                </article>
+              ))}
             </div>
           ) : (
             <p className={styles.emptyText}>아직 소속된 크루가 없어요.</p>
