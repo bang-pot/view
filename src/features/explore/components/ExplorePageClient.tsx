@@ -346,6 +346,13 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
       value: region.name,
     })) ?? []),
   ];
+  const districtSelectOptions = [
+    { label: "도시/구 선택", value: "" },
+    ...districtOptions.map((district) => ({
+      label: district,
+      value: district,
+    })),
+  ];
   const redirectPath = useMemo(() => {
     const queryString = toQueryString(appliedQuery);
     return queryString ? `/explore?${queryString}` : "/explore";
@@ -483,7 +490,7 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
 
   function syncUrl(query: typeof appliedQuery) {
     const queryString = toQueryString(query);
-    router.replace(queryString ? `/explore?${queryString}` : "/explore");
+    router.replace(queryString ? `/explore?${queryString}` : "/explore", { scroll: false });
   }
 
   function applyQuery(nextQuery: typeof appliedQuery) {
@@ -516,6 +523,13 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
       ...appliedQuery,
       region: nextRegion,
       district: "",
+    });
+  }
+
+  function handleDistrictChange(nextDistrict: string) {
+    applyQuery({
+      ...appliedQuery,
+      district: nextDistrict,
     });
   }
 
@@ -676,29 +690,13 @@ export function ExplorePageClient({ initialQuery }: ExplorePageClientProps) {
                 onChange={(event) => handleRegionChange(event.target.value)}
               />
               {districtOptions.length > 0 ? (
-                <div className={styles.districtList} aria-label="세부 지역">
-                  {districtOptions.map((district) => {
-                    const selected = appliedQuery.district === district;
-
-                    return (
-                      <button
-                        key={district}
-                        type="button"
-                        className={styles.districtButton}
-                        data-selected={selected}
-                        aria-pressed={selected}
-                        onClick={() =>
-                          applyQuery({
-                            ...appliedQuery,
-                            district: selected ? "" : district,
-                          })
-                        }
-                      >
-                        {district}
-                      </button>
-                    );
-                  })}
-                </div>
+                <Select
+                  label="도시/구 선택"
+                  value={appliedQuery.district}
+                  options={districtSelectOptions}
+                  className={styles.regionSelect}
+                  onChange={(event) => handleDistrictChange(event.target.value)}
+                />
               ) : null}
             </div>
           </aside>
