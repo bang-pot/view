@@ -234,6 +234,92 @@ describe("ExplorePage", () => {
     expect(await screen.findByLabelText("찜 12")).toBeInTheDocument();
   });
 
+  it("lets users choose a district after selecting a region and searches with both location params", async () => {
+    vi.mocked(getExploreFilters).mockResolvedValue({
+      genres: ["공포"],
+      regions: [
+        {
+          name: "서울",
+          districts: ["강남", "마포"],
+        },
+        {
+          name: "경기",
+          districts: ["수원"],
+        },
+      ],
+    });
+    vi.mocked(getExploreThemes).mockResolvedValue({
+      items: [baseTheme],
+      pageInfo: {
+        page: 0,
+        size: 8,
+        hasNext: false,
+        totalElements: 1,
+        totalPages: 1,
+      },
+    });
+
+    render(await ExplorePage({ searchParams: Promise.resolve({}) }));
+
+    fireEvent.change(await screen.findByRole("combobox", { name: "지역 선택" }), {
+      target: { value: "서울" },
+    });
+
+    await waitFor(() => {
+      expect(getExploreThemes).toHaveBeenNthCalledWith(2, {
+        q: "",
+        genres: [],
+        region: "서울",
+        district: "",
+        page: 0,
+        size: 8,
+      });
+    });
+
+    fireEvent.change(await screen.findByRole("combobox", { name: "도시/구 선택" }), {
+      target: { value: "강남" },
+    });
+
+    await waitFor(() => {
+      expect(getExploreThemes).toHaveBeenNthCalledWith(3, {
+        q: "",
+        genres: [],
+        region: "서울",
+        district: "강남",
+        page: 0,
+        size: 8,
+      });
+    });
+    expect(replaceMock).toHaveBeenLastCalledWith(
+      "/explore?region=%EC%84%9C%EC%9A%B8&district=%EA%B0%95%EB%82%A8",
+      { scroll: false },
+    );
+  });
+
+  it("keeps the current scroll position when submitting a search query", async () => {
+    vi.mocked(getExploreThemes).mockResolvedValue({
+      items: [baseTheme],
+      pageInfo: {
+        page: 0,
+        size: 8,
+        hasNext: false,
+        totalElements: 1,
+        totalPages: 1,
+      },
+    });
+
+    render(await ExplorePage({ searchParams: Promise.resolve({}) }));
+
+    const searchBox = await screen.findByRole("searchbox");
+
+    fireEvent.change(searchBox, { target: { value: "강남" } });
+    fireEvent.submit(searchBox.closest("form")!);
+
+    await waitFor(() => {
+      expect(replaceMock).toHaveBeenLastCalledWith("/explore?q=%EA%B0%95%EB%82%A8", { scroll: false });
+    });
+  });
+
   it("redirects guests to login when they try to favorite from the explore card", async () => {
     vi.mocked(getExploreThemes).mockResolvedValue({
       items: [baseTheme],
