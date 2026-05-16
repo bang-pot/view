@@ -654,9 +654,10 @@ describe("auth client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
-        headers: {
+        headers: expect.objectContaining({
           "Content-Type": "application/json",
-        },
+          "Idempotency-Key": expect.any(String),
+        }),
         body: JSON.stringify({
           reasonCode: "OTHER",
           reasonDetail: "?ъ뼱媛?ㅺ퀬 ?댁슂.",
@@ -690,6 +691,9 @@ describe("auth client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
+        headers: expect.objectContaining({
+          "Idempotency-Key": expect.any(String),
+        }),
       }),
     );
   });

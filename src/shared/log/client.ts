@@ -16,6 +16,8 @@ function getApiBaseUrl(): string {
   return getPublicRuntimeConfig().apiBaseUrl;
 }
 
+const IDEMPOTENCY_OPTIONS = { idempotency: true } as const;
+
 export async function createMeetingLog(
   meetingId: number,
   input: CreateMeetingLogInput,
@@ -35,6 +37,7 @@ export async function createMeetingLog(
       code: "LOG_CREATE_FAILED",
       message: "방탈로그를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -76,6 +79,7 @@ export async function updateMeetingLog(
       code: "LOG_UPDATE_FAILED",
       message: "방탈로그를 수정하지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -101,6 +105,7 @@ export async function deleteMeetingLog(
       code: "LOG_DELETE_FAILED",
       message: "방탈로그를 삭제하지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 

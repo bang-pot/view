@@ -76,9 +76,10 @@ describe("meeting client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
-        headers: {
+        headers: expect.objectContaining({
           "Content-Type": "application/json",
-        },
+          "Idempotency-Key": expect.any(String),
+        }),
         body: JSON.stringify({
           title: "금요일 한강 러닝",
           date: "2026-04-20",
@@ -217,9 +218,10 @@ describe("meeting client", () => {
       expect.objectContaining({
         method: "PATCH",
         credentials: "include",
-        headers: {
+        headers: expect.objectContaining({
           "Content-Type": "application/json",
-        },
+          "Idempotency-Key": expect.any(String),
+        }),
         body: JSON.stringify({
           title: "수정된 모임 제목",
           themeName: "보드게임",
@@ -259,6 +261,10 @@ describe("meeting client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+          "Idempotency-Key": expect.any(String),
+        }),
       }),
     );
   });
@@ -287,6 +293,9 @@ describe("meeting client", () => {
       expect.objectContaining({
         method: "DELETE",
         credentials: "include",
+        headers: expect.objectContaining({
+          "Idempotency-Key": expect.any(String),
+        }),
       }),
     );
   });
@@ -315,6 +324,10 @@ describe("meeting client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+          "Idempotency-Key": expect.any(String),
+        }),
       }),
     );
   });
@@ -343,6 +356,10 @@ describe("meeting client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+          "Idempotency-Key": expect.any(String),
+        }),
       }),
     );
   });
@@ -371,6 +388,10 @@ describe("meeting client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+          "Idempotency-Key": expect.any(String),
+        }),
       }),
     );
   });
@@ -399,6 +420,10 @@ describe("meeting client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+          "Idempotency-Key": expect.any(String),
+        }),
       }),
     );
   });
@@ -427,6 +452,10 @@ describe("meeting client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+          "Idempotency-Key": expect.any(String),
+        }),
         body: JSON.stringify({
           result: "SUCCESS",
         }),
