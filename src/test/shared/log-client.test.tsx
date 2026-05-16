@@ -45,7 +45,10 @@ describe("log client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+          "Idempotency-Key": expect.any(String),
+        }),
         body: JSON.stringify({
           body: "정말 재미있었던 모임이었어요.",
           photos: [{ url: "https://cdn.example.com/logs/photo-1.jpg", sizeBytes: 1024 }],
@@ -79,6 +82,7 @@ describe("log client", () => {
     const requestInit = fetchMock.mock.calls[0]?.[1] as RequestInit;
     const body = requestInit.body as FormData;
     expect(body.get("file")).toBe(file);
+    expect(requestInit.headers).toBeUndefined();
   });
 
   it("patches an existing meeting log", async () => {
@@ -97,7 +101,10 @@ describe("log client", () => {
       expect.objectContaining({
         method: "PATCH",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+          "Idempotency-Key": expect.any(String),
+        }),
         body: JSON.stringify({ body: "수정된 방탈로그예요.", photos: [] }),
       }),
     );
@@ -119,7 +126,10 @@ describe("log client", () => {
       expect.objectContaining({
         method: "DELETE",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+          "Idempotency-Key": expect.any(String),
+        }),
         body: JSON.stringify({ deleteReason: null }),
       }),
     );
@@ -141,7 +151,10 @@ describe("log client", () => {
       expect.objectContaining({
         method: "DELETE",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+          "Idempotency-Key": expect.any(String),
+        }),
         body: JSON.stringify({
           deleteReason: "스포일러 포함 후기라 운영 삭제합니다.",
         }),

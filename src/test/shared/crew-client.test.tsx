@@ -69,9 +69,10 @@ describe("crew client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
-        headers: {
+        headers: expect.objectContaining({
           "Content-Type": "application/json",
-        },
+          "Idempotency-Key": expect.any(String),
+        }),
         body: JSON.stringify({
           name: "BangPot Crew",
           description: "crew intro",
@@ -340,9 +341,10 @@ describe("crew client", () => {
       expect.objectContaining({
         method: "PATCH",
         credentials: "include",
-        headers: {
+        headers: expect.objectContaining({
           "Content-Type": "application/json",
-        },
+          "Idempotency-Key": expect.any(String),
+        }),
         body: JSON.stringify({
           visibility: "PRIVATE",
         }),
@@ -415,6 +417,9 @@ describe("crew client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
+        headers: expect.objectContaining({
+          "Idempotency-Key": expect.any(String),
+        }),
       }),
     );
   });
@@ -443,9 +448,10 @@ describe("crew client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
-        headers: {
+        headers: expect.objectContaining({
           "Content-Type": "application/json",
-        },
+          "Idempotency-Key": expect.any(String),
+        }),
         body: JSON.stringify({
           targetUserId: 22,
         }),
@@ -477,6 +483,9 @@ describe("crew client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
+        headers: expect.objectContaining({
+          "Idempotency-Key": expect.any(String),
+        }),
       }),
     );
   });
@@ -504,9 +513,10 @@ describe("crew client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
-        headers: {
+        headers: expect.objectContaining({
           "Content-Type": "application/json",
-        },
+          "Idempotency-Key": expect.any(String),
+        }),
         body: JSON.stringify({
           crewName: "Night runners",
         }),
@@ -658,6 +668,9 @@ describe("crew client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
+        headers: expect.objectContaining({
+          "Idempotency-Key": expect.any(String),
+        }),
       }),
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
@@ -666,6 +679,9 @@ describe("crew client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
+        headers: expect.objectContaining({
+          "Idempotency-Key": expect.any(String),
+        }),
       }),
     );
   });
@@ -725,9 +741,10 @@ describe("crew client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
-        headers: {
+        headers: expect.objectContaining({
           "Content-Type": "application/json",
-        },
+          "Idempotency-Key": expect.any(String),
+        }),
         body: JSON.stringify({
           targetUserId: 12,
         }),

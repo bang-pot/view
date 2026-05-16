@@ -9,6 +9,8 @@ import type {
   ThemeFavoriteResponse,
 } from "@/shared/explore/types";
 
+const IDEMPOTENCY_OPTIONS = { idempotency: true } as const;
+
 function buildThemesQuery(query: ExploreThemesQuery): string {
   const params = new URLSearchParams();
 
@@ -124,6 +126,7 @@ export async function addThemeFavorite(themeId: number): Promise<ThemeFavoriteRe
       code: "EXPLORE_THEME_FAVORITE_ADD_FAILED",
       userMessage: "찜 상태를 변경하지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -141,5 +144,6 @@ export async function removeThemeFavorite(themeId: number): Promise<ThemeFavorit
       code: "EXPLORE_THEME_FAVORITE_REMOVE_FAILED",
       userMessage: "찜 상태를 변경하지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }

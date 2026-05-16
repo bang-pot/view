@@ -19,6 +19,8 @@ function getApiBaseUrl(): string {
   return getPublicRuntimeConfig().apiBaseUrl;
 }
 
+const IDEMPOTENCY_OPTIONS = { idempotency: true } as const;
+
 export async function createMeeting(
   crewId: number,
   input: CreateMeetingInput,
@@ -38,6 +40,7 @@ export async function createMeeting(
       code: "MEETING_CREATE_FAILED",
       message: "紐⑥엫 ?앹꽦???꾨즺?섏? 紐삵뻽?듬땲?? ?낅젰媛믪쓣 ?ㅼ떆 ?뺤씤??二쇱꽭??",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -102,6 +105,7 @@ export async function updateMeeting(
       code: "MEETING_UPDATE_FAILED",
       message: "紐⑥엫 ?뺣낫瑜??섏젙?섏? 紐삵뻽?듬땲?? ?낅젰媛믪쓣 ?ㅼ떆 ?뺤씤??二쇱꽭??",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -123,6 +127,7 @@ export async function joinMeeting(
       code: "MEETING_JOIN_FAILED",
       message: "利됱떆 李몄뿬瑜?泥섎━?섏? 紐삵뻽?듬땲?? ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -141,6 +146,7 @@ export async function cancelMeetingJoin(
       code: "MEETING_CANCEL_JOIN_FAILED",
       message: "李몄뿬痍⑥냼瑜?泥섎━?섏? 紐삵뻽?듬땲?? ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -165,6 +171,7 @@ async function postMeetingStatusAction(
       code: failureCode,
       message: failureMessage,
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -242,5 +249,6 @@ export async function recordMeetingResult(
       code: "MEETING_RESULT_RECORD_FAILED",
       message: "紐⑥엫 寃곌낵瑜?湲곕줉?섏? 紐삵뻽?듬땲?? ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }

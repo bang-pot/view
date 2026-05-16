@@ -27,6 +27,8 @@ function getApiBaseUrl(): string {
   return getPublicRuntimeConfig().apiBaseUrl;
 }
 
+const IDEMPOTENCY_OPTIONS = { idempotency: true } as const;
+
 export function buildKakaoLoginUrl(redirectTo: string | null | undefined): string {
   const safeRedirect = sanitizeRedirectPath(redirectTo);
   return `${getApiBaseUrl()}/oauth2/authorization/kakao?redirectTo=${encodeURIComponent(safeRedirect)}`;
@@ -293,6 +295,7 @@ export async function cancelPendingCrew(
       code: "AUTH_PENDING_CREW_CANCEL_FAILED",
       message: "가입 신청 취소에 실패했어요. 잠시 후 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 
   return {
@@ -332,6 +335,7 @@ export async function withdrawUser(input: WithdrawalRequest): Promise<Withdrawal
       code: "AUTH_WITHDRAWAL_EXECUTION_FAILED",
       message: "회원탈퇴 처리에 실패했어요. 잠시 후 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -372,6 +376,7 @@ export async function updateProfile(input: {
       code: "AUTH_PROFILE_UPDATE_FAILED",
       message: "프로필 저장에 실패했어요. 입력값을 다시 확인해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -394,6 +399,7 @@ export async function completeProfile(input: {
       code: "AUTH_COMPLETE_REQUEST_FAILED",
       message: "가입 완료 처리에 실패했어요. 입력값을 다시 확인해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 

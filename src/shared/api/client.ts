@@ -14,6 +14,11 @@ type ApiErrorContract = {
 
 type RequestErrorMeta = Pick<OperationalErrorInput, "code" | "message" | "userMessage">;
 
+export type RequestOptions = {
+  idempotency?: boolean;
+  idempotencyKey?: string;
+};
+
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -113,14 +118,53 @@ async function toResponseError(
   });
 }
 
+function createIdempotencyKey(): string {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function normalizeHeaders(headers: HeadersInit | undefined): Record<string, string> {
+  if (!headers) {
+    return {};
+  }
+
+  if (headers instanceof Headers) {
+    return Object.fromEntries(headers.entries());
+  }
+
+  if (Array.isArray(headers)) {
+    return Object.fromEntries(headers);
+  }
+
+  return { ...headers };
+}
+
+function withRequestOptions(init: RequestInit, options?: RequestOptions): RequestInit {
+  if (!options?.idempotency && !options?.idempotencyKey) {
+    return init;
+  }
+
+  return {
+    ...init,
+    headers: {
+      ...normalizeHeaders(init.headers),
+      "Idempotency-Key": options.idempotencyKey ?? createIdempotencyKey(),
+    },
+  };
+}
+
 export async function requestNoContent(
   url: string,
   path: string,
   init: RequestInit,
   errorMeta: RequestErrorMeta,
+  options?: RequestOptions,
 ): Promise<void> {
   try {
-    const response = await fetch(`${url}${path}`, init);
+    const response = await fetch(`${url}${path}`, withRequestOptions(init, options));
 
     if (!response.ok) {
       throw await toResponseError(response, path, errorMeta);
@@ -139,9 +183,10 @@ export async function requestJson<T>(
   path: string,
   init: RequestInit,
   errorMeta: RequestErrorMeta,
+  options?: RequestOptions,
 ): Promise<T> {
   try {
-    const response = await fetch(`${url}${path}`, init);
+    const response = await fetch(`${url}${path}`, withRequestOptions(init, options));
 
     if (!response.ok) {
       throw await toResponseError(response, path, errorMeta);

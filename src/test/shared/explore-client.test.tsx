@@ -213,6 +213,9 @@ describe("explore client", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
+        headers: expect.objectContaining({
+          "Idempotency-Key": expect.any(String),
+        }),
       }),
     );
   });
@@ -242,6 +245,9 @@ describe("explore client", () => {
       expect.objectContaining({
         method: "DELETE",
         credentials: "include",
+        headers: expect.objectContaining({
+          "Idempotency-Key": expect.any(String),
+        }),
       }),
     );
   });

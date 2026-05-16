@@ -35,6 +35,8 @@ function getApiBaseUrl(): string {
   return getPublicRuntimeConfig().apiBaseUrl;
 }
 
+const IDEMPOTENCY_OPTIONS = { idempotency: true } as const;
+
 export async function createCrew(input: CrewCreateInput): Promise<CrewCreateResponse> {
   return requestJson<CrewCreateResponse>(
     getApiBaseUrl(),
@@ -51,6 +53,7 @@ export async function createCrew(input: CrewCreateInput): Promise<CrewCreateResp
       code: "CREW_CREATE_FAILED",
       message: "크루 생성에 실패했습니다. 입력값을 다시 확인해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -130,6 +133,7 @@ export async function updateCrewVisibility(
       code: "CREW_VISIBILITY_UPDATE_FAILED",
       message: "크루 공개 범위를 변경하지 못했습니다. 잠시 후 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -168,6 +172,7 @@ export async function leaveCrew(crewId: number): Promise<CrewLeaveResponse> {
       code: "CREW_LEAVE_FAILED",
       message: "크루를 탈퇴하지 못했습니다. 잠시 후 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -192,6 +197,7 @@ export async function deleteCrew(
       code: "CREW_DELETE_FAILED",
       message: "크루를 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -216,6 +222,7 @@ export async function transferCrewLeadership(
       code: "CREW_TRANSFER_LEADERSHIP_FAILED",
       message: "크루장 위임에 실패했습니다. 잠시 후 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -234,6 +241,7 @@ export async function removeCrewMember(
       code: "CREW_MEMBER_REMOVE_FAILED",
       message: "크루원을 제외하지 못했어요. 잠시 후 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -286,6 +294,7 @@ export async function createCrewJoinRequest(
       code: "CREW_JOIN_REQUEST_CREATE_FAILED",
       message: "가입 신청에 실패했습니다. 잠시 뒤 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -338,6 +347,7 @@ export async function approveCrewJoinRequest(
       code: "CREW_JOIN_REQUEST_APPROVE_FAILED",
       message: "가입 신청 승인에 실패했습니다. 잠시 후 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -356,6 +366,7 @@ export async function rejectCrewJoinRequest(
       code: "CREW_JOIN_REQUEST_REJECT_FAILED",
       message: "가입 신청 거절에 실패했습니다. 잠시 후 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -408,6 +419,7 @@ export async function createCrewInvite(
       code: "CREW_INVITE_CREATE_FAILED",
       message: "직접 초대 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -445,6 +457,7 @@ export async function acceptCrewInvite(
       code: "CREW_INVITE_ACCEPT_FAILED",
       message: "초대 수락에 실패했습니다. 잠시 후 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
 
@@ -462,5 +475,6 @@ export async function rejectCrewInvite(
       code: "CREW_INVITE_REJECT_FAILED",
       message: "초대 거절에 실패했습니다. 잠시 후 다시 시도해 주세요.",
     },
+    IDEMPOTENCY_OPTIONS,
   );
 }
