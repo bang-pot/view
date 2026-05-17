@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+﻿import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import MemberSearchPage from "@/app/member-search/page";
@@ -77,7 +77,7 @@ describe("MemberSearchPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
 
@@ -101,14 +101,14 @@ describe("MemberSearchPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(searchUsers).mockResolvedValue({
       items: [
         {
           userId: 101,
-          nickname: "bangpot",
+          nickname: "banglog",
           profileImageUrl: null,
           bio: "탈출 기록을 차곡차곡 모으는 중",
           gender: "FEMALE",
@@ -116,7 +116,7 @@ describe("MemberSearchPage", () => {
         },
         {
           userId: 102,
-          nickname: "bangpot",
+          nickname: "banglog",
           profileImageUrl: "https://cdn.example.com/users/102.jpg",
           bio: null,
           gender: null,
@@ -155,9 +155,9 @@ describe("MemberSearchPage", () => {
     expect(screen.getByText("성별 미설정")).toBeInTheDocument();
     expect(screen.getByText("방수 17회")).toBeInTheDocument();
 
-    fireEvent.click(within(rows[1]).getByRole("button", { name: "bangpot 선택" }));
+    fireEvent.click(within(rows[1]).getByRole("button", { name: "banglog 선택" }));
 
-    expect(await screen.findByText("선택한 회원 bangpot")).toBeInTheDocument();
+    expect(await screen.findByText("선택한 회원 banglog")).toBeInTheDocument();
     expect(within(rows[1]).getByText("선택됨")).toBeInTheDocument();
   });
 
@@ -167,7 +167,7 @@ describe("MemberSearchPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(searchUsers).mockResolvedValue({
@@ -196,7 +196,7 @@ describe("MemberSearchPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(searchUsers)
@@ -205,7 +205,7 @@ describe("MemberSearchPage", () => {
         items: [
           {
             userId: 101,
-            nickname: "bangpot",
+            nickname: "banglog",
             profileImageUrl: null,
             bio: null,
             gender: null,
@@ -233,6 +233,6 @@ describe("MemberSearchPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "다시 시도" }));
 
-    expect(await screen.findByText("bangpot")).toBeInTheDocument();
+    expect(await screen.findByText("banglog")).toBeInTheDocument();
   });
 });

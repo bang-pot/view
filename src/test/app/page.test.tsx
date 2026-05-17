@@ -88,9 +88,9 @@ describe("Home page", () => {
     render(await Home({ searchParams: Promise.resolve({}) }));
 
     expect(await screen.findByRole("banner")).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "BangPot" })).toHaveAttribute(
+    expect(screen.getByRole("img", { name: "Banglog" })).toHaveAttribute(
       "src",
-      "/brand/bangpot-logo-horizontal.svg",
+      "/brand/banglog-logo-horizontal.svg",
     );
     expect(screen.getByRole("link", { name: "홈" })).toHaveAttribute("href", "/");
     expect(screen.getByRole("link", { name: "크루 탐색" })).toHaveAttribute(

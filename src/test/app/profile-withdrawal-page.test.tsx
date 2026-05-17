@@ -56,7 +56,7 @@ describe("ProfileWithdrawalPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getWithdrawalCheck).mockResolvedValue({
@@ -84,7 +84,7 @@ describe("ProfileWithdrawalPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getWithdrawalCheck).mockResolvedValue({
@@ -106,7 +106,7 @@ describe("ProfileWithdrawalPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getWithdrawalCheck).mockResolvedValue({
@@ -146,7 +146,7 @@ describe("ProfileWithdrawalPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getWithdrawalCheck).mockResolvedValue({
@@ -187,7 +187,7 @@ describe("ProfileWithdrawalPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getWithdrawalCheck)
@@ -236,7 +236,7 @@ describe("ProfileWithdrawalPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getWithdrawalCheck)

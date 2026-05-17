@@ -104,7 +104,7 @@ function HomeHeader() {
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
-        <Link href="/" aria-label="BangPot 홈" className={styles.logoLink}>
+        <Link href="/" aria-label="Banglog 홈" className={styles.logoLink}>
           <BrandLogo className={styles.headerLogo} />
         </Link>
         <nav className={styles.nav} aria-label="주요 메뉴">
@@ -591,7 +591,7 @@ function HomeFooter() {
           <Link href="/">개인정보처리방침</Link>
           <Link href="/">문의하기</Link>
         </nav>
-        <small>© 2026 BangPot. All rights reserved.</small>
+        <small>© 2026 Banglog. All rights reserved.</small>
       </div>
     </footer>
   );

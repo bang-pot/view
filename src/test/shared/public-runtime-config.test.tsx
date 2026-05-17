@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+﻿import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { OperationalError } from "@/shared/errors/operational";
 import {
@@ -44,11 +44,11 @@ describe("public runtime config", () => {
 
   it("normalizes configured API base URLs for prod deployments", () => {
     process.env.NEXT_PUBLIC_APP_ENV = "prod";
-    process.env.NEXT_PUBLIC_API_BASE_URL = "https://api.bangpot.example.com/";
+    process.env.NEXT_PUBLIC_API_BASE_URL = "https://api.banglog.example.com/";
 
     expect(getPublicRuntimeConfig()).toEqual({
       appEnv: "prod",
-      apiBaseUrl: "https://api.bangpot.example.com",
+      apiBaseUrl: "https://api.banglog.example.com",
     });
   });
 

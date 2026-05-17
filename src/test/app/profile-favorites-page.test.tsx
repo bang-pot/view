@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+﻿import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ProfileFavoritesPage from "@/app/profile/favorites/page";
@@ -73,14 +73,14 @@ describe("ProfileFavoritesPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getFavoriteThemes).mockResolvedValue({
       items: [
         {
           themeId: 701,
-          themeName: "Bangpot Favorite",
+          themeName: "Banglog Favorite",
           storeName: "Escape Hub",
           regionName: "Seoul",
           thumbnailUrl: null,
@@ -107,11 +107,11 @@ describe("ProfileFavoritesPage", () => {
     render(<ProfileFavoritesPage />);
 
     expect(await screen.findByRole("heading", { name: "찜한 테마" })).toBeInTheDocument();
-    expect(screen.getByText("Bangpot Favorite")).toBeInTheDocument();
+    expect(screen.getByText("Banglog Favorite")).toBeInTheDocument();
     expect(screen.getByText("Escape Hub")).toBeInTheDocument();
     expect(screen.getByText("Seoul")).toBeInTheDocument();
     expect(await screen.findByText("테마 이미지 준비 중")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Bangpot Favorite/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /Banglog Favorite/ })).toHaveAttribute(
       "href",
       "/explore/themes/701",
     );
@@ -124,7 +124,7 @@ describe("ProfileFavoritesPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getFavoriteThemes)
@@ -132,7 +132,7 @@ describe("ProfileFavoritesPage", () => {
         items: [
           {
             themeId: 701,
-            themeName: "Bangpot Favorite",
+            themeName: "Banglog Favorite",
             storeName: "Escape Hub",
             regionName: "Seoul",
             thumbnailUrl: null,
@@ -155,7 +155,7 @@ describe("ProfileFavoritesPage", () => {
     expect(
       await screen.findByText("찜한 테마 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
     ).toBeInTheDocument();
-    expect(screen.getByText("Bangpot Favorite")).toBeInTheDocument();
+    expect(screen.getByText("Banglog Favorite")).toBeInTheDocument();
   });
 
   it("removes an unfavorited item immediately and switches to the empty state after the last item", async () => {
@@ -164,14 +164,14 @@ describe("ProfileFavoritesPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getFavoriteThemes).mockResolvedValue({
       items: [
         {
           themeId: 701,
-          themeName: "Bangpot Favorite",
+          themeName: "Banglog Favorite",
           storeName: "Escape Hub",
           regionName: "Seoul",
           thumbnailUrl: null,
@@ -197,7 +197,7 @@ describe("ProfileFavoritesPage", () => {
 
     expect(await screen.findByText("아직 찜한 테마가 없어요")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "테마 둘러보기" })).toHaveAttribute("href", "/explore");
-    expect(screen.queryByText("Bangpot Favorite")).not.toBeInTheDocument();
+    expect(screen.queryByText("Banglog Favorite")).not.toBeInTheDocument();
   });
 
   it("shows a retry affordance when the first load fails", async () => {
@@ -206,7 +206,7 @@ describe("ProfileFavoritesPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getFavoriteThemes)
@@ -215,7 +215,7 @@ describe("ProfileFavoritesPage", () => {
         items: [
           {
             themeId: 701,
-            themeName: "Bangpot Favorite",
+            themeName: "Banglog Favorite",
             storeName: "Escape Hub",
             regionName: "Seoul",
             thumbnailUrl: null,
@@ -238,7 +238,7 @@ describe("ProfileFavoritesPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "다시 시도" }));
 
-    expect(await screen.findByText("Bangpot Favorite")).toBeInTheDocument();
+    expect(await screen.findByText("Banglog Favorite")).toBeInTheDocument();
   });
 
   it("keeps the list visible when unfavorite fails", async () => {
@@ -247,14 +247,14 @@ describe("ProfileFavoritesPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getFavoriteThemes).mockResolvedValue({
       items: [
         {
           themeId: 701,
-          themeName: "Bangpot Favorite",
+          themeName: "Banglog Favorite",
           storeName: "Escape Hub",
           regionName: "Seoul",
           thumbnailUrl: null,
@@ -279,6 +279,6 @@ describe("ProfileFavoritesPage", () => {
     expect(
       await within(item).findByText("찜 상태를 변경하지 못했어요. 잠시 후 다시 시도해 주세요."),
     ).toBeInTheDocument();
-    expect(within(item).getByText("Bangpot Favorite")).toBeInTheDocument();
+    expect(within(item).getByText("Banglog Favorite")).toBeInTheDocument();
   });
 });

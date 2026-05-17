@@ -178,7 +178,7 @@ export function AuthCompletePageClient() {
     <main>
       <h1>신규 사용자 보완</h1>
       <p>
-        닉네임을 정하고 필수 약관에 동의하면 BangPot full 사용자로 전환됩니다.
+        닉네임을 정하고 필수 약관에 동의하면 Banglog full 사용자로 전환됩니다.
       </p>
       <form onSubmit={handleSubmit}>
         <label htmlFor="nickname">닉네임</label>

@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+﻿import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import CrewMeetingCreatePage from "@/app/crews/[crewId]/meetings/new/page";
@@ -82,7 +82,7 @@ describe("MeetingCreatePage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-04-08T00:00:00Z",
     });
     vi.mocked(getCrewHub).mockResolvedValue({
@@ -156,7 +156,7 @@ describe("MeetingCreatePage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-04-08T00:00:00Z",
     });
     vi.mocked(getCrewHub).mockRejectedValue(
@@ -181,7 +181,7 @@ describe("MeetingCreatePage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-04-08T00:00:00Z",
     });
     vi.mocked(getCrewHub).mockResolvedValue({

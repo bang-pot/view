@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+﻿import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import JoinedMeetingsProfilePage from "@/app/profile/joined-meetings/page";
@@ -54,7 +54,7 @@ describe("JoinedMeetingsProfilePage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getJoinedMeetings).mockResolvedValue({
@@ -64,7 +64,7 @@ describe("JoinedMeetingsProfilePage", () => {
           title: "금요일 방탈출",
           themeName: "더 킹덤",
           crewId: 7,
-          crewName: "방팟 크루",
+          crewName: "방로그 크루",
           date: "2026-04-25",
           time: "19:00",
           status: "COMPLETED",
@@ -111,7 +111,7 @@ describe("JoinedMeetingsProfilePage", () => {
       "/crews/7/meetings/41",
     );
     expect(screen.getByText("더 킹덤")).toBeInTheDocument();
-    expect(screen.getByText("방팟 크루")).toBeInTheDocument();
+    expect(screen.getByText("방로그 크루")).toBeInTheDocument();
     expect(screen.getByText("2026-04-25 19:00")).toBeInTheDocument();
     expect(screen.getAllByText("완료")).toHaveLength(2);
     expect(screen.getByText("결과 성공")).toBeInTheDocument();
@@ -134,7 +134,7 @@ describe("JoinedMeetingsProfilePage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getJoinedMeetings).mockResolvedValue({
@@ -157,7 +157,7 @@ describe("JoinedMeetingsProfilePage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getJoinedMeetings)
@@ -168,7 +168,7 @@ describe("JoinedMeetingsProfilePage", () => {
             title: "금요일 방탈출",
             themeName: "더 킹덤",
             crewId: 7,
-            crewName: "방팟 크루",
+            crewName: "방로그 크루",
             date: "2026-04-25",
             time: "19:00",
             status: "COMPLETED",
@@ -189,7 +189,7 @@ describe("JoinedMeetingsProfilePage", () => {
             title: "금요일 방탈출",
             themeName: "더 킹덤",
             crewId: 7,
-            crewName: "방팟 크루",
+            crewName: "방로그 크루",
             date: "2026-04-25",
             time: "19:00",
             status: "COMPLETED",
@@ -201,7 +201,7 @@ describe("JoinedMeetingsProfilePage", () => {
             title: "심야 방탈출",
             themeName: "더 에스케이프",
             crewId: 7,
-            crewName: "방팟 크루",
+            crewName: "방로그 크루",
             date: "2026-04-29",
             time: "22:00",
             status: "RECRUITMENT_CLOSED",
@@ -236,7 +236,7 @@ describe("JoinedMeetingsProfilePage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getJoinedMeetings)
@@ -248,7 +248,7 @@ describe("JoinedMeetingsProfilePage", () => {
             title: "금요일 방탈출",
             themeName: "더 킹덤",
             crewId: 7,
-            crewName: "방팟 크루",
+            crewName: "방로그 크루",
             date: "2026-04-25",
             time: "19:00",
             status: "COMPLETED",

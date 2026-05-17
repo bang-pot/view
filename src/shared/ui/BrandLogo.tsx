@@ -3,9 +3,9 @@ import type { ImgHTMLAttributes } from "react";
 import styles from "./BrandLogo.module.css";
 
 const LOGO_SRC = {
-  horizontal: "/brand/bangpot-logo-horizontal.svg",
-  stacked: "/brand/bangpot-logo-stacked.svg",
-  symbol: "/brand/bangpot-symbol.svg",
+  horizontal: "/brand/banglog-logo-horizontal.svg",
+  stacked: "/brand/banglog-logo-stacked.svg",
+  symbol: "/brand/banglog-symbol.svg",
 } as const;
 
 type BrandLogoVariant = keyof typeof LOGO_SRC;
@@ -21,7 +21,7 @@ function cx(...classNames: Array<string | false | null | undefined>): string {
 }
 
 export function BrandLogo({
-  alt = "BangPot",
+  alt = "Banglog",
   className,
   decorative = false,
   variant = "horizontal",

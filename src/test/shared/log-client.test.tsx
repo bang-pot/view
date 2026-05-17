@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+﻿import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createMeetingLog,
@@ -219,7 +219,7 @@ describe("log client", () => {
             themeName: "미스터리 룸",
             place: "강남 이스케이프",
             date: "2026-04-10",
-            authorNickname: "bangpot",
+            authorNickname: "banglog",
             createdAt: "2026-04-11T10:00:00Z",
             updatedAt: "2026-04-11T11:00:00Z",
             body: "정말 재미있었어요.",
@@ -253,7 +253,7 @@ describe("log client", () => {
             {
               logId: 700,
               meetingId: 99,
-              authorNickname: "bangpot",
+              authorNickname: "banglog",
               meetingTitle: "금요일 방탈출 번개",
               meetingDate: "2026-04-10",
               createdAt: "2026-04-11T10:00:00Z",
@@ -307,7 +307,7 @@ describe("log client", () => {
           themeName: "미스터리 룸",
           place: "강남 이스케이프",
           date: "2026-04-10",
-          authorNickname: "bangpot",
+          authorNickname: "banglog",
           createdAt: "2026-04-11T10:00:00Z",
           updatedAt: "2026-04-11T11:00:00Z",
           body: "정말 재미있었어요.",

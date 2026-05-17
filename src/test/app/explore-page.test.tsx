@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+﻿import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ExplorePage from "@/app/explore/page";
@@ -171,7 +171,7 @@ describe("ExplorePage", () => {
     });
     vi.mocked(getExploreMeetingCreateCrews).mockResolvedValue({
       crews: [
-        { crewId: 11, crewName: "화요일 방팟" },
+        { crewId: 11, crewName: "화요일 방로그" },
         { crewId: 12, crewName: "나이스 투 미츄" },
       ],
     });
@@ -186,7 +186,7 @@ describe("ExplorePage", () => {
     });
 
     expect(getExploreMeetingCreateCrews).toHaveBeenCalledOnce();
-    expect(within(picker).getByRole("button", { name: "화요일 방팟" })).toHaveAttribute(
+    expect(within(picker).getByRole("button", { name: "화요일 방로그" })).toHaveAttribute(
       "aria-pressed",
       "true",
     );

@@ -242,7 +242,7 @@ export function WithdrawalPageClient() {
           <h2>삭제되는 것</h2>
           <ul style={{ margin: 0, paddingLeft: 20, display: "grid", gap: 6 }}>
             <li>개인 프로필 정보와 로그인 계정 정보가 제거됩니다.</li>
-            <li>탈퇴를 완료하면 현재 계정으로는 BangPot을 다시 사용할 수 없어요.</li>
+            <li>탈퇴를 완료하면 현재 계정으로는 Banglog를 다시 사용할 수 없어요.</li>
           </ul>
         </section>
 

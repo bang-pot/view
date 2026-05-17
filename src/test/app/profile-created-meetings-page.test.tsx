@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+﻿import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import CreatedMeetingsProfilePage from "@/app/profile/created-meetings/page";
@@ -54,7 +54,7 @@ describe("CreatedMeetingsProfilePage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getCreatedMeetings).mockResolvedValue({
@@ -66,7 +66,7 @@ describe("CreatedMeetingsProfilePage", () => {
           date: "2026-04-20",
           time: "14:00",
           crewId: 7,
-          crewName: "방팟 크루",
+          crewName: "방로그 크루",
         },
         {
           meetingId: 32,
@@ -98,7 +98,7 @@ describe("CreatedMeetingsProfilePage", () => {
     );
     expect(screen.getByText("모집 중")).toBeInTheDocument();
     expect(screen.getByText("완료")).toBeInTheDocument();
-    expect(screen.getByText("방팟 크루")).toBeInTheDocument();
+    expect(screen.getByText("방로그 크루")).toBeInTheDocument();
     expect(screen.getByText("2026-04-20 14:00")).toBeInTheDocument();
   });
 
@@ -108,7 +108,7 @@ describe("CreatedMeetingsProfilePage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getCreatedMeetings).mockResolvedValue({
@@ -131,7 +131,7 @@ describe("CreatedMeetingsProfilePage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getCreatedMeetings)
@@ -144,7 +144,7 @@ describe("CreatedMeetingsProfilePage", () => {
             date: "2026-04-20",
             time: "14:00",
             crewId: 7,
-            crewName: "방팟 크루",
+            crewName: "방로그 크루",
           },
         ],
         pageInfo: {
@@ -162,7 +162,7 @@ describe("CreatedMeetingsProfilePage", () => {
             date: "2026-04-20",
             time: "14:00",
             crewId: 7,
-            crewName: "방팟 크루",
+            crewName: "방로그 크루",
           },
           {
             meetingId: 33,
@@ -171,7 +171,7 @@ describe("CreatedMeetingsProfilePage", () => {
             date: "2026-04-25",
             time: "21:00",
             crewId: 7,
-            crewName: "방팟 크루",
+            crewName: "방로그 크루",
           },
         ],
         pageInfo: {
@@ -201,7 +201,7 @@ describe("CreatedMeetingsProfilePage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getCreatedMeetings)
@@ -215,7 +215,7 @@ describe("CreatedMeetingsProfilePage", () => {
             date: "2026-04-20",
             time: "14:00",
             crewId: 7,
-            crewName: "방팟 크루",
+            crewName: "방로그 크루",
           },
         ],
         pageInfo: {

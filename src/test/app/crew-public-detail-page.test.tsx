@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+﻿import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import PublicCrewDetailPage from "@/app/crews/public/[crewId]/page";
@@ -24,7 +24,7 @@ describe("PublicCrewDetailPage", () => {
   it("shows a login action for guest users on the public crew intro screen", async () => {
     vi.mocked(getPublicCrewJoinView).mockResolvedValue({
       crewId: 33,
-      name: "BangPot Climbers",
+      name: "Banglog Climbers",
       description: "Weekend climbing crew",
       visibility: "PUBLIC",
       imageUrl: null,
@@ -33,7 +33,7 @@ describe("PublicCrewDetailPage", () => {
 
     render(await PublicCrewDetailPage({ params: Promise.resolve({ crewId: "33" }) }));
 
-    expect(await screen.findByRole("heading", { name: "BangPot Climbers" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Banglog Climbers" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "로그인 후 가입 신청" })).toHaveAttribute(
       "href",
       "/login?redirectTo=%2Fcrews%2Fpublic%2F33",
@@ -43,7 +43,7 @@ describe("PublicCrewDetailPage", () => {
   it("submits an optional join request message, shows a success modal, and keeps the pending state", async () => {
     vi.mocked(getPublicCrewJoinView).mockResolvedValue({
       crewId: 33,
-      name: "BangPot Climbers",
+      name: "Banglog Climbers",
       description: "Weekend climbing crew",
       visibility: "PUBLIC",
       imageUrl: null,
@@ -81,7 +81,7 @@ describe("PublicCrewDetailPage", () => {
 
     vi.mocked(getPublicCrewJoinView).mockResolvedValue({
       crewId: 33,
-      name: "BangPot Climbers",
+      name: "Banglog Climbers",
       description: "Weekend climbing crew",
       visibility: "PUBLIC",
       imageUrl: null,
@@ -117,7 +117,7 @@ describe("PublicCrewDetailPage", () => {
     vi.mocked(getPublicCrewJoinView)
       .mockResolvedValueOnce({
         crewId: 33,
-        name: "BangPot Climbers",
+        name: "Banglog Climbers",
         description: "Weekend climbing crew",
         visibility: "PUBLIC",
         imageUrl: null,
@@ -125,7 +125,7 @@ describe("PublicCrewDetailPage", () => {
       })
       .mockResolvedValueOnce({
         crewId: 44,
-        name: "BangPot Secret Club",
+        name: "Banglog Secret Club",
         description: "Invite only",
         visibility: "PRIVATE",
         imageUrl: null,

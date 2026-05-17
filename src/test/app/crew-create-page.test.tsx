@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+﻿import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import CrewCreatePage from "@/app/crews/new/page";
@@ -80,12 +80,12 @@ describe("CrewCreatePage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-04-08T00:00:00Z",
     });
     vi.mocked(createCrew).mockResolvedValue({
       crewId: 21,
-      name: "BangPot Crew",
+      name: "Banglog Crew",
       myRole: "LEADER",
     });
     vi.mocked(uploadCrewCoverImage).mockResolvedValue({
@@ -100,7 +100,7 @@ describe("CrewCreatePage", () => {
     expect(screen.getByLabelText("Public")).toBeChecked();
 
     fireEvent.change(screen.getByLabelText("Name"), {
-      target: { value: "BangPot Crew" },
+      target: { value: "Banglog Crew" },
     });
     fireEvent.change(screen.getByLabelText("Description"), {
       target: { value: "crew intro" },
@@ -113,7 +113,7 @@ describe("CrewCreatePage", () => {
     await waitFor(() => {
       expect(uploadCrewCoverImage).toHaveBeenCalledWith(expect.any(File));
       expect(createCrew).toHaveBeenCalledWith({
-        name: "BangPot Crew",
+        name: "Banglog Crew",
         description: "crew intro",
         visibility: "PUBLIC",
         imageUploadId: 300,
@@ -133,7 +133,7 @@ describe("CrewCreatePage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-04-08T00:00:00Z",
     });
     vi.mocked(createCrew).mockRejectedValue(
@@ -155,7 +155,7 @@ describe("CrewCreatePage", () => {
 
     await screen.findByRole("heading", { name: "Create crew" });
     fireEvent.change(screen.getByLabelText("Name"), {
-      target: { value: "BangPot Crew" },
+      target: { value: "Banglog Crew" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Create crew" }));
 

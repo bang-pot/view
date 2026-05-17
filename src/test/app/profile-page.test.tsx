@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+﻿import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ProfilePage from "@/app/profile/page";
@@ -40,7 +40,7 @@ function mockFullUser() {
     completionRequired: false,
     redirectTo: null,
     requiredTermsVersion: "2026-03-25",
-    user: { id: 1, nickname: "bangpot" },
+    user: { id: 1, nickname: "banglog" },
     requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
   });
 }
@@ -48,7 +48,7 @@ function mockFullUser() {
 function mockProfile() {
   vi.mocked(getProfile).mockResolvedValue({
     id: 1,
-    nickname: "bangpot",
+    nickname: "banglog",
     profileImageUrl: null,
     createdMeetingsCount: 3,
     joinedMeetingsCount: 4,
@@ -149,7 +149,7 @@ describe("ProfilePage", () => {
 
     expect(await screen.findByRole("heading", { name: "내 프로필" })).toBeInTheDocument();
     expect(screen.getByText("프로필 이미지 준비 중")).toBeInTheDocument();
-    expect(screen.getByText("bangpot")).toBeInTheDocument();
+    expect(screen.getByText("banglog")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /생성 모임 3/ })).toHaveAttribute(
       "href",
       "/profile/created-meetings",
@@ -296,7 +296,7 @@ describe("ProfilePage", () => {
 
     render(<ProfilePage />);
 
-    expect(await screen.findByText("bangpot")).toBeInTheDocument();
+    expect(await screen.findByText("banglog")).toBeInTheDocument();
     expect(
       await screen.findByText("달력 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
     ).toBeInTheDocument();
@@ -317,7 +317,7 @@ describe("ProfilePage", () => {
         completionRequired: false,
         redirectTo: null,
         requiredTermsVersion: "2026-03-25",
-        user: { id: 1, nickname: "bangpot" },
+        user: { id: 1, nickname: "banglog" },
         requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
       })
       .mockResolvedValueOnce({
@@ -364,7 +364,7 @@ describe("ProfilePage", () => {
 
     render(<ProfilePage />);
 
-    expect(await screen.findByText("bangpot")).toBeInTheDocument();
+    expect(await screen.findByText("banglog")).toBeInTheDocument();
     expect(
       await screen.findByText("찜한 테마를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
     ).toBeInTheDocument();
