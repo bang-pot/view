@@ -37,7 +37,7 @@ describe("log client", () => {
 
     await createMeetingLog(99, {
       body: "정말 재미있었던 모임이었어요.",
-      photos: [{ url: "https://cdn.example.com/logs/photo-1.jpg", sizeBytes: 1024 }],
+      photos: [{ uploadId: 123 }],
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -51,7 +51,7 @@ describe("log client", () => {
         }),
         body: JSON.stringify({
           body: "정말 재미있었던 모임이었어요.",
-          photos: [{ url: "https://cdn.example.com/logs/photo-1.jpg", sizeBytes: 1024 }],
+          photos: [{ uploadId: 123 }],
         }),
       }),
     );
@@ -59,7 +59,7 @@ describe("log client", () => {
 
   it("uploads a log photo as multipart form-data", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ url: "https://cdn.example.com/logs/photo-1.jpg", sizeBytes: 1024 }), {
+      new Response(JSON.stringify({ uploadId: 123, url: "https://cdn.example.com/logs/photo-1.jpg", sizeBytes: 1024 }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       }),

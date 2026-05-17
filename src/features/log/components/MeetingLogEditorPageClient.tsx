@@ -39,6 +39,7 @@ type UploadedPhotoField = {
   id: string;
   fileName: string;
   uploadStatus: "idle" | "uploading" | "uploaded" | "failed";
+  uploadId: number | null;
   url: string | null;
   sizeBytes: number | null;
   errorMessage: string | null;
@@ -108,10 +109,6 @@ function validatePhotos(photoFields: PhotoField[]): {
 
   for (const photoField of photoFields) {
     if (photoField.kind === "existing") {
-      photos.push({
-        url: photoField.url,
-        sizeBytes: 1,
-      });
       continue;
     }
 
@@ -129,7 +126,7 @@ function validatePhotos(photoFields: PhotoField[]): {
       };
     }
 
-    if (!photoField.url || !photoField.sizeBytes) {
+    if (!photoField.uploadId || !photoField.url || !photoField.sizeBytes) {
       return {
         errorMessage: "업로드가 완료된 사진 정보가 올바르지 않아요.",
         photos: [],
@@ -137,8 +134,7 @@ function validatePhotos(photoFields: PhotoField[]): {
     }
 
     photos.push({
-      url: photoField.url,
-      sizeBytes: photoField.sizeBytes,
+      uploadId: photoField.uploadId,
     });
   }
 
@@ -166,6 +162,20 @@ function formatPhotoSize(sizeBytes: number | null): string {
   }
 
   return `${Math.ceil(sizeBytes / 1024)}KB`;
+}
+
+function getSubmittedPhotoUrls(photoFields: PhotoField[]): string[] {
+  return photoFields.flatMap((photoField) => {
+    if (photoField.kind === "existing") {
+      return [];
+    }
+
+    if (photoField.uploadStatus !== "uploaded" || !photoField.url) {
+      return [];
+    }
+
+    return [photoField.url];
+  });
 }
 
 export function MeetingLogEditorPageClient({
@@ -295,6 +305,7 @@ export function MeetingLogEditorPageClient({
           id: `photo-${Date.now()}-${currentFields.length + 1}`,
           fileName: "",
           uploadStatus: "idle",
+          uploadId: null,
           url: null,
           sizeBytes: null,
           errorMessage: null,
@@ -317,6 +328,7 @@ export function MeetingLogEditorPageClient({
                 ...photoField,
                 fileName: file.name,
                 uploadStatus: "failed",
+                uploadId: null,
                 url: null,
                 sizeBytes: null,
                 errorMessage: INVALID_PHOTO_TYPE_MESSAGE,
@@ -336,6 +348,7 @@ export function MeetingLogEditorPageClient({
                 ...photoField,
                 fileName: file.name,
                 uploadStatus: "failed",
+                uploadId: null,
                 url: null,
                 sizeBytes: null,
                 errorMessage: INVALID_PHOTO_SIZE_MESSAGE,
@@ -354,6 +367,7 @@ export function MeetingLogEditorPageClient({
               ...photoField,
               fileName: file.name,
               uploadStatus: "uploading",
+              uploadId: null,
               url: null,
               sizeBytes: null,
               errorMessage: null,
@@ -373,6 +387,7 @@ export function MeetingLogEditorPageClient({
                 ...photoField,
                 fileName: file.name,
                 uploadStatus: "uploaded",
+                uploadId: uploadedPhoto.uploadId,
                 url: uploadedPhoto.url,
                 sizeBytes: uploadedPhoto.sizeBytes,
                 errorMessage: null,
@@ -392,6 +407,7 @@ export function MeetingLogEditorPageClient({
                 ...photoField,
                 fileName: file.name,
                 uploadStatus: "failed",
+                uploadId: null,
                 url: null,
                 sizeBytes: null,
                 errorMessage: PHOTO_UPLOAD_FAILED_MESSAGE,
@@ -443,6 +459,7 @@ export function MeetingLogEditorPageClient({
     setIsSubmitting(true);
 
     try {
+      const submittedPhotoUrls = getSubmittedPhotoUrls(photoFields);
       const response =
         isEditMode && myMeetingLog?.status === "EXISTS"
           ? await updateMeetingLog(myMeetingLog.logId, {
@@ -461,7 +478,7 @@ export function MeetingLogEditorPageClient({
               logId: response.logId,
               meetingId: response.meetingId,
               body: trimmedBody,
-              photos: validation.photos.map((photo) => photo.url),
+              photos: submittedPhotoUrls,
             }
           : {
               status: "EXISTS",
@@ -475,7 +492,7 @@ export function MeetingLogEditorPageClient({
               createdAt: null,
               updatedAt: null,
               body: trimmedBody,
-              photos: validation.photos.map((photo) => photo.url),
+              photos: submittedPhotoUrls,
             },
       );
       push(`/crews/${crewId}/logs/${response.logId}`);

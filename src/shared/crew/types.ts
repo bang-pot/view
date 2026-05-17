@@ -14,7 +14,7 @@ export type CrewCreateInput = {
   name: string;
   description: string | null;
   visibility: CrewVisibility;
-  imageUrl: string | null;
+  imageUploadId: number | null;
 };
 
 export type CrewCreateResponse = {
