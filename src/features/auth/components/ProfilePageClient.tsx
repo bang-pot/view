@@ -15,6 +15,7 @@ import {
   getUserMessage,
   toOperationalError,
 } from "@/shared/errors/operational";
+import { uploadProfileImage } from "@/shared/image/client";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
 const PROFILE_PATH = "/profile";
@@ -74,6 +75,7 @@ export function ProfilePageClient() {
   const router = useRouter();
   const [profile, setProfile] = useState<AuthProfileHubResponse | null>(null);
   const [nickname, setNickname] = useState("");
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [nicknameMessage, setNicknameMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -136,9 +138,17 @@ export function ProfilePageClient() {
     setIsSaving(true);
 
     try {
-      const nextProfile = await updateProfile({
-        nickname: nickname.trim(),
-      });
+      const uploadedProfileImage = profileImageFile
+        ? await uploadProfileImage(profileImageFile)
+        : null;
+      const profileUpdateInput =
+        uploadedProfileImage === null
+          ? { nickname: nickname.trim() }
+          : {
+              nickname: nickname.trim(),
+              profileImageUploadId: uploadedProfileImage.uploadId,
+            };
+      const nextProfile = await updateProfile(profileUpdateInput);
 
       setProfile((currentProfile) =>
         currentProfile
@@ -150,6 +160,7 @@ export function ProfilePageClient() {
           : currentProfile,
       );
       setNickname(nextProfile.nickname);
+      setProfileImageFile(null);
     } catch (error) {
       const operationalError = toOperationalError(error);
 
@@ -351,6 +362,14 @@ export function ProfilePageClient() {
             name="nickname"
             value={nickname}
             onChange={(event) => setNickname(event.target.value)}
+          />
+          <label htmlFor="profile-image">Profile image</label>
+          <input
+            id="profile-image"
+            name="profileImage"
+            type="file"
+            accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+            onChange={(event) => setProfileImageFile(event.currentTarget.files?.[0] ?? null)}
           />
           {nicknameMessage ? <p>{nicknameMessage}</p> : null}
           {errorMessage ? <p>{errorMessage}</p> : null}

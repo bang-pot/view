@@ -1,9 +1,12 @@
 export type LogPhotoInput = {
+  uploadId: number;
+};
+
+export type UploadLogPhotoResponse = {
+  uploadId: number;
   url: string;
   sizeBytes: number;
 };
-
-export type UploadLogPhotoResponse = LogPhotoInput;
 
 export type CreateMeetingLogInput = {
   body: string;

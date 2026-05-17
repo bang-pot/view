@@ -360,6 +360,7 @@ export async function checkNicknameAvailability(
 
 export async function updateProfile(input: {
   nickname: string;
+  profileImageUploadId?: number | null;
 }): Promise<AuthProfileUpdateResponse> {
   return requestJson<AuthProfileUpdateResponse>(
     getApiBaseUrl(),

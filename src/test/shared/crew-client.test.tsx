@@ -61,7 +61,7 @@ describe("crew client", () => {
       name: "BangPot Crew",
       description: "crew intro",
       visibility: "PUBLIC",
-      imageUrl: null,
+      imageUploadId: 300,
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -77,7 +77,7 @@ describe("crew client", () => {
           name: "BangPot Crew",
           description: "crew intro",
           visibility: "PUBLIC",
-          imageUrl: null,
+          imageUploadId: 300,
         }),
       }),
     );
@@ -114,7 +114,7 @@ describe("crew client", () => {
         name: "BangPot Crew",
         description: null,
         visibility: "PUBLIC",
-        imageUrl: null,
+        imageUploadId: null,
       }),
     ).rejects.toMatchObject({
       code: "CREW_DUPLICATE_NAME",

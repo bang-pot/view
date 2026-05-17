@@ -170,6 +170,7 @@ describe("MeetingLogEditorPage", () => {
     mockCompletedMeeting();
     vi.mocked(getMyMeetingLog).mockResolvedValue(makeNotWrittenLog());
     vi.mocked(uploadLogPhoto).mockResolvedValue({
+      uploadId: 123,
       url: "https://cdn.example.com/log-1.jpg",
       sizeBytes: 1024,
     });
@@ -195,7 +196,7 @@ describe("MeetingLogEditorPage", () => {
     await waitFor(() => {
       expect(createMeetingLog).toHaveBeenCalledWith(99, {
         body: "정말 재미있었던 모임이었어요.",
-        photos: [{ url: "https://cdn.example.com/log-1.jpg", sizeBytes: 1024 }],
+        photos: [{ uploadId: 123 }],
       });
     });
 
@@ -226,7 +227,7 @@ describe("MeetingLogEditorPage", () => {
     await waitFor(() => {
       expect(updateMeetingLog).toHaveBeenCalledWith(501, {
         body: "수정한 로그예요.",
-        photos: [{ url: "https://cdn.example.com/log-1.png", sizeBytes: 1 }],
+        photos: [],
       });
     });
 

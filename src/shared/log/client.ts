@@ -1,5 +1,6 @@
 import { requestJson } from "@/shared/api/client";
 import { getPublicRuntimeConfig } from "@/shared/config/public";
+import { uploadLogPhoto as uploadLogPhotoRequest } from "@/shared/image/client";
 import type {
   CreateMeetingLogInput,
   CrewLogFeedQuery,
@@ -9,7 +10,6 @@ import type {
   MeetingLogMeResponse,
   SaveMeetingLogResponse,
   UpdateMeetingLogInput,
-  UploadLogPhotoResponse,
 } from "@/shared/log/types";
 
 function getApiBaseUrl(): string {
@@ -41,24 +41,7 @@ export async function createMeetingLog(
   );
 }
 
-export async function uploadLogPhoto(file: File): Promise<UploadLogPhotoResponse> {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  return requestJson<UploadLogPhotoResponse>(
-    getApiBaseUrl(),
-    "/api/uploads/log-photos",
-    {
-      method: "POST",
-      credentials: "include",
-      body: formData,
-    },
-    {
-      code: "LOG_PHOTO_UPLOAD_FAILED",
-      message: "사진을 업로드하지 못했어요. 잠시 후 다시 시도해 주세요.",
-    },
-  );
-}
+export const uploadLogPhoto = uploadLogPhotoRequest;
 
 export async function updateMeetingLog(
   logId: number,

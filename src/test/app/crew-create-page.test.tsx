@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CrewCreatePage from "@/app/crews/new/page";
 import { createCrew } from "@/shared/crew/client";
 import { getMe } from "@/shared/auth/client";
+import { uploadCrewCoverImage } from "@/shared/image/client";
 
 const replaceMock = vi.fn();
 const pushMock = vi.fn();
@@ -22,6 +23,10 @@ vi.mock("@/shared/auth/client", () => ({
 
 vi.mock("@/shared/crew/client", () => ({
   createCrew: vi.fn(),
+}));
+
+vi.mock("@/shared/image/client", () => ({
+  uploadCrewCoverImage: vi.fn(),
 }));
 
 describe("CrewCreatePage", () => {
@@ -83,6 +88,11 @@ describe("CrewCreatePage", () => {
       name: "BangPot Crew",
       myRole: "LEADER",
     });
+    vi.mocked(uploadCrewCoverImage).mockResolvedValue({
+      uploadId: 300,
+      url: "https://cdn.example.com/temp/crew-cover.jpg",
+      sizeBytes: 1024,
+    });
 
     render(<CrewCreatePage />);
 
@@ -95,14 +105,18 @@ describe("CrewCreatePage", () => {
     fireEvent.change(screen.getByLabelText("Description"), {
       target: { value: "crew intro" },
     });
+    fireEvent.change(screen.getByLabelText("Cover image"), {
+      target: { files: [new File(["cover"], "crew-cover.jpg", { type: "image/jpeg" })] },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Create crew" }));
 
     await waitFor(() => {
+      expect(uploadCrewCoverImage).toHaveBeenCalledWith(expect.any(File));
       expect(createCrew).toHaveBeenCalledWith({
         name: "BangPot Crew",
         description: "crew intro",
         visibility: "PUBLIC",
-        imageUrl: null,
+        imageUploadId: 300,
       });
     });
 

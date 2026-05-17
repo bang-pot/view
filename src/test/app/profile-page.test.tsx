@@ -10,6 +10,7 @@ import {
   logout,
   updateProfile,
 } from "@/shared/auth/client";
+import { uploadProfileImage } from "@/shared/image/client";
 
 const replaceMock = vi.fn();
 const routerMock = {
@@ -27,6 +28,10 @@ vi.mock("@/shared/auth/client", () => ({
   getProfile: vi.fn(),
   updateProfile: vi.fn(),
   logout: vi.fn(),
+}));
+
+vi.mock("@/shared/image/client", () => ({
+  uploadProfileImage: vi.fn(),
 }));
 
 function mockFullUser() {
@@ -208,22 +213,32 @@ describe("ProfilePage", () => {
     vi.mocked(updateProfile).mockResolvedValue({
       id: 1,
       nickname: "potmaster",
-      profileImageUrl: null,
+      profileImageUrl: "https://cdn.example.com/profile.jpg",
       createdMeetingsCount: null,
       joinedMeetingsCount: null,
       myCrewsCount: null,
       pendingCrewsCount: null,
+    });
+    vi.mocked(uploadProfileImage).mockResolvedValue({
+      uploadId: 100,
+      url: "https://cdn.example.com/temp/profile.jpg",
+      sizeBytes: 1024,
     });
 
     render(<ProfilePage />);
 
     const nicknameInput = await screen.findByLabelText("닉네임");
     fireEvent.change(nicknameInput, { target: { value: "potmaster" } });
+    fireEvent.change(screen.getByLabelText("Profile image"), {
+      target: { files: [new File(["profile"], "profile.jpg", { type: "image/jpeg" })] },
+    });
     fireEvent.click(screen.getByRole("button", { name: "닉네임 저장" }));
 
     await waitFor(() => {
+      expect(uploadProfileImage).toHaveBeenCalledWith(expect.any(File));
       expect(updateProfile).toHaveBeenCalledWith({
         nickname: "potmaster",
+        profileImageUploadId: 100,
       });
     });
 

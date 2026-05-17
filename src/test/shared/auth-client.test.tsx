@@ -831,6 +831,7 @@ describe("auth client", () => {
     await expect(
       updateProfile({
         nickname: "",
+        profileImageUploadId: 100,
       }),
     ).rejects.toMatchObject({
       code: "COMMON_VALIDATION_ERROR",
@@ -845,6 +846,50 @@ describe("auth client", () => {
       ],
       path: "/api/users/me",
     });
+  });
+
+  it("patches profile with a profile image upload id", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: 1,
+          nickname: "potmaster",
+          profileImageUrl: "https://cdn.example.com/profile.jpg",
+          createdMeetingsCount: null,
+          joinedMeetingsCount: null,
+          myCrewsCount: null,
+          pendingCrewsCount: null,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await updateProfile({
+      nickname: "potmaster",
+      profileImageUploadId: 100,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/users/me",
+      expect.objectContaining({
+        method: "PATCH",
+        credentials: "include",
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+          "Idempotency-Key": expect.any(String),
+        }),
+        body: JSON.stringify({
+          nickname: "potmaster",
+          profileImageUploadId: 100,
+        }),
+      }),
+    );
   });
 
   it("uses fallback code and message only when the backend body is not the common contract", async () => {

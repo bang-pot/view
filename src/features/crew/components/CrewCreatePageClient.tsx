@@ -12,6 +12,7 @@ import {
 } from "@/shared/errors/operational";
 import { createCrew } from "@/shared/crew/client";
 import type { CrewVisibility } from "@/shared/crew/types";
+import { uploadCrewCoverImage } from "@/shared/image/client";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
 const CREW_CREATE_PATH = "/crews/new";
@@ -50,6 +51,7 @@ export function CrewCreatePageClient() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [visibility, setVisibility] = useState<CrewVisibility>("PUBLIC");
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [nameMessage, setNameMessage] = useState<string | null>(null);
   const [visibilityMessage, setVisibilityMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -103,11 +105,15 @@ export function CrewCreatePageClient() {
     setIsSubmitting(true);
 
     try {
+      const uploadedCoverImage = coverImageFile
+        ? await uploadCrewCoverImage(coverImageFile)
+        : null;
+
       const createdCrew = await createCrew({
         name: name.trim(),
         description: description.trim() ? description.trim() : null,
         visibility,
-        imageUrl: null,
+        imageUploadId: uploadedCoverImage?.uploadId ?? null,
       });
 
       router.push(`/crews/${createdCrew.crewId}`);
@@ -171,6 +177,15 @@ export function CrewCreatePageClient() {
           name="description"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
+        />
+
+        <label htmlFor="crew-cover-image">Cover image</label>
+        <input
+          id="crew-cover-image"
+          name="coverImage"
+          type="file"
+          accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+          onChange={(event) => setCoverImageFile(event.currentTarget.files?.[0] ?? null)}
         />
 
         <fieldset>
