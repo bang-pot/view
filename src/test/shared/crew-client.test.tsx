@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+﻿import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   approveCrewJoinRequest,
@@ -44,7 +44,7 @@ describe("crew client", () => {
       new Response(
         JSON.stringify({
           crewId: 21,
-          name: "BangPot Crew",
+          name: "Banglog Crew",
           myRole: "LEADER",
         }),
         {
@@ -58,7 +58,7 @@ describe("crew client", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await createCrew({
-      name: "BangPot Crew",
+      name: "Banglog Crew",
       description: "crew intro",
       visibility: "PUBLIC",
       imageUploadId: 300,
@@ -74,7 +74,7 @@ describe("crew client", () => {
           "Idempotency-Key": expect.any(String),
         }),
         body: JSON.stringify({
-          name: "BangPot Crew",
+          name: "Banglog Crew",
           description: "crew intro",
           visibility: "PUBLIC",
           imageUploadId: 300,
@@ -111,7 +111,7 @@ describe("crew client", () => {
 
     await expect(
       createCrew({
-        name: "BangPot Crew",
+        name: "Banglog Crew",
         description: null,
         visibility: "PUBLIC",
         imageUploadId: null,
@@ -137,7 +137,7 @@ describe("crew client", () => {
           items: [
             {
               crewId: 11,
-              name: "BangPot Runners",
+              name: "Banglog Runners",
               description: "Morning runners",
               imageUrl: null,
               visibility: "PRIVATE",
@@ -181,7 +181,7 @@ describe("crew client", () => {
       new Response(
         JSON.stringify({
           crewId: 11,
-          name: "BangPot Runners",
+          name: "Banglog Runners",
           description: "Morning runners",
           visibility: "PUBLIC",
           imageUrl: null,
@@ -692,7 +692,7 @@ describe("crew client", () => {
         JSON.stringify([
           {
             userId: 12,
-            nickname: "bangpot",
+            nickname: "banglog",
           },
         ]),
         {

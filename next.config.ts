@@ -12,11 +12,13 @@ function normalizeEnvValue(value: string | undefined): string | null {
 
 function resolveProxyTarget(): string | null {
   const publicApiBaseUrl = normalizeEnvValue(process.env.NEXT_PUBLIC_API_BASE_URL);
-  const proxyTarget = normalizeEnvValue(process.env.BANGPOT_BACKEND_PROXY_TARGET);
+  const proxyTarget =
+    normalizeEnvValue(process.env.BANGLOG_BACKEND_PROXY_TARGET) ??
+    normalizeEnvValue(process.env.BANGPOT_BACKEND_PROXY_TARGET);
 
   if (publicApiBaseUrl?.startsWith("/") && !proxyTarget) {
     throw new Error(
-      "BANGPOT_BACKEND_PROXY_TARGET is required when NEXT_PUBLIC_API_BASE_URL uses a same-origin proxy path.",
+      "BANGLOG_BACKEND_PROXY_TARGET is required when NEXT_PUBLIC_API_BASE_URL uses a same-origin proxy path.",
     );
   }
 

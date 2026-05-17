@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+﻿import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { OperationalError } from "@/shared/errors/operational";
 import { reportOperationalError } from "@/shared/monitoring/operations";
@@ -23,7 +23,7 @@ describe("operations logger", () => {
       new OperationalError({
         code: "AUTH_COMPLETE_REQUEST_FAILED",
         userMessage: "가입 완료 처리에 실패했습니다. 입력값을 다시 확인해 주세요.",
-        path: "https://api.bangpot.example.com/api/auth/complete?nickname=potmaster",
+        path: "https://api.banglog.example.com/api/auth/complete?nickname=potmaster",
         status: 500,
         requestId: "req-complete-1",
       }),
@@ -33,7 +33,7 @@ describe("operations logger", () => {
     );
 
     expect(errorSpy).toHaveBeenCalledWith(
-      "[bangpot-frontend]",
+      "[banglog-frontend]",
       expect.objectContaining({
         env: "prod",
         event: "auth.complete.submit_failed",

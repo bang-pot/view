@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+﻿import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import CrewLogFeedPage from "@/app/crews/[crewId]/logs/page";
@@ -39,7 +39,7 @@ describe("CrewLogFeedPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-04-08T00:00:00Z",
     });
     vi.mocked(getCrewLogFeed).mockResolvedValue({
@@ -47,7 +47,7 @@ describe("CrewLogFeedPage", () => {
         {
           logId: 501,
           meetingId: 99,
-          authorNickname: "bangpot",
+          authorNickname: "banglog",
           meetingTitle: "금요일 방탈출 번개",
           meetingDate: "2026-04-10",
           createdAt: "2026-04-11T10:00:00Z",
@@ -71,7 +71,7 @@ describe("CrewLogFeedPage", () => {
 
     expect(await screen.findByRole("heading", { name: "크루 방탈로그" })).toBeInTheDocument();
     expect(screen.getByText("정답 모여쓰기 감각이 좋았던 기록이에요.")).toBeInTheDocument();
-    expect(screen.getByText("작성자 bangpot")).toBeInTheDocument();
+    expect(screen.getByText("작성자 banglog")).toBeInTheDocument();
     expect(screen.getByText("모임 금요일 방탈출 번개")).toBeInTheDocument();
     expect(screen.getByText("모임 날짜 2026-04-10")).toBeInTheDocument();
     expect(screen.getByText("기록 시간 2026-04-11T10:00:00Z")).toBeInTheDocument();
@@ -129,7 +129,7 @@ describe("CrewLogFeedPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-04-08T00:00:00Z",
     });
     vi.mocked(getCrewLogFeed).mockResolvedValueOnce({
@@ -137,7 +137,7 @@ describe("CrewLogFeedPage", () => {
         {
           logId: 501,
           meetingId: 99,
-          authorNickname: "bangpot",
+          authorNickname: "banglog",
           meetingTitle: "금요일 방탈출 번개",
           meetingDate: "2026-04-10",
           createdAt: "2026-04-11T10:00:00Z",
@@ -195,7 +195,7 @@ describe("CrewLogFeedPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-04-08T00:00:00Z",
     });
     vi.mocked(getCrewLogFeed).mockResolvedValueOnce({
@@ -226,7 +226,7 @@ describe("CrewLogFeedPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-04-08T00:00:00Z",
     });
     vi.mocked(getCrewLogFeed).mockRejectedValueOnce(
@@ -254,7 +254,7 @@ describe("CrewLogFeedPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-04-08T00:00:00Z",
     });
     vi.mocked(getCrewLogFeed).mockRejectedValue(

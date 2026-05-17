@@ -59,16 +59,16 @@ export function reportOperationalEvent(
   };
 
   if (level === "info") {
-    console.info("[bangpot-frontend]", message);
+    console.info("[banglog-frontend]", message);
     return;
   }
 
   if (level === "warn") {
-    console.warn("[bangpot-frontend]", message);
+    console.warn("[banglog-frontend]", message);
     return;
   }
 
-  console.error("[bangpot-frontend]", message);
+  console.error("[banglog-frontend]", message);
 }
 
 export function reportOperationalError(

@@ -59,7 +59,7 @@ function CrewExploreHeader() {
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
-        <Link href="/" aria-label="BangPot 홈" className={styles.logoLink}>
+        <Link href="/" aria-label="Banglog 홈" className={styles.logoLink}>
           <BrandLogo className={styles.logo} />
         </Link>
         <nav className={styles.nav} aria-label="주요 메뉴">

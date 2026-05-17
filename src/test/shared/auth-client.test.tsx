@@ -75,7 +75,7 @@ describe("auth client", () => {
       new Response(
         JSON.stringify({
           id: 1,
-          nickname: "bangpot",
+          nickname: "banglog",
           profileImageUrl: null,
           createdMeetingsCount: 3,
           joinedMeetingsCount: 4,
@@ -212,7 +212,7 @@ describe("auth client", () => {
           items: [
             {
               userId: 101,
-              nickname: "bangpot",
+              nickname: "banglog",
               profileImageUrl: null,
               bio: "escape lover",
               gender: "FEMALE",
@@ -258,7 +258,7 @@ describe("auth client", () => {
           items: [
             {
               themeId: 601,
-              themeName: "Bangpot Favorite",
+              themeName: "Banglog Favorite",
               storeName: "Escape Hub",
               regionName: "Seoul",
               thumbnailUrl: null,
@@ -516,7 +516,7 @@ describe("auth client", () => {
               crewId: 17,
               crewName: "諛⑺깉異??щ（",
               visibility: "PUBLIC",
-              leaderNickname: "bangpot",
+              leaderNickname: "banglog",
               coverImageUrl: null,
             },
           ],
@@ -714,10 +714,10 @@ describe("auth client", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    await checkNicknameAvailability("bangpot");
+    await checkNicknameAvailability("banglog");
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "/backend/api/users/nickname-availability?nickname=bangpot",
+      "/backend/api/users/nickname-availability?nickname=banglog",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",

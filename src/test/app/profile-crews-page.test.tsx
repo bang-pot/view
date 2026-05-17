@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+﻿import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ProfileCrewsPage from "@/app/profile/crews/page";
@@ -52,7 +52,7 @@ describe("ProfileCrewsPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getMyCrews).mockResolvedValue({
@@ -61,7 +61,7 @@ describe("ProfileCrewsPage", () => {
           crewId: 17,
           crewName: "방탈출 크루",
           visibility: "PUBLIC",
-          leaderNickname: "bangpot",
+          leaderNickname: "banglog",
           coverImageUrl: "https://example.com/crew-cover.jpg",
         },
         {
@@ -86,7 +86,7 @@ describe("ProfileCrewsPage", () => {
     expect(screen.getByRole("link", { name: /심야 크루/ })).toHaveAttribute("href", "/crews/18");
     expect(screen.getByText("공개")).toBeInTheDocument();
     expect(screen.getByText("비공개")).toBeInTheDocument();
-    expect(screen.getByText("크루장 bangpot")).toBeInTheDocument();
+    expect(screen.getByText("크루장 banglog")).toBeInTheDocument();
     expect(screen.getByText("크루장 nightpot")).toBeInTheDocument();
     expect(screen.getByAltText("방탈출 크루 대표 이미지")).toHaveAttribute(
       "src",
@@ -101,7 +101,7 @@ describe("ProfileCrewsPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getMyCrews).mockResolvedValue({
@@ -128,7 +128,7 @@ describe("ProfileCrewsPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getMyCrews)
@@ -138,7 +138,7 @@ describe("ProfileCrewsPage", () => {
             crewId: 17,
             crewName: "방탈출 크루",
             visibility: "PUBLIC",
-            leaderNickname: "bangpot",
+            leaderNickname: "banglog",
             coverImageUrl: null,
           },
         ],
@@ -154,7 +154,7 @@ describe("ProfileCrewsPage", () => {
             crewId: 17,
             crewName: "방탈출 크루",
             visibility: "PUBLIC",
-            leaderNickname: "bangpot",
+            leaderNickname: "banglog",
             coverImageUrl: null,
           },
           {
@@ -190,7 +190,7 @@ describe("ProfileCrewsPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getMyCrews)
@@ -200,7 +200,7 @@ describe("ProfileCrewsPage", () => {
             crewId: 17,
             crewName: "방탈출 크루",
             visibility: "PUBLIC",
-            leaderNickname: "bangpot",
+            leaderNickname: "banglog",
             coverImageUrl: null,
           },
         ],
@@ -229,7 +229,7 @@ describe("ProfileCrewsPage", () => {
       completionRequired: false,
       redirectTo: null,
       requiredTermsVersion: "2026-03-25",
-      user: { id: 1, nickname: "bangpot" },
+      user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
     vi.mocked(getMyCrews)
@@ -240,7 +240,7 @@ describe("ProfileCrewsPage", () => {
             crewId: 17,
             crewName: "방탈출 크루",
             visibility: "PUBLIC",
-            leaderNickname: "bangpot",
+            leaderNickname: "banglog",
             coverImageUrl: null,
           },
         ],

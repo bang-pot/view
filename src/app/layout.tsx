@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BangPot",
-  description: "BangPot frontend bootstrap",
+  title: "Banglog",
+  description: "Banglog frontend bootstrap",
 };
 
 export default function RootLayout({

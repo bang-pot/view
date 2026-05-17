@@ -99,8 +99,8 @@ export function LoginPageClient() {
 
   return (
     <main>
-      <h1>BangPot 로그인</h1>
-      <p>카카오 로그인으로만 BangPot에 들어올 수 있습니다.</p>
+      <h1>Banglog 로그인</h1>
+      <p>카카오 로그인으로만 Banglog에 들어올 수 있습니다.</p>
       {errorMessage ? <p>{errorMessage}</p> : null}
       {loginSetupMessage ? <p>{loginSetupMessage}</p> : null}
       {loginUrl ? (

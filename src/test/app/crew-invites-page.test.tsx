@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+﻿import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import CrewInvitesPage from "@/app/crews/[crewId]/invites/page";
@@ -94,7 +94,7 @@ describe("CrewInvitesPage", () => {
       .mockResolvedValueOnce([
         {
           userId: 12,
-          nickname: "bangpot",
+          nickname: "banglog",
         },
         {
           userId: 13,
@@ -117,7 +117,7 @@ describe("CrewInvitesPage", () => {
 
     expect(await screen.findByRole("heading", { name: "직접 초대" })).toBeInTheDocument();
     expect(screen.getByLabelText("검색어")).toHaveValue("");
-    expect(screen.getByText("bangpot")).toBeInTheDocument();
+    expect(screen.getByText("banglog")).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("검색어"), {
       target: { value: "crew" },
@@ -176,7 +176,7 @@ describe("CrewInvitesPage", () => {
     vi.mocked(getCrewInviteCandidates).mockResolvedValue([
       {
         userId: 12,
-        nickname: "bangpot",
+        nickname: "banglog",
       },
     ]);
     vi.mocked(createCrewInvite).mockRejectedValue(
@@ -190,8 +190,8 @@ describe("CrewInvitesPage", () => {
 
     render(await CrewInvitesPage({ params: Promise.resolve({ crewId: "11" }) }));
 
-    expect(await screen.findByText("bangpot")).toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText("bangpot 선택"));
+    expect(await screen.findByText("banglog")).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText("banglog 선택"));
     fireEvent.click(screen.getByRole("button", { name: "초대 보내기" }));
 
     expect(await screen.findByText("이미 pending 초대가 있는 사용자입니다.")).toBeInTheDocument();

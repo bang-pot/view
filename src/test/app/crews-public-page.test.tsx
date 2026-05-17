@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+﻿import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import PublicCrewsPage from "@/app/crews/public/page";
@@ -57,7 +57,7 @@ describe("PublicCrewsPage", () => {
       items: [
         {
           crewId: 11,
-          name: "BangPot Runners",
+          name: "Banglog Runners",
           description: "Early morning running crew",
           imageUrl: null,
           visibility: "PUBLIC",
@@ -66,7 +66,7 @@ describe("PublicCrewsPage", () => {
         },
         {
           crewId: 12,
-          name: "BangPot Book Club",
+          name: "Banglog Book Club",
           description: "Monthly reading meetup",
           imageUrl: null,
           visibility: "PRIVATE",
@@ -85,12 +85,12 @@ describe("PublicCrewsPage", () => {
 
     expect(await screen.findByRole("heading", { name: "크루 탐색" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "전체 크루 (2)" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "BangPot Runners" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Banglog Runners" })).toHaveAttribute(
       "href",
       "/crews/public/11",
     );
     expect(screen.getByText("Early morning running crew")).toBeInTheDocument();
-    const privateCrew = screen.getByRole("link", { name: "BangPot Book Club" }).closest("article");
+    const privateCrew = screen.getByRole("link", { name: "Banglog Book Club" }).closest("article");
     expect(privateCrew).not.toBeNull();
     expect(within(privateCrew!).getByText("비공개 크루")).toBeInTheDocument();
     expect(within(privateCrew!).getByText("book-leader")).toBeInTheDocument();
@@ -108,7 +108,7 @@ describe("PublicCrewsPage", () => {
         items: [
           {
             crewId: 11,
-            name: "BangPot Runners",
+            name: "Banglog Runners",
             description: "Early morning running crew",
             imageUrl: null,
             visibility: "PUBLIC",
@@ -126,7 +126,7 @@ describe("PublicCrewsPage", () => {
         items: [
           {
             crewId: 12,
-            name: "BangPot Book Club",
+            name: "Banglog Book Club",
             description: "Monthly reading meetup",
             imageUrl: null,
             visibility: "PRIVATE",
@@ -143,7 +143,7 @@ describe("PublicCrewsPage", () => {
 
     render(<PublicCrewsPage />);
 
-    expect(await screen.findByRole("link", { name: "BangPot Runners" })).toHaveAttribute(
+    expect(await screen.findByRole("link", { name: "Banglog Runners" })).toHaveAttribute(
       "href",
       "/crews/public/11",
     );
@@ -156,7 +156,7 @@ describe("PublicCrewsPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "더 보기" }));
 
-    expect(await screen.findByRole("link", { name: "BangPot Book Club" })).toHaveAttribute(
+    expect(await screen.findByRole("link", { name: "Banglog Book Club" })).toHaveAttribute(
       "href",
       "/crews/public/12",
     );
@@ -172,7 +172,7 @@ describe("PublicCrewsPage", () => {
       items: [
         {
           crewId: 11,
-          name: "BangPot Runners",
+          name: "Banglog Runners",
           description: "Early morning running crew",
           imageUrl: null,
           visibility: "PUBLIC",
@@ -189,10 +189,10 @@ describe("PublicCrewsPage", () => {
 
     render(<PublicCrewsPage />);
 
-    fireEvent.click(await screen.findByRole("link", { name: "BangPot Runners" }));
+    fireEvent.click(await screen.findByRole("link", { name: "Banglog Runners" }));
 
     const detailDialog = screen.getByRole("dialog", {
-      name: "BangPot Runners",
+      name: "Banglog Runners",
     });
 
     expect(detailDialog).toBeInTheDocument();
@@ -219,7 +219,7 @@ describe("PublicCrewsPage", () => {
       items: [
         {
           crewId: 11,
-          name: "BangPot Runners",
+          name: "Banglog Runners",
           description: "Early morning running crew",
           imageUrl: null,
           visibility: "PUBLIC",
@@ -236,7 +236,7 @@ describe("PublicCrewsPage", () => {
 
     render(<PublicCrewsPage />);
 
-    fireEvent.click(await screen.findByRole("link", { name: "BangPot Runners" }));
+    fireEvent.click(await screen.findByRole("link", { name: "Banglog Runners" }));
     fireEvent.click(screen.getByRole("button", { name: "가입하기" }));
 
     expect(
@@ -250,7 +250,7 @@ describe("PublicCrewsPage", () => {
 
     expect(
       screen.getByRole("dialog", {
-        name: "BangPot Runners",
+        name: "Banglog Runners",
       }),
     ).toBeInTheDocument();
     expect(
@@ -272,7 +272,7 @@ describe("PublicCrewsPage", () => {
 
     expect(
       screen.getByRole("dialog", {
-        name: "BangPot Runners",
+        name: "Banglog Runners",
       }),
     ).toBeInTheDocument();
     expect(

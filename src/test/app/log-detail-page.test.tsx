@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+﻿import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import CrewLogDetailPage from "@/app/crews/[crewId]/logs/[logId]/page";
@@ -40,7 +40,7 @@ function mockFullUser() {
     completionRequired: false,
     redirectTo: null,
     requiredTermsVersion: "2026-03-25",
-    user: { id: 1, nickname: "bangpot" },
+    user: { id: 1, nickname: "banglog" },
     requiredTermsAcceptedAt: "2026-04-08T00:00:00Z",
   });
 }
@@ -66,7 +66,7 @@ function mockCrewLogDetail() {
     themeName: "미스터리 룸",
     place: "강남 이스케이프",
     date: "2026-04-10",
-    authorNickname: "bangpot",
+    authorNickname: "banglog",
     createdAt: "2026-04-11T10:00:00Z",
     updatedAt: "2026-04-11T11:00:00Z",
     body: "정말 재미있었던 모임이었어요.",
@@ -105,7 +105,7 @@ function makeExistingLog() {
     themeName: "미스터리 룸",
     place: "강남 이스케이프",
     date: "2026-04-10",
-    authorNickname: "bangpot",
+    authorNickname: "banglog",
     createdAt: "2026-04-11T10:00:00Z",
     updatedAt: "2026-04-11T11:00:00Z",
     body: "정말 재미있었던 모임이었어요.",

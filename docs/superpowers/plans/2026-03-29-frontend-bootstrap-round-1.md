@@ -1,8 +1,8 @@
-# Frontend Bootstrap Round 1 Implementation Plan
+﻿# Frontend Bootstrap Round 1 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Create a runnable frontend bootstrap for BangPot using Next.js App Router and TypeScript so later domain builders can start from an already-verified frontend base.
+**Goal:** Create a runnable frontend bootstrap for Banglog using Next.js App Router and TypeScript so later domain builders can start from an already-verified frontend base.
 
 **Architecture:** Start with a minimal Next.js application using the App Router, a single bootstrap page, and a folder structure that already reflects `app + features/entities/shared`. Keep styling intentionally minimal and lock in `lint`, `test`, and `build` commands plus CI from the start.
 

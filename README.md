@@ -1,6 +1,6 @@
-# BangPot Frontend
+# Banglog Frontend
 
-BangPot 프론트엔드 저장소입니다. Next.js App Router 기반으로 홈, 크루 탐색, 방탈출 탐색, 프로필, 크루 내부 화면을 제공합니다.
+Banglog 프론트엔드 저장소입니다. Next.js App Router 기반으로 홈, 크루 탐색, 방탈출 탐색, 프로필, 크루 워크스페이스 화면을 제공합니다.
 
 ## 기술 스택
 
@@ -43,9 +43,11 @@ npm.cmd test
 | --- | --- | --- |
 | `NEXT_PUBLIC_APP_ENV` | 프론트 실행 환경 | `local` |
 | `NEXT_PUBLIC_API_BASE_URL` | 브라우저에서 호출할 API base URL | `http://localhost:8080` |
-| `BANGPOT_BACKEND_PROXY_TARGET` | Next/Vercel 서버가 백엔드로 프록시할 target | `http://localhost:8080` |
+| `BANGLOG_BACKEND_PROXY_TARGET` | Next/Vercel 서버가 백엔드로 프록시할 target | `http://localhost:8080` |
 
-운영 배포에서 프론트가 HTTPS이고 백엔드가 HTTP인 경우 mixed content를 피하기 위해 `NEXT_PUBLIC_API_BASE_URL=/backend`와 `BANGPOT_BACKEND_PROXY_TARGET=http://<backend-host>:<port>` 조합을 사용할 수 있습니다.
+운영 배포에서 프론트가 HTTPS이고 백엔드가 HTTP인 경우 mixed content를 피하기 위해 `NEXT_PUBLIC_API_BASE_URL=/backend`와 `BANGLOG_BACKEND_PROXY_TARGET=http://<backend-host>:<port>` 조합을 사용할 수 있습니다.
+
+이전 배포 환경과의 호환을 위해 `BANGPOT_BACKEND_PROXY_TARGET`도 임시 fallback으로 읽습니다. 새 환경에서는 `BANGLOG_BACKEND_PROXY_TARGET`를 우선 사용해 주세요.
 
 ## 디렉터리 구조
 
@@ -79,16 +81,16 @@ npm.cmd run build
 특정 테스트 파일만 확인할 때는 예를 들어 아래처럼 실행합니다.
 
 ```powershell
-npm.cmd test -- --run src/test/app/explore-page.test.tsx
+npm.cmd test -- src/test/app/explore-page.test.tsx
 ```
 
 ## 작업 규칙
 
-- 공통으로 쓸 수 있는 버튼, 칩, 입력, 셀렉트 등은 `src/shared/ui` 컴포넌트를 우선 사용합니다.
+- 공통으로 쓸 수 있는 버튼, 칩, 입력, 상태 컴포넌트는 `src/shared/ui` 컴포넌트를 우선 사용합니다.
 - API 계약이 바뀌면 `src/shared/*/types.ts`와 client, 화면 테스트를 함께 확인합니다.
-- 화면 변경은 가능한 한 해당 feature 모듈 내부에 가깝게 유지합니다.
+- 화면 변경은 가능한 한 해당 feature 모듈 안에서 가깝게 유지합니다.
 - 커밋 메시지는 `refactor: 변경 내용` 형식을 사용합니다.
 
 ## 배포
 
-프론트는 Vercel 배포를 기준으로 운영합니다. 배포 전에는 최소한 `lint`, `test`, `build`가 통과하는지 확인합니다.
+프론트는 Vercel 배포를 기준으로 운영합니다. 배포 전에 최소한 `lint`, `test`, `build`가 통과하는지 확인합니다.
