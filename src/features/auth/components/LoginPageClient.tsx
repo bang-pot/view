@@ -49,6 +49,7 @@ export function LoginPageClient() {
 
   useEffect(() => {
     let isMounted = true;
+    const shouldStayOnLoginPage = Boolean(errorMessage);
 
     if (setupError) {
       reportOperationalError("auth.login.configuration_invalid", setupError, {
@@ -72,6 +73,11 @@ export function LoginPageClient() {
           return;
         }
 
+        if (loginUrl && !shouldStayOnLoginPage) {
+          window.location.assign(loginUrl);
+          return;
+        }
+
         setIsLoading(false);
       })
       .catch((error) => {
@@ -87,7 +93,7 @@ export function LoginPageClient() {
     return () => {
       isMounted = false;
     };
-  }, [requestedPath, router, setupError]);
+  }, [errorMessage, loginUrl, requestedPath, router, setupError]);
 
   if (!setupError && isLoading) {
     return (

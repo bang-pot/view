@@ -1,10 +1,12 @@
 ﻿import { render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import LoginPage from "@/app/login/page";
 import { buildKakaoLoginUrl, getMe } from "@/shared/auth/client";
 
 const replaceMock = vi.fn();
+const locationAssignMock = vi.fn();
+const originalLocation = window.location;
 let searchParamsMock = new URLSearchParams("redirectTo=%2Fprotected-demo");
 
 vi.mock("next/navigation", () => ({
@@ -22,10 +24,25 @@ vi.mock("@/shared/auth/client", () => ({
 describe("LoginPage", () => {
   beforeEach(() => {
     replaceMock.mockReset();
+    locationAssignMock.mockReset();
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: {
+        ...originalLocation,
+        assign: locationAssignMock,
+      } as Location,
+    });
     searchParamsMock = new URLSearchParams("redirectTo=%2Fprotected-demo");
     vi.mocked(buildKakaoLoginUrl).mockReturnValue(
       "http://localhost:8080/oauth2/authorization/kakao?redirectTo=%2Fprotected-demo",
     );
+  });
+
+  afterAll(() => {
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: originalLocation,
+    });
   });
 
   it("redirects temp users back to completion instead of home", async () => {
@@ -64,7 +81,7 @@ describe("LoginPage", () => {
     });
   });
 
-  it("renders the kakao login entry for guests as a full document navigation", async () => {
+  it("sends guests directly to kakao login without showing an intermediate action", async () => {
     vi.mocked(getMe).mockResolvedValue({
       authStatus: "GUEST",
       completionRequired: false,
@@ -76,14 +93,12 @@ describe("LoginPage", () => {
 
     render(<LoginPage />);
 
-    const loginLink = await screen.findByRole("link", { name: "카카오로 시작하기" });
-
-    expect(loginLink).toHaveAttribute(
-      "href",
-      "http://localhost:8080/oauth2/authorization/kakao?redirectTo=%2Fprotected-demo",
-    );
-    expect(loginLink).toHaveAttribute("target", "_self");
-    expect(loginLink).toHaveAttribute("rel", "external");
+    await waitFor(() => {
+      expect(locationAssignMock).toHaveBeenCalledWith(
+        "http://localhost:8080/oauth2/authorization/kakao?redirectTo=%2Fprotected-demo",
+      );
+    });
+    expect(screen.queryByRole("link", { name: "카카오로 시작하기" })).not.toBeInTheDocument();
   });
 
   it("shows a retry-friendly error when oauth login fails and returns to login", async () => {
@@ -105,5 +120,6 @@ describe("LoginPage", () => {
     expect(
       await screen.findByText("카카오 로그인에 실패했습니다. 다시 시도해 주세요."),
     ).toBeInTheDocument();
+    expect(locationAssignMock).not.toHaveBeenCalled();
   });
 });

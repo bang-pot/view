@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Home from "@/app/page";
-import { getHome } from "@/shared/auth/client";
+import { buildKakaoLoginUrl, getHome } from "@/shared/auth/client";
 
 const replaceMock = vi.fn();
 
@@ -14,6 +14,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/shared/auth/client", () => ({
+  buildKakaoLoginUrl: vi.fn(),
   getHome: vi.fn(),
 }));
 
@@ -21,6 +22,12 @@ describe("Home page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     replaceMock.mockReset();
+    vi.mocked(buildKakaoLoginUrl).mockImplementation(
+      (redirectTo) =>
+        `http://localhost:8080/oauth2/authorization/kakao?redirectTo=${encodeURIComponent(
+          redirectTo ?? "/",
+        )}`,
+    );
   });
 
   afterEach(() => {
@@ -114,7 +121,7 @@ describe("Home page", () => {
     );
     expect(screen.getAllByRole("link", { name: "카카오로 시작하기" })[0]).toHaveAttribute(
       "href",
-      "/login",
+      "http://localhost:8080/oauth2/authorization/kakao?redirectTo=%2F",
     );
     expect(screen.getByRole("link", { name: "크루 둘러보기" })).toHaveAttribute(
       "href",
@@ -166,7 +173,7 @@ describe("Home page", () => {
     );
     expect(screen.getByRole("link", { name: "카카오로 시작" })).toHaveAttribute(
       "href",
-      "/login",
+      "http://localhost:8080/oauth2/authorization/kakao?redirectTo=%2F",
     );
   });
 

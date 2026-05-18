@@ -25,6 +25,7 @@ describe("CrewSchedulePage", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     cleanup();
   });
 
@@ -48,6 +49,9 @@ describe("CrewSchedulePage", () => {
   });
 
   it("renders the crew schedule calendar and shows selected date items in time order", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-05-01T00:00:00"));
+
     const currentMonth = new Date();
     const currentMonthKey = `${currentMonth.getFullYear()}-${String(
       currentMonth.getMonth() + 1,
