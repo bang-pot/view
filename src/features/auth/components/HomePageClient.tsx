@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { ThemeFavoriteButton } from "@/features/explore/components/ThemeFavoriteButton";
-import { getHome } from "@/shared/auth/client";
+import { buildKakaoLoginUrl, getHome } from "@/shared/auth/client";
 import type {
   HomePublicCrewPreviewItem,
   HomeResponse,
@@ -77,7 +77,11 @@ function toCreateCrewHref(home: HomeResponse | null): string {
     return "/crews/new";
   }
 
-  return "/login?redirectTo=%2Fcrews%2Fnew";
+  return buildKakaoLoginUrl("/crews/new");
+}
+
+function toLoginHref(redirectTo = "/"): string {
+  return buildKakaoLoginUrl(redirectTo);
 }
 
 type PreviewImageProps = {
@@ -100,7 +104,7 @@ function PreviewImage({ src, alt, fallbackLabel, className }: PreviewImageProps)
   );
 }
 
-function HomeHeader() {
+function HomeHeader({ loginHref }: { loginHref: string }) {
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
@@ -121,9 +125,9 @@ function HomeHeader() {
               <path d="M10 19a2 2 0 0 0 4 0" />
             </svg>
           </span>
-          <Link href="/login" aria-label="로그인" className={styles.avatarLink}>
+          <a href={loginHref} aria-label="로그인" className={styles.avatarLink}>
             A
-          </Link>
+          </a>
         </div>
       </div>
     </header>
@@ -133,10 +137,12 @@ function HomeHeader() {
 function HeroSection({
   home,
   createCrewHref,
+  loginHref,
   notice,
 }: {
   home: HomeResponse;
   createCrewHref: string;
+  loginHref: string;
   notice: string | null;
 }) {
   const isLoggedIn = home.isLoggedIn;
@@ -176,7 +182,7 @@ function HeroSection({
             ) : (
               <>
                 <Button
-                  href="/login"
+                  href={loginHref}
                   size="md"
                   variant="primary"
                   className={`${styles.homeActionButton} ${styles.kakaoActionButton}`}
@@ -567,12 +573,12 @@ function ThemeExploreSection({ items }: { items: HomeThemeExplorePreviewItem[] }
   );
 }
 
-function GuestStickyCta() {
+function GuestStickyCta({ loginHref }: { loginHref: string }) {
   return (
     <aside className={styles.guestStickyCta} aria-label="비로그인 시작 안내">
       <span>크루 탐색, 일정 등록, 기록까지</span>
       <strong>로그인하면 바로 시작</strong>
-      <Button href="/login" size="sm" variant="primary" className={styles.guestStickyButton}>
+      <Button href={loginHref} size="sm" variant="primary" className={styles.guestStickyButton}>
         카카오로 시작
       </Button>
     </aside>
@@ -603,6 +609,7 @@ export function HomePageClient({ notice = null }: HomePageClientProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const createCrewHref = useMemo(() => toCreateCrewHref(home), [home]);
+  const loginHref = useMemo(() => toLoginHref("/"), []);
 
   async function loadHome() {
     setIsLoading(true);
@@ -661,9 +668,14 @@ export function HomePageClient({ notice = null }: HomePageClientProps) {
 
   return (
     <div className={styles.page}>
-      <HomeHeader />
+      <HomeHeader loginHref={loginHref} />
       <main className={styles.main}>
-        <HeroSection home={home} createCrewHref={createCrewHref} notice={notice} />
+        <HeroSection
+          home={home}
+          createCrewHref={createCrewHref}
+          loginHref={loginHref}
+          notice={notice}
+        />
         {home.isLoggedIn ? (
           <>
             <ActivitySection home={home} />
@@ -684,7 +696,7 @@ export function HomePageClient({ notice = null }: HomePageClientProps) {
         <ThemeExploreSection items={home.themeExplorePreview.items} />
       </main>
       <HomeFooter />
-      {home.isLoggedIn ? null : <GuestStickyCta />}
+      {home.isLoggedIn ? null : <GuestStickyCta loginHref={loginHref} />}
     </div>
   );
 }
