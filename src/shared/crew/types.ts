@@ -120,6 +120,22 @@ export type CrewMember = {
   joinedAt: string;
 };
 
+export type CrewMembersPageInfo = {
+  page: number;
+  size: number;
+  hasNext: boolean;
+};
+
+export type CrewMembersQuery = {
+  page?: number;
+  size?: number;
+};
+
+export type CrewMembersResponse = {
+  items: CrewMember[];
+  pageInfo: CrewMembersPageInfo;
+};
+
 export type CrewPolicy = {
   policyId: number;
   title: string;

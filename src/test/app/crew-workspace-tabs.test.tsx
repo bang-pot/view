@@ -68,7 +68,10 @@ describe("Crew workspace tab routes", () => {
       user: { id: 1, nickname: "banglog" },
       requiredTermsAcceptedAt: "2026-04-08T00:00:00Z",
     });
-    vi.mocked(getCrewMembers).mockResolvedValue([]);
+    vi.mocked(getCrewMembers).mockResolvedValue({
+      items: [],
+      pageInfo: { page: 0, size: 20, hasNext: false },
+    });
     vi.mocked(getCrewSchedule).mockResolvedValue({ items: [] });
     vi.mocked(getMeetings).mockResolvedValue({
       items: [],
