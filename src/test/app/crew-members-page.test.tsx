@@ -41,6 +41,31 @@ describe("CrewMembersPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     replaceMock.mockReset();
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        private readonly callback: IntersectionObserverCallback;
+
+        constructor(callback: IntersectionObserverCallback) {
+          this.callback = callback;
+        }
+
+        observe(element: Element) {
+          this.callback(
+            [{ isIntersecting: true, target: element } as IntersectionObserverEntry],
+            this as unknown as IntersectionObserver,
+          );
+        }
+
+        disconnect() {}
+
+        unobserve() {}
+
+        takeRecords(): IntersectionObserverEntry[] {
+          return [];
+        }
+      },
+    );
     vi.mocked(getMe).mockResolvedValue({
       authStatus: "FULL",
       completionRequired: false,
@@ -53,73 +78,126 @@ describe("CrewMembersPage", () => {
 
   afterEach(() => {
     cleanup();
+    vi.unstubAllGlobals();
   });
 
-  it("renders a read-only crew member list with leader-first ordering and avatar fallbacks", async () => {
-    vi.mocked(getCrewMembers).mockResolvedValue([
-      {
-        userId: 22,
-        nickname: "member-two",
-        profileImageUrl: null,
-        bio: null,
-        gender: null,
-        escapeCount: 0,
-        role: "MEMBER",
-        joinedAt: "2026-04-09T00:00:00Z",
-      },
-      {
-        userId: 11,
-        nickname: "leader-one",
-        profileImageUrl: null,
-        bio: null,
-        gender: null,
-        escapeCount: 0,
-        role: "LEADER",
-        joinedAt: "2026-04-08T00:00:00Z",
-      },
-      {
-        userId: 33,
-        nickname: "member-three",
-        profileImageUrl: "https://example.com/member-three.png",
-        bio: "야식 좋아해요",
-        gender: "FEMALE",
-        escapeCount: 1,
-        role: "MEMBER",
-        joinedAt: "2026-04-10T00:00:00Z",
-      },
-    ]);
+  it("renders the crew member directory with profile, role, intro, escape count, and joined date", async () => {
+    vi.mocked(getCrewMembers).mockResolvedValue({
+      items: [
+        {
+          userId: 11,
+          nickname: "leader-one",
+          profileImageUrl: null,
+          bio: "방탈 입문자도 같이 데려가는 서울 탈출러",
+          gender: "MALE",
+          escapeCount: 87,
+          role: "LEADER",
+          joinedAt: "2026-04-08T00:00:00Z",
+        },
+        {
+          userId: 33,
+          nickname: "member-three",
+          profileImageUrl: "https://example.com/member-three.png",
+          bio: "무서운 테마보다 추리 테마를 좋아해요",
+          gender: "FEMALE",
+          escapeCount: 64,
+          role: "MEMBER",
+          joinedAt: "2026-04-10T00:00:00Z",
+        },
+        {
+          userId: 22,
+          nickname: "member-two",
+          profileImageUrl: null,
+          bio: null,
+          gender: null,
+          escapeCount: 0,
+          role: "MEMBER",
+          joinedAt: "2026-04-09T00:00:00Z",
+        },
+      ],
+      pageInfo: { page: 0, size: 20, hasNext: false },
+    });
 
     render(await CrewMembersPage({ params: Promise.resolve({ crewId: "11" }) }));
 
     expect(await screen.findByRole("heading", { name: "크루원" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "크루 허브로 돌아가기" })).toHaveAttribute(
-      "href",
-      "/crews/11",
-    );
+    expect(screen.getByText("총 3명")).toBeInTheDocument();
 
     const items = within(screen.getByRole("list", { name: "크루원 목록" })).getAllByRole("listitem");
+    expect(items).toHaveLength(3);
+    expect(items[0]).toHaveAttribute("data-member-role", "LEADER");
+    expect(items[1]).toHaveAttribute("data-member-role", "MEMBER");
     expect(within(items[0]).getByText("leader-one")).toBeInTheDocument();
     expect(within(items[1]).getByText("member-three")).toBeInTheDocument();
     expect(within(items[2]).getByText("member-two")).toBeInTheDocument();
 
-    expect(within(items[0]).getByText("역할: LEADER")).toBeInTheDocument();
-    expect(within(items[0]).getByText("가입일: 2026-04-08")).toBeInTheDocument();
-    expect(within(items[0]).getByLabelText("leader-one 기본 아바타")).toBeInTheDocument();
-    expect(within(items[0]).getByText("소개: 소개 없음")).toBeInTheDocument();
-    expect(within(items[0]).getByText("성별: 미설정")).toBeInTheDocument();
-    expect(within(items[0]).getByText("탈주 횟수: 0회")).toBeInTheDocument();
+    expect(within(items[0]).getByText("크루장")).toBeInTheDocument();
+    expect(within(items[0]).getByText("방탈 입문자도 같이 데려가는 서울 탈출러")).toBeInTheDocument();
+    expect(within(items[0]).getByText("남 · 87방")).toBeInTheDocument();
+    expect(within(items[0]).getByText("2026.04.08 가입")).toBeInTheDocument();
+    expect(within(items[0]).getByLabelText("leader-one 기본 프로필 이미지")).toBeInTheDocument();
 
+    expect(within(items[1]).getByText("여 · 64방")).toBeInTheDocument();
     expect(within(items[1]).getByAltText("member-three 프로필 이미지")).toHaveAttribute(
       "src",
       expect.stringContaining(encodeURIComponent("https://example.com/member-three.png")),
     );
-    expect(within(items[1]).getByText("소개: 야식 좋아해요")).toBeInTheDocument();
-    expect(within(items[1]).getByText("성별: FEMALE")).toBeInTheDocument();
-    expect(within(items[1]).getByText("탈주 횟수: 1회")).toBeInTheDocument();
+
+    expect(within(items[2]).getByText("크루원")).toBeInTheDocument();
+    expect(within(items[2]).getByText("한 줄 소개가 아직 없습니다.")).toBeInTheDocument();
+    expect(within(items[2]).getByText("미설정 · 0방")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /위임|퇴출/ })).not.toBeInTheDocument();
+    expect(getCrewMembers).toHaveBeenCalledWith(11, { page: 0, size: 20 });
+  });
+
+  it("appends the next page when the member list has another page", async () => {
+    vi.mocked(getCrewMembers)
+      .mockResolvedValueOnce({
+        items: [
+          {
+            userId: 11,
+            nickname: "leader-one",
+            profileImageUrl: null,
+            bio: null,
+            gender: null,
+            escapeCount: 87,
+            role: "LEADER",
+            joinedAt: "2026-04-08T00:00:00Z",
+          },
+        ],
+        pageInfo: { page: 0, size: 20, hasNext: true },
+      })
+      .mockResolvedValueOnce({
+        items: [
+          {
+            userId: 22,
+            nickname: "member-two",
+            profileImageUrl: null,
+            bio: null,
+            gender: null,
+            escapeCount: 12,
+            role: "MEMBER",
+            joinedAt: "2026-04-09T00:00:00Z",
+          },
+        ],
+        pageInfo: { page: 1, size: 20, hasNext: false },
+      });
+
+    render(await CrewMembersPage({ params: Promise.resolve({ crewId: "11" }) }));
+
+    expect(await screen.findByText("leader-one")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(getCrewMembers).toHaveBeenCalledWith(11, { page: 1, size: 20 });
+    });
+    expect(await screen.findByText("member-two")).toBeInTheDocument();
+    expect(screen.getByText("총 2명")).toBeInTheDocument();
   });
 
   it("shows empty and load failure states without crashing", async () => {
-    vi.mocked(getCrewMembers).mockResolvedValueOnce([]);
+    vi.mocked(getCrewMembers).mockResolvedValueOnce({
+      items: [],
+      pageInfo: { page: 0, size: 20, hasNext: false },
+    });
 
     render(await CrewMembersPage({ params: Promise.resolve({ crewId: "11" }) }));
 
@@ -155,179 +233,5 @@ describe("CrewMembersPage", () => {
     await waitFor(() => {
       expect(replaceMock).toHaveBeenCalledWith("/crews/public/11");
     });
-  });
-
-  it("shows transfer actions only for the current leader and updates local roles after a successful transfer", async () => {
-    const { transferCrewLeadership } = await import("@/shared/crew/client");
-    const confirmMock = vi.spyOn(window, "confirm").mockReturnValue(true);
-
-    vi.mocked(getCrewMembers).mockResolvedValue([
-      {
-        userId: 22,
-        nickname: "member-two",
-        profileImageUrl: null,
-        bio: null,
-        gender: null,
-        escapeCount: 0,
-        role: "MEMBER",
-        joinedAt: "2026-04-09T00:00:00Z",
-      },
-      {
-        userId: 11,
-        nickname: "leader-one",
-        profileImageUrl: null,
-        bio: null,
-        gender: null,
-        escapeCount: 0,
-        role: "LEADER",
-        joinedAt: "2026-04-08T00:00:00Z",
-      },
-    ]);
-    vi.mocked(transferCrewLeadership).mockResolvedValue({
-      crewId: 11,
-      leaderUserId: 22,
-    });
-
-    render(await CrewMembersPage({ params: Promise.resolve({ crewId: "11" }) }));
-
-    const transferButton = await screen.findByRole("button", {
-      name: "member-two에게 크루장 위임",
-    });
-
-    expect(screen.queryByRole("button", { name: "leader-one에게 크루장 위임" })).not.toBeInTheDocument();
-
-    transferButton.click();
-
-    expect(confirmMock).toHaveBeenCalledWith(
-      expect.stringContaining("위임 후에는 크루 관리 권한이 즉시 새로운 크루장에게 넘어갑니다"),
-    );
-
-    await waitFor(() => {
-      expect(transferCrewLeadership).toHaveBeenCalledWith(11, 22);
-    });
-
-    expect(await screen.findByText("크루장이 변경되었습니다")).toBeInTheDocument();
-
-    const items = within(screen.getByRole("list", { name: "크루원 목록" })).getAllByRole("listitem");
-    expect(within(items[0]).getByText("member-two")).toBeInTheDocument();
-    expect(within(items[0]).getByText("역할: LEADER")).toBeInTheDocument();
-    expect(within(items[1]).getByText("leader-one")).toBeInTheDocument();
-    expect(within(items[1]).getByText("역할: MEMBER")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "member-two에게 크루장 위임" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "leader-one에게 크루장 위임" })).not.toBeInTheDocument();
-
-    confirmMock.mockRestore();
-  });
-
-  it("removes the target member from the list after a successful leader-only removal", async () => {
-    const { removeCrewMember } = await import("@/shared/crew/client");
-    const confirmMock = vi.spyOn(window, "confirm").mockReturnValue(true);
-
-    vi.mocked(getCrewMembers).mockResolvedValue([
-      {
-        userId: 22,
-        nickname: "member-two",
-        profileImageUrl: null,
-        bio: null,
-        gender: null,
-        escapeCount: 0,
-        role: "MEMBER",
-        joinedAt: "2026-04-09T00:00:00Z",
-      },
-      {
-        userId: 33,
-        nickname: "member-three",
-        profileImageUrl: null,
-        bio: null,
-        gender: null,
-        escapeCount: 0,
-        role: "MEMBER",
-        joinedAt: "2026-04-10T00:00:00Z",
-      },
-      {
-        userId: 11,
-        nickname: "leader-one",
-        profileImageUrl: null,
-        bio: null,
-        gender: null,
-        escapeCount: 0,
-        role: "LEADER",
-        joinedAt: "2026-04-08T00:00:00Z",
-      },
-    ]);
-    vi.mocked(removeCrewMember).mockResolvedValue({
-      crewId: 11,
-      removedUserId: 22,
-    });
-
-    render(await CrewMembersPage({ params: Promise.resolve({ crewId: "11" }) }));
-
-    const removeButton = await screen.findByRole("button", {
-      name: "member-two 퇴출",
-    });
-
-    removeButton.click();
-
-    expect(confirmMock).toHaveBeenCalledWith(
-      expect.stringContaining("이 사용자를 퇴출하면 해당 사용자가 맡은 진행 중 모임은 취소됩니다."),
-    );
-    expect(confirmMock).toHaveBeenCalledWith(
-      expect.stringContaining("참여 중인 모임에서는 자동으로 제외됩니다."),
-    );
-
-    await waitFor(() => {
-      expect(removeCrewMember).toHaveBeenCalledWith(11, 22);
-    });
-
-    expect(await screen.findByText("크루원에서 제외했습니다")).toBeInTheDocument();
-
-    const items = within(screen.getByRole("list", { name: "크루원 목록" })).getAllByRole("listitem");
-    expect(items).toHaveLength(2);
-    expect(screen.queryByText("member-two")).not.toBeInTheDocument();
-    expect(within(items[0]).getByText("leader-one")).toBeInTheDocument();
-    expect(within(items[1]).getByText("member-three")).toBeInTheDocument();
-
-    confirmMock.mockRestore();
-  });
-
-  it("hides transfer and remove actions for non-leader members", async () => {
-    vi.mocked(getMe).mockResolvedValue({
-      authStatus: "FULL",
-      completionRequired: false,
-      redirectTo: null,
-      requiredTermsVersion: "2026-03-25",
-      user: { id: 22, nickname: "member-two" },
-      requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
-    });
-    vi.mocked(getCrewMembers).mockResolvedValue([
-      {
-        userId: 22,
-        nickname: "member-two",
-        profileImageUrl: null,
-        bio: null,
-        gender: null,
-        escapeCount: 0,
-        role: "MEMBER",
-        joinedAt: "2026-04-09T00:00:00Z",
-      },
-      {
-        userId: 11,
-        nickname: "leader-one",
-        profileImageUrl: null,
-        bio: null,
-        gender: null,
-        escapeCount: 0,
-        role: "LEADER",
-        joinedAt: "2026-04-08T00:00:00Z",
-      },
-    ]);
-
-    render(await CrewMembersPage({ params: Promise.resolve({ crewId: "11" }) }));
-
-    expect(await screen.findByRole("heading", { name: "크루원" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "member-two에게 크루장 위임" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "member-two 퇴출" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "leader-one에게 크루장 위임" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "leader-one 퇴출" })).not.toBeInTheDocument();
   });
 });

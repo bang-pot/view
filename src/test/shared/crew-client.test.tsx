@@ -527,18 +527,25 @@ describe("crew client", () => {
   it("loads the crew member list contract for joined members", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(
-        JSON.stringify([
-          {
-            userId: 11,
-            nickname: "leader-one",
-            profileImageUrl: null,
-            bio: null,
-            gender: null,
-            escapeCount: 0,
-            role: "LEADER",
-            joinedAt: "2026-04-08T00:00:00Z",
+        JSON.stringify({
+          items: [
+            {
+              userId: 11,
+              nickname: "leader-one",
+              profileImageUrl: null,
+              bio: null,
+              gender: null,
+              escapeCount: 12,
+              role: "LEADER",
+              joinedAt: "2026-04-08T00:00:00Z",
+            },
+          ],
+          pageInfo: {
+            page: 1,
+            size: 10,
+            hasNext: true,
           },
-        ]),
+        }),
         {
           status: 200,
           headers: {
@@ -549,15 +556,17 @@ describe("crew client", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    await getCrewMembers(11);
+    const response = await getCrewMembers(11, { page: 1, size: 10 });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "/backend/api/crews/11/members",
+      "/backend/api/crews/11/members?page=1&size=10",
       expect.objectContaining({
         credentials: "include",
         cache: "no-store",
       }),
     );
+    expect(response.items[0]?.escapeCount).toBe(12);
+    expect(response.pageInfo.hasNext).toBe(true);
   });
 
   it("loads the crew policy list contract for joined members", async () => {

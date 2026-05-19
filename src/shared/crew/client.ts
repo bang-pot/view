@@ -4,7 +4,8 @@ import type {
   CrewHubResponse,
   CrewScheduleRange,
   CrewScheduleResponse,
-  CrewMember,
+  CrewMembersQuery,
+  CrewMembersResponse,
   CrewPolicy,
   CrewJoinRequestApproveResponse,
   CrewCreateInput,
@@ -245,10 +246,18 @@ export async function removeCrewMember(
   );
 }
 
-export async function getCrewMembers(crewId: number): Promise<CrewMember[]> {
-  return requestJson<CrewMember[]>(
+export async function getCrewMembers(
+  crewId: number,
+  query: CrewMembersQuery = {},
+): Promise<CrewMembersResponse> {
+  const search = new URLSearchParams({
+    page: String(query.page ?? 0),
+    size: String(query.size ?? 20),
+  });
+
+  return requestJson<CrewMembersResponse>(
     getApiBaseUrl(),
-    `/api/crews/${crewId}/members`,
+    `/api/crews/${crewId}/members?${search.toString()}`,
     {
       credentials: "include",
       cache: "no-store",
