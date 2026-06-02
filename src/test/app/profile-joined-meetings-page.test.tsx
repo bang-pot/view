@@ -68,7 +68,6 @@ describe("JoinedMeetingsProfilePage", () => {
           date: "2026-04-25",
           time: "19:00",
           status: "COMPLETED",
-          result: "SUCCESS",
           canWriteReview: true,
         },
         {
@@ -80,7 +79,6 @@ describe("JoinedMeetingsProfilePage", () => {
           date: "2026-04-26",
           time: "14:00",
           status: "COMPLETED",
-          result: "FAILURE",
           canWriteReview: false,
         },
         {
@@ -92,7 +90,6 @@ describe("JoinedMeetingsProfilePage", () => {
           date: "2026-04-27",
           time: "11:00",
           status: "RECRUITING",
-          result: null,
           canWriteReview: false,
         },
       ],
@@ -114,8 +111,6 @@ describe("JoinedMeetingsProfilePage", () => {
     expect(screen.getByText("방로그 크루")).toBeInTheDocument();
     expect(screen.getByText("2026-04-25 19:00")).toBeInTheDocument();
     expect(screen.getAllByText("완료")).toHaveLength(2);
-    expect(screen.getByText("결과 성공")).toBeInTheDocument();
-    expect(screen.getByText("결과 실패")).toBeInTheDocument();
     expect(screen.getByText("모집 중")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "리뷰 작성하기" })).toHaveAttribute(
       "href",
@@ -172,7 +167,6 @@ describe("JoinedMeetingsProfilePage", () => {
             date: "2026-04-25",
             time: "19:00",
             status: "COMPLETED",
-            result: "SUCCESS",
             canWriteReview: true,
           },
         ],
@@ -193,7 +187,6 @@ describe("JoinedMeetingsProfilePage", () => {
             date: "2026-04-25",
             time: "19:00",
             status: "COMPLETED",
-            result: "SUCCESS",
             canWriteReview: true,
           },
           {
@@ -205,7 +198,6 @@ describe("JoinedMeetingsProfilePage", () => {
             date: "2026-04-29",
             time: "22:00",
             status: "RECRUITMENT_CLOSED",
-            result: null,
             canWriteReview: false,
           },
         ],
@@ -252,7 +244,6 @@ describe("JoinedMeetingsProfilePage", () => {
             date: "2026-04-25",
             time: "19:00",
             status: "COMPLETED",
-            result: "SUCCESS",
             canWriteReview: true,
           },
         ],

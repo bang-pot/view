@@ -241,6 +241,7 @@ export type CrewScheduleItem = {
   recruitmentStatus: string;
   place: string;
   participantCount: number;
+  capacity?: number;
   isCanceled: boolean;
 };
 

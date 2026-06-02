@@ -9,7 +9,6 @@ import {
   getMeetingDetail,
   getMeetings,
   joinMeeting,
-  recordMeetingResult,
   reopenMeetingRecruitment,
   updateMeeting,
 } from "@/shared/meeting/client";
@@ -47,7 +46,6 @@ describe("meeting client", () => {
           contactLink: "https://open.kakao.com/o/example",
           description: "지각 없이 모여 주세요",
           status: "RECRUITING",
-          result: "NOT_RECORDED",
         }),
         {
           status: 200,
@@ -148,7 +146,6 @@ describe("meeting client", () => {
           contactLink: null,
           description: null,
           status: "RECRUITING",
-          result: "NOT_RECORDED",
           myParticipationStatus: "NOT_JOINED",
         }),
         {
@@ -189,7 +186,6 @@ describe("meeting client", () => {
           contactLink: "https://open.kakao.com/o/updated",
           description: "수정된 설명",
           status: "RECRUITMENT_CLOSED",
-          result: "NOT_RECORDED",
         }),
         {
           status: 200,
@@ -423,41 +419,6 @@ describe("meeting client", () => {
         headers: expect.objectContaining({
           "Content-Type": "application/json",
           "Idempotency-Key": expect.any(String),
-        }),
-      }),
-    );
-  });
-
-  it("posts a meeting result record", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          meetingId: 99,
-          result: "SUCCESS",
-        }),
-        {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      ),
-    );
-    vi.stubGlobal("fetch", fetchMock);
-
-    await recordMeetingResult(11, 99, "SUCCESS");
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/backend/api/crews/11/meetings/99/result",
-      expect.objectContaining({
-        method: "POST",
-        credentials: "include",
-        headers: expect.objectContaining({
-          "Content-Type": "application/json",
-          "Idempotency-Key": expect.any(String),
-        }),
-        body: JSON.stringify({
-          result: "SUCCESS",
         }),
       }),
     );

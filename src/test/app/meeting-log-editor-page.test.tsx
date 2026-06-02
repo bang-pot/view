@@ -65,7 +65,6 @@ function mockCompletedMeeting(
     contactLink: null,
     description: null,
     status: "COMPLETED",
-    result: "SUCCESS",
     myParticipationStatus: "JOINED",
     ...overrides,
   });
@@ -118,6 +117,7 @@ function makeExistingLog() {
     createdAt: "2026-04-11T10:00:00Z",
     updatedAt: "2026-04-11T11:00:00Z",
     body: "기존 로그예요.",
+    result: "SUCCESS" as const,
     photos: ["https://cdn.example.com/log-1.png"],
   };
 }
@@ -186,6 +186,7 @@ describe("MeetingLogEditorPage", () => {
     fireEvent.change(screen.getByLabelText("후기 본문"), {
       target: { value: "정말 재미있었던 모임이었어요." },
     });
+    fireEvent.click(screen.getByLabelText("성공"));
     fireEvent.click(screen.getByRole("button", { name: "사진 추가" }));
     fireEvent.change(screen.getByLabelText("사진 파일 1"), {
       target: { files: [createImageFile("log-1.jpg", 1024, "image/jpeg")] },
@@ -196,11 +197,76 @@ describe("MeetingLogEditorPage", () => {
     await waitFor(() => {
       expect(createMeetingLog).toHaveBeenCalledWith(99, {
         body: "정말 재미있었던 모임이었어요.",
+        result: "SUCCESS",
         photos: [{ uploadId: 123 }],
       });
     });
 
     expect(pushMock).toHaveBeenCalledWith("/crews/11/logs/501");
+  });
+
+  it("requires a log result when creating a log", async () => {
+    mockFullUser();
+    mockCompletedMeeting();
+    vi.mocked(getMyMeetingLog).mockResolvedValue(makeNotWrittenLog());
+    vi.mocked(createMeetingLog).mockResolvedValue({ logId: 501, meetingId: 99 });
+
+    render(
+      await MeetingLogEditorPage({
+        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
+      }),
+    );
+
+    expect(await screen.findByRole("group", { name: "방탈 결과" })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("후기 본문"), {
+      target: { value: "정말 재미있었던 모임이었어요." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "방탈로그 저장" }));
+
+    expect(await screen.findByText("방탈 결과를 선택해 주세요.")).toBeInTheDocument();
+    expect(createMeetingLog).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByLabelText("성공"));
+    fireEvent.click(screen.getByRole("button", { name: "방탈로그 저장" }));
+
+    await waitFor(() => {
+      expect(createMeetingLog).toHaveBeenCalledWith(99, {
+        body: "정말 재미있었던 모임이었어요.",
+        photos: [],
+        result: "SUCCESS",
+      });
+    });
+  });
+
+  it("lets participants choose their own log result when they create a log", async () => {
+    mockFullUser();
+    mockCompletedMeeting({
+      hostUserId: 44,
+      myParticipationStatus: "JOINED",
+    });
+    vi.mocked(getMyMeetingLog).mockResolvedValue(makeNotWrittenLog());
+    vi.mocked(createMeetingLog).mockResolvedValue({ logId: 501, meetingId: 99 });
+
+    render(
+      await MeetingLogEditorPage({
+        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
+      }),
+    );
+
+    expect(await screen.findByRole("group", { name: "방탈 결과" })).toBeInTheDocument();
+    fireEvent.change(await screen.findByLabelText("후기 본문"), {
+      target: { value: "참여자로 남기는 방탈로그예요." },
+    });
+    fireEvent.click(screen.getByLabelText("실패"));
+    fireEvent.click(screen.getByRole("button", { name: "방탈로그 저장" }));
+
+    await waitFor(() => {
+      expect(createMeetingLog).toHaveBeenCalledWith(99, {
+        body: "참여자로 남기는 방탈로그예요.",
+        result: "FAILURE",
+        photos: [],
+      });
+    });
   });
 
   it("keeps edit mode when logs/me is EXISTS", async () => {
@@ -227,6 +293,7 @@ describe("MeetingLogEditorPage", () => {
     await waitFor(() => {
       expect(updateMeetingLog).toHaveBeenCalledWith(501, {
         body: "수정한 로그예요.",
+        result: "SUCCESS",
         photos: [],
       });
     });
@@ -314,7 +381,6 @@ describe("MeetingLogEditorPage", () => {
     mockFullUser();
     mockCompletedMeeting({
       status: "RECRUITMENT_CLOSED",
-      result: "NOT_RECORDED",
       hostUserId: 44,
       myParticipationStatus: "NOT_JOINED",
     });

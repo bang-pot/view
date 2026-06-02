@@ -37,6 +37,7 @@ describe("log client", () => {
 
     await createMeetingLog(99, {
       body: "정말 재미있었던 모임이었어요.",
+      result: "SUCCESS",
       photos: [{ uploadId: 123 }],
     });
 
@@ -51,6 +52,7 @@ describe("log client", () => {
         }),
         body: JSON.stringify({
           body: "정말 재미있었던 모임이었어요.",
+          result: "SUCCESS",
           photos: [{ uploadId: 123 }],
         }),
       }),
@@ -255,11 +257,13 @@ describe("log client", () => {
               meetingId: 99,
               authorNickname: "banglog",
               meetingTitle: "금요일 방탈출 번개",
+              themeName: "미스터리 룸",
               meetingDate: "2026-04-10",
               createdAt: "2026-04-11T10:00:00Z",
               excerpt: "정답 모여가는 감각이 좋았던 기록이에요.",
               coverPhotoUrl: "https://cdn.example.com/log-cover.jpg",
               extraPhotoCount: 2,
+              result: "SUCCESS",
             },
           ],
           pageInfo: {
@@ -280,8 +284,10 @@ describe("log client", () => {
       items: [
         expect.objectContaining({
           logId: 700,
+          themeName: "미스터리 룸",
           excerpt: "정답 모여가는 감각이 좋았던 기록이에요.",
           extraPhotoCount: 2,
+          result: "SUCCESS",
         }),
       ],
       pageInfo: {

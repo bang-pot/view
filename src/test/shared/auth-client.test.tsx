@@ -386,7 +386,6 @@ describe("auth client", () => {
               date: "2026-04-25",
               time: "19:00",
               status: "COMPLETED",
-              result: "SUCCESS",
               canWriteReview: true,
             },
           ],
