@@ -2,6 +2,8 @@ export type LogPhotoInput = {
   uploadId: number;
 };
 
+export type MeetingLogResultInput = "SUCCESS" | "FAILURE";
+
 export type UploadLogPhotoResponse = {
   uploadId: number;
   url: string;
@@ -10,10 +12,15 @@ export type UploadLogPhotoResponse = {
 
 export type CreateMeetingLogInput = {
   body: string;
+  result: MeetingLogResultInput;
   photos: LogPhotoInput[];
 };
 
-export type UpdateMeetingLogInput = CreateMeetingLogInput;
+export type UpdateMeetingLogInput = {
+  body: string;
+  result: MeetingLogResultInput;
+  photos: LogPhotoInput[];
+};
 
 export type MeetingLogMeStatus =
   | "EXISTS"
@@ -35,6 +42,7 @@ export type ExistingMeetingLog = MeetingLogMeMetadata & {
   status: "EXISTS";
   logId: number;
   body: string;
+  result: MeetingLogResultInput;
   photos: string[];
 };
 
@@ -52,11 +60,13 @@ export type CrewLogFeedItem = {
   meetingId: number;
   authorNickname: string;
   meetingTitle: string;
+  themeName: string;
   meetingDate: string;
   createdAt: string;
   excerpt: string;
   coverPhotoUrl: string | null;
   extraPhotoCount: number;
+  result: MeetingLogResultInput;
 };
 
 export type CrewLogFeedQuery = {
@@ -94,5 +104,6 @@ export type MeetingLogDetail = {
   createdAt: string;
   updatedAt: string;
   body: string;
+  result: MeetingLogResultInput;
   photos: string[];
 };

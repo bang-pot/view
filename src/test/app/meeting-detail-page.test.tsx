@@ -10,7 +10,6 @@ import {
   closeMeetingRecruitment,
   getMeetingDetail,
   joinMeeting,
-  recordMeetingResult,
 } from "@/shared/meeting/client";
 import { getMyMeetingLog } from "@/shared/log/client";
 
@@ -39,7 +38,6 @@ vi.mock("@/shared/meeting/client", () => ({
   reopenMeetingRecruitment: vi.fn(),
   cancelMeeting: vi.fn(),
   completeMeeting: vi.fn(),
-  recordMeetingResult: vi.fn(),
 }));
 
 vi.mock("@/shared/log/client", () => ({
@@ -87,7 +85,6 @@ function makeMeetingDetail(
     contactLink: null,
     description: null,
     status: "RECRUITING" as const,
-    result: "NOT_RECORDED" as const,
     myParticipationStatus: "NOT_JOINED" as const,
     ...overrides,
   };
@@ -343,13 +340,12 @@ describe("MeetingDetailPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows result input actions only for the host when the meeting is completed and not recorded", async () => {
+  it("does not show a meeting-level result section on the detail page", async () => {
     mockCurrentUser(1);
     mockCrew("LEADER");
     vi.mocked(getMeetingDetail).mockResolvedValue(
       makeMeetingDetail({
         status: "COMPLETED",
-        result: "NOT_RECORDED",
       }),
     );
 
@@ -359,11 +355,9 @@ describe("MeetingDetailPage", () => {
       }),
     );
 
-    const resultSection = await screen.findByRole("region", { name: "모임 결과" });
+    await screen.findByRole("region", { name: "모임 상세 정보" });
 
-    expect(within(resultSection).getByText("결과 상태: NOT_RECORDED")).toBeInTheDocument();
-    expect(within(resultSection).getByRole("button", { name: "성공" })).toBeInTheDocument();
-    expect(within(resultSection).getByRole("button", { name: "실패" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "모임 결과" })).not.toBeInTheDocument();
   });
 
   it("shows the write log entry when the current user can write a completed meeting log", async () => {
@@ -372,7 +366,6 @@ describe("MeetingDetailPage", () => {
     vi.mocked(getMeetingDetail).mockResolvedValue(
       makeMeetingDetail({
         status: "COMPLETED",
-        result: "SUCCESS",
       }),
     );
     vi.mocked(getMyMeetingLog).mockResolvedValue(makeNotWrittenLog());
@@ -395,7 +388,6 @@ describe("MeetingDetailPage", () => {
     vi.mocked(getMeetingDetail).mockResolvedValue(
       makeMeetingDetail({
         status: "COMPLETED",
-        result: "SUCCESS",
       }),
     );
     vi.mocked(getMyMeetingLog).mockResolvedValue(makeDeletedBlockedLog());
@@ -421,7 +413,6 @@ describe("MeetingDetailPage", () => {
     vi.mocked(getMeetingDetail).mockResolvedValue(
       makeMeetingDetail({
         status: "COMPLETED",
-        result: "SUCCESS",
       }),
     );
     vi.mocked(getMyMeetingLog).mockResolvedValue(makeExistingLog());
@@ -436,39 +427,6 @@ describe("MeetingDetailPage", () => {
     expect(
       await within(detailSection).findByRole("link", { name: "방탈로그 수정하기" }),
     ).toHaveAttribute("href", "/crews/11/meetings/99/log");
-  });
-
-  it("updates the result immediately after the host records success", async () => {
-    mockCurrentUser(1);
-    mockCrew("LEADER");
-    vi.mocked(getMeetingDetail).mockResolvedValue(
-      makeMeetingDetail({
-        status: "COMPLETED",
-        result: "NOT_RECORDED",
-      }),
-    );
-    vi.mocked(recordMeetingResult).mockResolvedValue({
-      meetingId: 99,
-      result: "SUCCESS",
-    });
-
-    render(
-      await CrewMeetingDetailPage({
-        params: Promise.resolve({ crewId: "11", meetingId: "99" }),
-      }),
-    );
-
-    const resultSection = await screen.findByRole("region", { name: "모임 결과" });
-    fireEvent.click(within(resultSection).getByRole("button", { name: "성공" }));
-
-    await waitFor(() => {
-      expect(recordMeetingResult).toHaveBeenCalledWith(11, 99, "SUCCESS");
-    });
-
-    const updatedResultSection = await screen.findByRole("region", { name: "모임 결과" });
-    expect(within(updatedResultSection).getByText("결과 상태: SUCCESS")).toBeInTheDocument();
-    expect(within(updatedResultSection).queryByRole("button", { name: "성공" })).not.toBeInTheDocument();
-    expect(within(updatedResultSection).queryByRole("button", { name: "실패" })).not.toBeInTheDocument();
   });
 
   it("redirects non-members to the public crew introduction", async () => {

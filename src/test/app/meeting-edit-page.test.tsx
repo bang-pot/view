@@ -72,7 +72,6 @@ function mockMeetingDetail(overrides: Partial<Awaited<ReturnType<typeof getMeeti
     contactLink: "https://open.kakao.com/o/example",
     description: "지각 없이 모여 주세요",
     status: "RECRUITING",
-    result: "NOT_RECORDED",
     myParticipationStatus: "JOINED",
     ...overrides,
   });
@@ -125,7 +124,6 @@ describe("MeetingEditPage", () => {
       contactLink: "https://open.kakao.com/o/updated",
       description: "수정된 설명",
       status: "RECRUITMENT_CLOSED",
-      result: "NOT_RECORDED",
     });
 
     render(

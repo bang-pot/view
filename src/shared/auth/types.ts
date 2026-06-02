@@ -228,8 +228,6 @@ export type JoinedMeetingStatus =
   | "COMPLETED"
   | "CANCELED";
 
-export type JoinedMeetingResult = "SUCCESS" | "FAILURE";
-
 export type JoinedMeetingListItem = {
   meetingId: number;
   title: string;
@@ -239,7 +237,6 @@ export type JoinedMeetingListItem = {
   date: string;
   time: string;
   status: JoinedMeetingStatus;
-  result: JoinedMeetingResult | null;
   canWriteReview: boolean;
 };
 

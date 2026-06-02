@@ -57,7 +57,7 @@ describe("MeetingsPage", () => {
           date: "2026-04-20",
           time: "19:30",
           status: "RECRUITING",
-          result: "NOT_RECORDED",
+          participantCount: 2,
           capacity: 4,
         },
       ],
@@ -78,6 +78,7 @@ describe("MeetingsPage", () => {
       "href",
       "/crews/11/meetings/99",
     );
+    expect(within(item).getByText("모집 인원: 2 / 4명")).toBeInTheDocument();
     expect(within(item).getByText("테마명: Time Attack")).toBeInTheDocument();
   });
 
@@ -94,7 +95,7 @@ describe("MeetingsPage", () => {
             date: "2026-04-20",
             time: "19:30",
             status: "RECRUITING",
-            result: "NOT_RECORDED",
+            participantCount: 2,
             capacity: 4,
           },
         ],
@@ -114,7 +115,7 @@ describe("MeetingsPage", () => {
             date: "2026-04-21",
             time: "20:00",
             status: "RECRUITMENT_CLOSED",
-            result: "NOT_RECORDED",
+            participantCount: 6,
             capacity: 6,
           },
         ],

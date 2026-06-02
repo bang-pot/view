@@ -10,7 +10,6 @@ import { getUserMessage } from "@/shared/errors/operational";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 import type {
   JoinedMeetingListItem,
-  JoinedMeetingResult,
   JoinedMeetingStatus,
 } from "@/shared/auth/types";
 
@@ -46,17 +45,6 @@ function toStatusLabel(status: JoinedMeetingStatus): string {
       return "취소됨";
     default:
       return status;
-  }
-}
-
-function toResultLabel(result: JoinedMeetingResult): string {
-  switch (result) {
-    case "SUCCESS":
-      return "결과 성공";
-    case "FAILURE":
-      return "결과 실패";
-    default:
-      return result;
   }
 }
 
@@ -252,9 +240,6 @@ export function JoinedMeetingsPageClient() {
                     <span>
                       {item.date} {item.time}
                     </span>
-                    {item.status === "COMPLETED" && item.result ? (
-                      <span>{toResultLabel(item.result)}</span>
-                    ) : null}
                   </div>
 
                   <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>

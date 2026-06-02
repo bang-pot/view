@@ -4,8 +4,6 @@ export type MeetingStatus =
   | "COMPLETED"
   | "CANCELED";
 
-export type MeetingResult = "NOT_RECORDED" | "SUCCESS" | "FAILURE";
-
 export type MeetingParticipationStatus =
   | "NOT_JOINED"
   | "JOINED"
@@ -39,7 +37,6 @@ export type CreateMeetingResponse = {
   contactLink: string | null;
   description: string | null;
   status: MeetingStatus;
-  result: MeetingResult;
 };
 
 export type MeetingListItem = {
@@ -50,7 +47,7 @@ export type MeetingListItem = {
   date: string;
   time: string;
   status: MeetingStatus;
-  result: MeetingResult;
+  participantCount: number;
   capacity: number;
 };
 
@@ -84,7 +81,6 @@ export type MeetingDetail = {
   contactLink: string | null;
   description: string | null;
   status: MeetingStatus;
-  result: MeetingResult;
   myParticipationStatus: MeetingParticipationStatus;
 };
 
@@ -114,7 +110,6 @@ export type UpdateMeetingResponse = {
   contactLink: string | null;
   description: string | null;
   status: MeetingStatus;
-  result: MeetingResult;
 };
 
 export type JoinMeetingResponse = {
@@ -130,9 +125,4 @@ export type CancelMeetingJoinResponse = {
 export type MeetingStatusUpdateResponse = {
   meetingId: number;
   status: MeetingStatus;
-};
-
-export type MeetingResultRecordResponse = {
-  meetingId: number;
-  result: Exclude<MeetingResult, "NOT_RECORDED">;
 };

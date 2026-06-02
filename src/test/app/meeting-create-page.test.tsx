@@ -109,7 +109,6 @@ describe("MeetingCreatePage", () => {
       contactLink: "https://open.kakao.com/o/example",
       description: "지각 없이 모여 주세요",
       status: "RECRUITING",
-      result: "NOT_RECORDED",
     });
 
     render(await CrewMeetingCreatePage({ params: Promise.resolve({ crewId: "11" }) }));

@@ -229,6 +229,315 @@
   margin-bottom: 0;
 }
 
+.scheduleTabPanel {
+  background: transparent;
+  box-shadow: none;
+  gap: 22px;
+  padding: 0;
+}
+
+.scheduleTabPanel > h1 {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.scheduleStateCard {
+  background: var(--color-background-default);
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgb(0 0 0 / 0.04);
+  display: grid;
+  gap: 14px;
+  min-height: 180px;
+  place-content: center;
+  text-align: center;
+}
+
+.scheduleStateCard button {
+  background: #111;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+  min-height: 38px;
+  padding: 0 16px;
+}
+
+.scheduleContentGrid {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1.55fr) minmax(270px, 0.95fr);
+}
+
+.scheduleCalendarCard,
+.scheduleSelectedCard {
+  background: var(--color-background-default);
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgb(0 0 0 / 0.05);
+}
+
+.scheduleCalendarCard {
+  display: grid;
+  gap: 18px;
+  min-height: 430px;
+  padding: 26px 25px 24px;
+}
+
+.scheduleMonthHeader {
+  align-items: center;
+  display: grid;
+  grid-template-columns: 32px 1fr 32px;
+}
+
+.scheduleMonthHeader strong {
+  font-size: 16px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.scheduleMonthButton {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 17px;
+  height: 30px;
+  justify-content: center;
+  padding: 0;
+  width: 30px;
+}
+
+.scheduleWeekdayGrid,
+.scheduleDayGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.scheduleWeekdayGrid {
+  border-bottom: 1px solid var(--color-border-default);
+  padding-bottom: 10px;
+}
+
+.scheduleWeekdayGrid strong {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.scheduleWeekdayGrid strong:first-child {
+  color: #ff4f64;
+}
+
+.scheduleWeekdayGrid strong:last-child {
+  color: #4096ff;
+}
+
+.scheduleDayGrid {
+  gap: 7px 5px;
+}
+
+.scheduleDayButton {
+  align-content: center;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  min-height: 50px;
+  padding: 6px 4px;
+}
+
+.scheduleDayButton:hover {
+  background: #f5f5f5;
+}
+
+.scheduleDayButton[aria-pressed="true"] {
+  background: #dcefff;
+}
+
+.scheduleDayButton[data-outside-month="true"] {
+  color: #c4c4c4;
+}
+
+.scheduleDayNumber {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 13px;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.scheduleDayButton[aria-pressed="true"] .scheduleDayNumber {
+  background: #111;
+  color: #fff;
+  font-weight: 800;
+}
+
+.scheduleDayDots {
+  align-items: center;
+  display: inline-flex;
+  gap: 3px;
+  min-height: 5px;
+}
+
+.scheduleDayDots span {
+  border-radius: 999px;
+  height: 4px;
+  width: 4px;
+}
+
+.scheduleDayDots span[data-tone="open"] {
+  background: #4096ff;
+}
+
+.scheduleDayDots span[data-tone="closed"],
+.scheduleDayDots span[data-tone="completed"] {
+  background: #7a7a7a;
+}
+
+.scheduleDayDots span[data-tone="canceled"] {
+  background: #ff4f64;
+}
+
+.scheduleSelectedCard {
+  align-content: start;
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+}
+
+.scheduleSelectedHeader {
+  border-bottom: 1px solid var(--color-border-default);
+  display: grid;
+  gap: 4px;
+  padding-bottom: 14px;
+}
+
+.scheduleSelectedHeader h2 {
+  font-size: 13px;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.scheduleSelectedHeader span {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.scheduleSelectedTitleRow {
+  align-items: center;
+  display: flex;
+  gap: 7px;
+}
+
+.scheduleWeekdayPill {
+  background: #f0f0f0;
+  border-radius: 4px;
+  color: var(--color-text-secondary);
+  font-size: 10px !important;
+  font-weight: 700;
+  line-height: 1;
+  padding: 3px 5px;
+}
+
+.scheduleSelectedList {
+  display: grid;
+  gap: 11px;
+}
+
+.scheduleMeetingCard {
+  background: #f8f8f8;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  color: inherit;
+  display: grid;
+  gap: 5px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 72px;
+  padding: 13px 15px;
+  text-decoration: none;
+}
+
+.scheduleMeetingCard[data-canceled="true"] {
+  opacity: 0.64;
+}
+
+.scheduleMeetingCard strong {
+  font-size: 14px;
+  grid-column: 1 / -1;
+}
+
+.scheduleMeetingCard > span {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.scheduleMeetingCard > span:not(.scheduleParticipantCount) {
+  grid-column: 1 / 2;
+}
+
+.scheduleParticipantCount {
+  align-self: end;
+  grid-column: 2 / 3;
+  grid-row: 3 / 4;
+  justify-self: end;
+  white-space: nowrap;
+}
+
+.scheduleMeetingMeta {
+  align-items: center;
+  display: flex;
+  gap: 7px;
+  grid-column: 1 / 2;
+}
+
+.scheduleMeetingMeta span {
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.scheduleMeetingMeta span:first-child {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.scheduleMeetingMeta span[data-tone] {
+  padding: 3px 7px;
+}
+
+.scheduleMeetingMeta span[data-tone="open"] {
+  background: #e8f7ef;
+  color: #0c9d52;
+}
+
+.scheduleMeetingMeta span[data-tone="closed"],
+.scheduleMeetingMeta span[data-tone="completed"] {
+  background: #ededed;
+  color: #777;
+}
+
+.scheduleMeetingMeta span[data-tone="canceled"] {
+  background: #fff0f3;
+  color: #ff4f64;
+}
+
+.scheduleEmptyText {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  text-align: center;
+}
+
 .alertAction {
   background: #111 !important;
   border-radius: 7px;
@@ -479,6 +788,153 @@
 .logCard div:last-child span {
   color: var(--color-text-secondary);
   font-size: 11px;
+}
+
+.logFeedPanel {
+  background: transparent;
+  box-shadow: none;
+  gap: 12px;
+  padding: 0;
+}
+
+.logFeedHeader {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.logFeedHeader h1 {
+  font-size: 18px;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.logWriteButton {
+  background: #111 !important;
+  border-radius: 6px;
+  min-height: 31px;
+  padding-inline: 13px;
+}
+
+.logWriteButton .squareIcon {
+  background: #fff;
+}
+
+.crewLogFeedList {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.crewLogFeedCard {
+  align-items: stretch;
+  background: #fff;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  color: inherit;
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr);
+  min-height: 92px;
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.crewLogFeedCard[data-has-cover="false"] {
+  grid-template-columns: 1fr;
+}
+
+.crewLogFeedCard[data-result="SUCCESS"] {
+  border-color: #4aa3ff;
+}
+
+.crewLogFeedCard[data-result="FAILURE"] {
+  border-color: #ff6b8b;
+}
+
+.crewLogCover {
+  background: #6079b2;
+  min-height: 92px;
+  overflow: hidden;
+  position: relative;
+}
+
+.crewLogCover img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.crewLogCover span {
+  background: #111;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  position: absolute;
+  right: 9px;
+  top: 7px;
+}
+
+.crewLogContent {
+  align-content: space-between;
+  display: grid;
+  gap: 14px;
+  padding: 16px 18px 14px;
+}
+
+.crewLogContent p {
+  color: var(--color-text-primary);
+  display: -webkit-box;
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.crewLogFooter {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.crewLogAuthor {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+  min-width: 120px;
+}
+
+.crewLogAuthor span {
+  align-items: center;
+  background: #5c8cff;
+  border-radius: 999px;
+  color: #fff;
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 800;
+  height: 18px;
+  justify-content: center;
+  width: 18px;
+}
+
+.crewLogAuthor strong {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.crewLogMeta {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: right;
 }
 
 .policyPanel {
@@ -839,6 +1295,10 @@
   }
 
   .logPanel ul {
+    grid-template-columns: 1fr;
+  }
+
+  .scheduleContentGrid {
     grid-template-columns: 1fr;
   }
 }

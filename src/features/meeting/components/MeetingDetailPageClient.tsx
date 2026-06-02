@@ -14,14 +14,9 @@ import {
   completeMeeting,
   getMeetingDetail,
   joinMeeting,
-  recordMeetingResult,
   reopenMeetingRecruitment,
 } from "@/shared/meeting/client";
-import type {
-  MeetingDetail,
-  MeetingParticipationStatus,
-  MeetingResult,
-} from "@/shared/meeting/types";
+import type { MeetingDetail, MeetingParticipationStatus } from "@/shared/meeting/types";
 import {
   getMeetingStatusDescription,
   getMeetingStatusLabel,
@@ -59,18 +54,6 @@ function getParticipationLabel(status: MeetingParticipationStatus): string {
   }
 
   return "지금 바로 참여할 수 있어요.";
-}
-
-function getResultLabel(result: MeetingResult): string {
-  switch (result) {
-    case "SUCCESS":
-      return "모임이 성공적으로 진행되었습니다.";
-    case "FAILURE":
-      return "이번 모임은 아쉽게 마무리되었습니다.";
-    case "NOT_RECORDED":
-    default:
-      return "아직 결과를 기록하지 않았습니다.";
-  }
 }
 
 function formatCost(totalCost: number | null): string {
@@ -126,11 +109,9 @@ export function MeetingDetailPageClient({
   const [joinErrorMessage, setJoinErrorMessage] = useState<string | null>(null);
   const [cancelErrorMessage, setCancelErrorMessage] = useState<string | null>(null);
   const [operationErrorMessage, setOperationErrorMessage] = useState<string | null>(null);
-  const [resultErrorMessage, setResultErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
   const [isCancelingJoin, setIsCancelingJoin] = useState(false);
-  const [isRecordingResult, setIsRecordingResult] = useState(false);
   const [activeOperation, setActiveOperation] = useState<MeetingOperationAction | null>(null);
 
   const crewIdNumber = Number(crewId);
@@ -223,11 +204,6 @@ export function MeetingDetailPageClient({
     };
   }, [crewIdNumber, hasValidIds, meetingIdNumber, publicCrewPath, routePath, router]);
 
-  async function refreshMeetingDetail(): Promise<void> {
-    const nextDetail = await getMeetingDetail(crewIdNumber, meetingIdNumber);
-    setMeeting(nextDetail);
-  }
-
   async function handleJoin(): Promise<void> {
     if (!meeting) {
       return;
@@ -237,7 +213,6 @@ export function MeetingDetailPageClient({
     setJoinErrorMessage(null);
     setCancelErrorMessage(null);
     setOperationErrorMessage(null);
-    setResultErrorMessage(null);
 
     try {
       const response = await joinMeeting(crewIdNumber, meetingIdNumber);
@@ -277,7 +252,6 @@ export function MeetingDetailPageClient({
     setCancelErrorMessage(null);
     setJoinErrorMessage(null);
     setOperationErrorMessage(null);
-    setResultErrorMessage(null);
 
     try {
       const response = await cancelMeetingJoin(crewIdNumber, meetingIdNumber);
@@ -309,7 +283,6 @@ export function MeetingDetailPageClient({
     setOperationErrorMessage(null);
     setJoinErrorMessage(null);
     setCancelErrorMessage(null);
-    setResultErrorMessage(null);
 
     try {
       const response =
@@ -336,52 +309,6 @@ export function MeetingDetailPageClient({
       );
     } finally {
       setActiveOperation(null);
-    }
-  }
-
-  async function handleRecordResult(
-    nextResult: Exclude<MeetingResult, "NOT_RECORDED">,
-  ): Promise<void> {
-    if (!meeting) {
-      return;
-    }
-
-    setIsRecordingResult(true);
-    setResultErrorMessage(null);
-    setJoinErrorMessage(null);
-    setCancelErrorMessage(null);
-    setOperationErrorMessage(null);
-
-    try {
-      const response = await recordMeetingResult(crewIdNumber, meetingIdNumber, nextResult);
-
-      setMeeting({
-        ...meeting,
-        result: response.result,
-      });
-    } catch (error) {
-      reportOperationalError("meeting.result_record_failed", error, {
-        level: "warn",
-        route: routePath,
-      });
-
-      if (
-        isOperationalError(error) &&
-        (error.code === "MEETING_RESULT_ALREADY_RECORDED" ||
-          error.code === "MEETING_RESULT_RECORD_NOT_ALLOWED")
-      ) {
-        try {
-          await refreshMeetingDetail();
-        } catch {
-          // Keep the original user-facing error below if refresh also fails.
-        }
-      }
-
-      setResultErrorMessage(
-        getUserMessage(error, "모임 결과를 기록하지 못했습니다. 잠시 후 다시 시도해 주세요."),
-      );
-    } finally {
-      setIsRecordingResult(false);
     }
   }
 
@@ -428,10 +355,6 @@ export function MeetingDetailPageClient({
   const canCancelMeeting =
     (isMeetingHost || isCrewLeader) &&
     (meeting.status === "RECRUITING" || meeting.status === "RECRUITMENT_CLOSED");
-  const canRecordResult =
-    isMeetingHost &&
-    meeting.status === "COMPLETED" &&
-    meeting.result === "NOT_RECORDED";
   const myLogStatus = myMeetingLog?.status ?? null;
   const hasExistingLog = myLogStatus === "EXISTS";
   const canWriteNewLog =
@@ -507,31 +430,6 @@ export function MeetingDetailPageClient({
         {operationErrorMessage ? <p>{operationErrorMessage}</p> : null}
       </section>
 
-      <section aria-label="모임 결과">
-        <h2>모임 결과</h2>
-        <p>결과 상태: {meeting.result}</p>
-        <p>{getResultLabel(meeting.result)}</p>
-        {canRecordResult ? (
-          <div>
-            <button
-              type="button"
-              onClick={() => void handleRecordResult("SUCCESS")}
-              disabled={isRecordingResult}
-            >
-              {isRecordingResult ? "기록 중..." : "성공"}
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleRecordResult("FAILURE")}
-              disabled={isRecordingResult}
-            >
-              {isRecordingResult ? "기록 중..." : "실패"}
-            </button>
-          </div>
-        ) : null}
-        {resultErrorMessage ? <p>{resultErrorMessage}</p> : null}
-      </section>
-
       <section aria-label="모임 상세 정보">
         <h2>{meeting.title}</h2>
         {hasExistingLog ? (
@@ -550,7 +448,6 @@ export function MeetingDetailPageClient({
         <p>테마명: {meeting.themeName}</p>
         <p>모임 ID: {meeting.meetingId}</p>
         <p>모집 상태: {getMeetingStatusLabel(meeting.status)}</p>
-        <p>결과 상태: {meeting.result}</p>
         <p>날짜: {meeting.date}</p>
         <p>시간: {meeting.time}</p>
         <p>장소: {meeting.place}</p>

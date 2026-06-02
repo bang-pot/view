@@ -48,7 +48,7 @@ describe("CrewSchedulePage", () => {
     });
   });
 
-  it("renders the crew schedule calendar and shows selected date items in time order", async () => {
+  it("renders the escape schedule calendar and shows selected date items in time order", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-05-01T00:00:00"));
 
@@ -71,35 +71,38 @@ describe("CrewSchedulePage", () => {
       items: [
         {
           meetingId: 201,
-          themeName: "Abyss",
-          date: `${currentMonthKey}-15`,
-          time: "18:00",
+          themeName: "미스터리 랜선",
+          date: `${currentMonthKey}-14`,
+          time: "10:00",
           meetingStatus: "RECRUITING",
           recruitmentStatus: "OPEN",
-          place: "Gangnam Branch",
+          place: "강남구 신사동",
           participantCount: 4,
+          capacity: 6,
           isCanceled: false,
         },
         {
           meetingId: 202,
-          themeName: "Clock Tower",
-          date: `${currentMonthKey}-15`,
-          time: "20:00",
+          themeName: "공포의 집",
+          date: `${currentMonthKey}-14`,
+          time: "14:30",
           meetingStatus: "COMPLETED",
           recruitmentStatus: "CLOSED",
-          place: "Hongdae Branch",
-          participantCount: 5,
+          place: "마포구 연남동",
+          participantCount: 6,
+          capacity: 6,
           isCanceled: false,
         },
         {
           meetingId: 203,
-          themeName: "Last Signal",
-          date: `${currentMonthKey}-18`,
+          themeName: "시간의 미로",
+          date: `${currentMonthKey}-14`,
           time: "14:00",
           meetingStatus: "CANCELED",
           recruitmentStatus: "CLOSED",
-          place: "Jamsil Branch",
+          place: "서초구 교대역",
           participantCount: 3,
+          capacity: 4,
           isCanceled: true,
         },
       ],
@@ -107,34 +110,44 @@ describe("CrewSchedulePage", () => {
 
     render(await CrewSchedulePage({ params: Promise.resolve({ crewId: "11" }) }));
 
-    expect(await screen.findByRole("heading", { name: "일정" })).toBeInTheDocument();
-    expect(screen.getByText("Night runners 크루의 방탈 일정을 확인할 수 있어요.")).toBeInTheDocument();
-    expect(await screen.findByRole("button", { name: "15일" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "18일" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "방탈 일정" })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(getCrewSchedule).toHaveBeenCalledWith(11, {
+        from: `${currentMonthKey}-01`,
+        to: `${currentMonthKey}-31`,
+      });
+    });
+    expect(await screen.findByText("2026년 5월")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "5월 14일 일정 3개" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
 
     const selectedPanel = screen.getByRole("complementary", { name: "선택 날짜 일정" });
+    expect(within(selectedPanel).getByRole("heading", { name: "5월 14일" })).toBeInTheDocument();
+    expect(within(selectedPanel).getByText("목요일")).toBeInTheDocument();
+    expect(within(selectedPanel).getByText("일정 3개")).toBeInTheDocument();
     const items = within(selectedPanel).getAllByRole("link");
-    expect(items).toHaveLength(2);
+    expect(items).toHaveLength(3);
     expect(items[0]).toHaveAttribute("href", "/crews/11/meetings/201");
-    expect(items[1]).toHaveAttribute("href", "/crews/11/meetings/202");
-    expect(within(items[0]).getByText("18:00")).toBeInTheDocument();
-    expect(within(items[0]).getByText("Abyss")).toBeInTheDocument();
-    expect(within(items[0]).getByText("Gangnam Branch")).toBeInTheDocument();
-    expect(within(items[0]).getByText("참여 4명")).toBeInTheDocument();
-    expect(within(items[0]).getByText("예정")).toBeInTheDocument();
-    expect(within(items[1]).getByText("완료")).toBeInTheDocument();
+    expect(within(items[0]).getByText("10:00")).toBeInTheDocument();
+    expect(within(items[0]).getByText("미스터리 랜선")).toBeInTheDocument();
+    expect(within(items[0]).getByText("강남구 신사동")).toBeInTheDocument();
+    expect(within(items[0]).getByText("4 / 6명")).toBeInTheDocument();
+    expect(within(items[0]).getByText("모집")).toBeInTheDocument();
+    expect(within(items[1]).getByText("14:00")).toBeInTheDocument();
+    expect(within(items[1]).getByText("취소")).toBeInTheDocument();
+    expect(within(items[2]).getByText("완료")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "18일" }));
-
-    const canceledItem = within(screen.getByRole("complementary", { name: "선택 날짜 일정" })).getByRole(
-      "link",
-      { name: /Last Signal/ },
-    );
+    const canceledItem = within(selectedPanel).getByRole("link", { name: /시간의 미로/ });
     expect(within(canceledItem).getAllByText("취소").length).toBeGreaterThan(0);
     expect(canceledItem).toHaveAttribute("data-canceled", "true");
   });
 
   it("distinguishes between empty month and empty selected date states", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-04-01T00:00:00"));
+
     vi.mocked(getCrewHub).mockResolvedValue({
       crewId: 11,
       name: "Night runners",
@@ -167,23 +180,26 @@ describe("CrewSchedulePage", () => {
 
     const { unmount } = render(await CrewSchedulePage({ params: Promise.resolve({ crewId: "11" }) }));
 
-    expect(await screen.findByText("아직 등록된 일정이 없어요.")).toBeInTheDocument();
+    expect(await screen.findByText("이번 달에는 아직 등록된 방탈 일정이 없어요.")).toBeInTheDocument();
 
     unmount();
     cleanup();
 
     render(await CrewSchedulePage({ params: Promise.resolve({ crewId: "11" }) }));
 
-    expect(await screen.findByRole("button", { name: "16일" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "16일" }));
+    expect(await screen.findByRole("button", { name: "4월 16일 일정 없음" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "4월 16일 일정 없음" }));
     expect(
       within(screen.getByRole("complementary", { name: "선택 날짜 일정" })).getAllByText(
-        "이 날짜에는 일정이 없어요.",
+        "선택한 날짜에는 방탈 일정이 없어요.",
       )[0],
     ).toBeInTheDocument();
   });
 
   it("keeps the page visible when schedule loading fails and allows retry", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-05-01T00:00:00"));
+
     vi.mocked(getCrewHub).mockResolvedValue({
       crewId: 11,
       name: "Night runners",
@@ -215,7 +231,7 @@ describe("CrewSchedulePage", () => {
     render(await CrewSchedulePage({ params: Promise.resolve({ crewId: "11" }) }));
 
     expect(await screen.findByText("일정 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "일정" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "방탈 일정" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "다시 시도" }));
 
@@ -224,5 +240,35 @@ describe("CrewSchedulePage", () => {
     });
 
     expect(await screen.findByText("Abyss")).toBeInTheDocument();
+  });
+
+  it("moves the visible month and reloads the crew schedule range", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-05-01T00:00:00"));
+
+    vi.mocked(getCrewHub).mockResolvedValue({
+      crewId: 11,
+      name: "Night runners",
+      description: "Private crew for late runners",
+      visibility: "PRIVATE",
+      imageUrl: null,
+      myRole: "MEMBER",
+      hasNotice: false,
+      pendingJoinRequestCount: 0,
+    });
+    vi.mocked(getCrewSchedule).mockResolvedValue({ items: [] });
+
+    render(await CrewSchedulePage({ params: Promise.resolve({ crewId: "11" }) }));
+
+    expect(await screen.findByText("2026년 5월")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "다음 달" }));
+
+    expect(await screen.findByText("2026년 6월")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(getCrewSchedule).toHaveBeenLastCalledWith(11, {
+        from: "2026-06-01",
+        to: "2026-06-30",
+      });
+    });
   });
 });

@@ -17,7 +17,11 @@ import {
   uploadLogPhoto,
   updateMeetingLog,
 } from "@/shared/log/client";
-import type { LogPhotoInput, MeetingLogMeResponse } from "@/shared/log/types";
+import type {
+  LogPhotoInput,
+  MeetingLogMeResponse,
+  MeetingLogResultInput,
+} from "@/shared/log/types";
 
 type MeetingLogEditorPageClientProps = {
   crewId: string;
@@ -54,6 +58,7 @@ const INVALID_PHOTO_TYPE_MESSAGE = "사진은 jpg, jpeg, png 형식만 첨부할
 const INVALID_PHOTO_SIZE_MESSAGE = "사진은 한 장당 5MB 이하만 첨부할 수 있어요.";
 const PHOTO_UPLOAD_FAILED_MESSAGE =
   "사진을 업로드하지 못했어요. 잠시 후 다시 시도해 주세요.";
+const RESULT_REQUIRED_MESSAGE = "방탈 결과를 선택해 주세요.";
 
 function buildPublicCrewPath(crewId: string): string {
   return `/crews/public/${crewId}`;
@@ -188,6 +193,7 @@ export function MeetingLogEditorPageClient({
   const [myMeetingLog, setMyMeetingLog] = useState<MeetingLogMeResponse | null>(null);
   const [body, setBody] = useState("");
   const [photoFields, setPhotoFields] = useState<PhotoField[]>([]);
+  const [selectedResult, setSelectedResult] = useState<MeetingLogResultInput | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [photoErrorMessage, setPhotoErrorMessage] = useState<string | null>(null);
   const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
@@ -209,7 +215,6 @@ export function MeetingLogEditorPageClient({
   const canCreate = meeting ? isCreateAllowed(meeting, currentUserId) : false;
   const isRecreateBlocked = myMeetingLog?.status === "DELETED_BLOCKED";
   const canStartCreateMode = myMeetingLog?.status === "NOT_WRITTEN" && canCreate;
-
   useEffect(() => {
     if (!hasValidIds) {
       return;
@@ -252,9 +257,11 @@ export function MeetingLogEditorPageClient({
         if (nextMyMeetingLog.status === "EXISTS") {
           setBody(nextMyMeetingLog.body);
           setPhotoFields(buildPhotoFields(nextMyMeetingLog.photos));
+          setSelectedResult(nextMyMeetingLog.result);
         } else {
           setBody("");
           setPhotoFields([]);
+          setSelectedResult(null);
         }
 
         setErrorMessage(null);
@@ -454,6 +461,11 @@ export function MeetingLogEditorPageClient({
       return;
     }
 
+    if (selectedResult === null) {
+      setErrorMessage(RESULT_REQUIRED_MESSAGE);
+      return;
+    }
+
     const currentMeeting = meeting;
 
     setIsSubmitting(true);
@@ -464,10 +476,12 @@ export function MeetingLogEditorPageClient({
         isEditMode && myMeetingLog?.status === "EXISTS"
           ? await updateMeetingLog(myMeetingLog.logId, {
             body: trimmedBody,
+            result: selectedResult,
             photos: validation.photos,
           })
           : await createMeetingLog(meetingIdNumber, {
               body: trimmedBody,
+              result: selectedResult,
               photos: validation.photos,
             });
 
@@ -478,6 +492,7 @@ export function MeetingLogEditorPageClient({
               logId: response.logId,
               meetingId: response.meetingId,
               body: trimmedBody,
+              result: selectedResult,
               photos: submittedPhotoUrls,
             }
           : {
@@ -492,6 +507,7 @@ export function MeetingLogEditorPageClient({
               createdAt: null,
               updatedAt: null,
               body: trimmedBody,
+              result: selectedResult,
               photos: submittedPhotoUrls,
             },
       );
@@ -573,6 +589,31 @@ export function MeetingLogEditorPageClient({
           />
           <p>{body.length}/{BODY_MAX_LENGTH}</p>
         </div>
+
+        <fieldset aria-label="방탈 결과" style={{ display: "grid", gap: 8, marginTop: 20 }}>
+          <legend>방탈 결과</legend>
+          <p>내가 남기는 방탈로그 기준으로 이번 방탈의 성공 여부를 기록해 주세요.</p>
+          <label>
+            <input
+              type="radio"
+              name="meeting-result"
+              value="SUCCESS"
+              checked={selectedResult === "SUCCESS"}
+              onChange={() => setSelectedResult("SUCCESS")}
+            />
+            성공
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="meeting-result"
+              value="FAILURE"
+              checked={selectedResult === "FAILURE"}
+              onChange={() => setSelectedResult("FAILURE")}
+            />
+            실패
+          </label>
+        </fieldset>
 
         <section aria-label="사진 입력" style={{ display: "grid", gap: 12, marginTop: 20 }}>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>

@@ -82,7 +82,10 @@ describe("ProfileCrewsPage", () => {
     render(<ProfileCrewsPage />);
 
     expect(await screen.findByRole("heading", { name: "소속 크루" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /방탈출 크루/ })).toHaveAttribute("href", "/crews/17");
+    expect(await screen.findByRole("link", { name: /방탈출 크루/ })).toHaveAttribute(
+      "href",
+      "/crews/17",
+    );
     expect(screen.getByRole("link", { name: /심야 크루/ })).toHaveAttribute("href", "/crews/18");
     expect(screen.getByText("공개")).toBeInTheDocument();
     expect(screen.getByText("비공개")).toBeInTheDocument();

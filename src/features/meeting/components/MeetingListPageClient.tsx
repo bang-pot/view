@@ -194,10 +194,9 @@ export function MeetingListPageClient({ crewId }: MeetingListPageClientProps) {
                 <p>
                   일시: {meeting.date} {meeting.time}
                 </p>
-                <p>정원: {meeting.capacity}명</p>
+                <p>모집 인원: {meeting.participantCount} / {meeting.capacity}명</p>
                 <p>모집 상태: {getMeetingStatusLabel(meeting.status)}</p>
                 <p>{getMeetingStatusDescription(meeting.status)}</p>
-                <p>결과 상태: {meeting.result}</p>
               </article>
             </li>
           ))}

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { getMe } from "@/shared/auth/client";
 import { resolveProtectedDestination } from "@/shared/auth/guards";
@@ -12,6 +12,7 @@ import { getUserMessage, isOperationalError } from "@/shared/errors/operational"
 import { getCrewLogFeed } from "@/shared/log/client";
 import type { CrewLogFeedItem } from "@/shared/log/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
+import { Button } from "@/shared/ui/Button";
 import {
   createCrewWorkspaceFallback,
   CrewWorkspaceShell,
@@ -53,6 +54,24 @@ function getExcerpt(excerpt: string): string {
   return excerpt.trim() || "후기 요약이 아직 없습니다.";
 }
 
+function getFeedExcerpt(item: CrewLogFeedItem): string {
+  return `[${item.themeName}] ${getExcerpt(item.excerpt)}`;
+}
+
+function toResultLabel(result: CrewLogFeedItem["result"]): string {
+  if (result === "SUCCESS") {
+    return "성공";
+  }
+  if (result === "FAILURE") {
+    return "실패";
+  }
+  return "결과 대기";
+}
+
+function toFeedMeta(item: CrewLogFeedItem): string {
+  return `[${item.meetingTitle}] · ${toResultLabel(item.result)} · ${item.meetingDate}`;
+}
+
 function LogPlaceholderGrid() {
   return (
     <ul className={crewWorkspaceStyles.placeholderGrid} aria-label="방탈로그 미리보기">
@@ -71,10 +90,26 @@ function LogPlaceholderGrid() {
   );
 }
 
+function LogFeedHeader({ crewId }: { crewId: string }) {
+  return (
+    <header className={crewWorkspaceStyles.logFeedHeader}>
+      <h1>방탈로그</h1>
+      <Button
+        href={`/crews/${crewId}/meetings`}
+        size="sm"
+        variant="primary"
+        className={crewWorkspaceStyles.logWriteButton}
+        leftIcon={<span className={crewWorkspaceStyles.squareIcon} aria-hidden="true" />}
+      >
+        로그 작성하기
+      </Button>
+    </header>
+  );
+}
+
 export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const hasBootstrappedRef = useRef(false);
   const [crew, setCrew] = useState<CrewHubResponse | null>(null);
   const [items, setItems] = useState<CrewLogFeedItem[]>([]);
   const [page, setPage] = useState(0);
@@ -94,12 +129,14 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
       : null;
 
   useEffect(() => {
-    if (!hasValidCrewId || hasBootstrappedRef.current) {
+    if (!hasValidCrewId) {
       return;
     }
 
-    hasBootstrappedRef.current = true;
     let isMounted = true;
+    setIsLoading(true);
+    setIsLoadingMore(false);
+    setErrorMessage(null);
 
     async function bootstrap() {
       try {
@@ -214,10 +251,9 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
   if (isLoading) {
     return (
       <CrewWorkspaceShell activeMenu="logs" crew={resolvedCrew} crewId={crewId}>
-        <section className={crewWorkspaceStyles.tabPanel}>
-          <h1>방탈로그 준비 중</h1>
+        <section className={`${crewWorkspaceStyles.tabPanel} ${crewWorkspaceStyles.logFeedPanel}`}>
+          <LogFeedHeader crewId={crewId} />
           <p>크루 방탈로그 피드를 불러오는 중입니다.</p>
-          <LogPlaceholderGrid />
         </section>
       </CrewWorkspaceShell>
     );
@@ -225,9 +261,8 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
 
   return (
     <CrewWorkspaceShell activeMenu="logs" crew={resolvedCrew} crewId={crewId}>
-      <section className={crewWorkspaceStyles.tabPanel}>
-      <h1>크루 방탈로그</h1>
-      <p>크루원이 남긴 기록을 최신 작성순으로 다시 읽어보세요.</p>
+      <section className={`${crewWorkspaceStyles.tabPanel} ${crewWorkspaceStyles.logFeedPanel}`}>
+      <LogFeedHeader crewId={crewId} />
 
       {noticeMessage ? <p>{noticeMessage}</p> : null}
       {errorMessage ? <p>{errorMessage}</p> : null}
@@ -242,66 +277,38 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
         <>
           <ul
             aria-label="크루 방탈로그 피드"
-            style={{
-              listStyle: "none",
-              margin: 0,
-              padding: 0,
-              display: "grid",
-              gap: 16,
-            }}
+            className={crewWorkspaceStyles.crewLogFeedList}
           >
             {items.map((item) => (
               <li key={item.logId}>
                 <Link
                   href={buildCrewLogDetailPath(crewId, item.logId)}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "minmax(160px, 220px) 1fr",
-                    gap: 16,
-                    border: "1px solid #d9d9d9",
-                    borderRadius: 16,
-                    padding: 16,
-                    color: "inherit",
-                    textDecoration: "none",
-                  }}
+                  className={crewWorkspaceStyles.crewLogFeedCard}
+                  data-has-cover={item.coverPhotoUrl ? "true" : "false"}
+                  data-result={item.result}
                 >
                   {item.coverPhotoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={item.coverPhotoUrl}
-                      alt={`${item.meetingTitle} 대표 사진`}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        minHeight: 180,
-                        objectFit: "cover",
-                        borderRadius: 12,
-                      }}
-                    />
-                  ) : (
-                    <div
-                      style={{
-                        minHeight: 180,
-                        borderRadius: 12,
-                        background: "#f5f5f5",
-                        color: "#666",
-                        display: "grid",
-                        placeItems: "center",
-                        textAlign: "center",
-                        padding: 12,
-                      }}
-                    >
-                      대표 사진 준비 중
+                    <div className={crewWorkspaceStyles.crewLogCover}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={item.coverPhotoUrl}
+                        alt={`${item.meetingTitle} 대표 사진`}
+                      />
+                      {item.extraPhotoCount > 0 ? (
+                        <span>+{item.extraPhotoCount}장</span>
+                      ) : null}
                     </div>
-                  )}
+                  ) : null}
 
-                  <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
-                    <strong>{getExcerpt(item.excerpt)}</strong>
-                    <span>작성자 {item.authorNickname}</span>
-                    <span>모임 {item.meetingTitle}</span>
-                    <span>모임 날짜 {item.meetingDate}</span>
-                    <span>기록 시간 {item.createdAt}</span>
-                    {item.extraPhotoCount > 0 ? <span>+ {item.extraPhotoCount}장</span> : null}
+                  <div className={crewWorkspaceStyles.crewLogContent}>
+                    <p>{getFeedExcerpt(item)}</p>
+                    <div className={crewWorkspaceStyles.crewLogFooter}>
+                      <span className={crewWorkspaceStyles.crewLogAuthor}>
+                        <span aria-hidden="true">{item.authorNickname.slice(0, 1)}</span>
+                        <strong>{item.authorNickname}</strong>
+                      </span>
+                      <span className={crewWorkspaceStyles.crewLogMeta}>{toFeedMeta(item)}</span>
+                    </div>
                   </div>
                 </Link>
               </li>
