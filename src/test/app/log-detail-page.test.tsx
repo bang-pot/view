@@ -70,6 +70,7 @@ function mockCrewLogDetail() {
     createdAt: "2026-04-11T10:00:00Z",
     updatedAt: "2026-04-11T11:00:00Z",
     body: "정말 재미있었던 모임이었어요.",
+    result: "SUCCESS",
     photos: [
       "https://cdn.example.com/log-1.jpg",
       "https://cdn.example.com/log-2.jpg",
@@ -109,6 +110,7 @@ function makeExistingLog() {
     createdAt: "2026-04-11T10:00:00Z",
     updatedAt: "2026-04-11T11:00:00Z",
     body: "정말 재미있었던 모임이었어요.",
+    result: "SUCCESS" as const,
     photos: [
       "https://cdn.example.com/log-1.jpg",
       "https://cdn.example.com/log-2.jpg",
@@ -141,17 +143,26 @@ describe("CrewLogDetailPage", () => {
       }),
     );
 
-    expect(await screen.findByRole("heading", { name: "크루 방탈로그 상세" })).toBeInTheDocument();
-    expect(screen.getByText("금요일 방탈출 번개")).toBeInTheDocument();
+    expect(await screen.findByRole("navigation", { name: "현재 위치" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "방탈로그 목록" })).toHaveAttribute(
+      "href",
+      "/crews/11/logs",
+    );
+    expect(screen.getByRole("link", { name: "수정하기" })).toHaveAttribute(
+      "href",
+      "/crews/11/meetings/99/log",
+    );
+    expect(screen.getByText("[금요일 방탈출 번개] · 성공 · 4월 10일 (금)")).toBeInTheDocument();
+    expect(screen.getByText("[미스터리 룸]")).toBeInTheDocument();
     expect(screen.getByText("정말 재미있었던 모임이었어요.")).toBeInTheDocument();
-    expect(screen.getByText("1 / 4")).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /사진 \d 보기/ })).toHaveLength(3);
+    expect(screen.getByRole("button", { name: "다음 사진 보기" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "사진 2 보기" }));
 
     const dialog = await screen.findByRole("dialog", { name: "방탈로그 사진 크게 보기" });
     expect(dialog).toBeInTheDocument();
-    expect(screen.getAllByText("2 / 4")).toHaveLength(2);
+    expect(screen.getByText("2 / 4")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "삭제" })).toBeInTheDocument();
   });
 
@@ -195,6 +206,7 @@ describe("CrewLogDetailPage", () => {
       createdAt: "2026-04-11T10:00:00Z",
       updatedAt: "2026-04-11T11:00:00Z",
       body: "리더가 읽는 다른 사람 로그입니다.",
+      result: "FAILURE",
       photos: [],
     });
     vi.mocked(getMyMeetingLog).mockResolvedValue(makeNotWrittenLog());
@@ -242,6 +254,7 @@ describe("CrewLogDetailPage", () => {
       createdAt: "2026-04-11T10:00:00Z",
       updatedAt: "2026-04-11T11:00:00Z",
       body: "사진 없는 로그예요.",
+      result: "SUCCESS",
       photos: [],
     });
     vi.mocked(getMyMeetingLog).mockResolvedValue(makeNotWrittenLog());
@@ -252,9 +265,10 @@ describe("CrewLogDetailPage", () => {
       }),
     );
 
-    expect(await screen.findByRole("heading", { name: "크루 방탈로그 상세" })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "방탈로그 목록" })).toBeInTheDocument();
     expect(screen.getByText("사진 없는 로그예요.")).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "사진" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "방탈로그 사진" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "수정하기" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "삭제" })).not.toBeInTheDocument();
   });
 });

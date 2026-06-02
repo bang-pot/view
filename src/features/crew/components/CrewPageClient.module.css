@@ -937,6 +937,254 @@
   text-align: right;
 }
 
+.logDetailPanel {
+  display: grid;
+  gap: 14px;
+}
+
+.logDetailToolbar {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.logDetailBackLink {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.logDetailActions {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.logDetailEditLink,
+.logDetailDeleteButton {
+  align-items: center;
+  background: var(--color-background-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 700;
+  justify-content: center;
+  line-height: 1;
+  min-height: 36px;
+  padding: 0 16px;
+  text-decoration: none;
+}
+
+.logDetailDeleteButton {
+  border-color: #ff8c9d;
+  color: #ff3f5f;
+}
+
+.logDetailCard {
+  background: var(--color-background-default);
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 0.05);
+  display: grid;
+  gap: 22px;
+  padding: 30px 32px 34px;
+}
+
+.logDetailAuthorRow {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.logDetailAvatar {
+  align-items: center;
+  background: #e7f0ff;
+  border-radius: 999px;
+  color: #5c8cff;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 800;
+  height: 46px;
+  justify-content: center;
+  width: 46px;
+}
+
+.logDetailAuthorRow strong {
+  display: block;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.logDetailAuthorRow p {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 2px 0 0;
+}
+
+.logDetailPhotoSection {
+  display: block;
+}
+
+.logDetailPhotoGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) 88px;
+}
+
+.logDetailPhotoButton,
+.logDetailPhotoNext {
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  min-height: 210px;
+  overflow: hidden;
+  padding: 0;
+}
+
+.logDetailPhotoButton {
+  background: #6079b2;
+}
+
+.logDetailPhotoButton img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.logDetailPhotoNext {
+  align-items: center;
+  background: #f1f1f1;
+  color: var(--color-text-secondary);
+  display: inline-flex;
+  font-size: 30px;
+  justify-content: center;
+}
+
+.logDetailPhotoGrid:not(:has(.logDetailPhotoNext)) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.logDetailDivider {
+  background: var(--color-border-subtle);
+  height: 1px;
+  width: 100%;
+}
+
+.logDetailBody {
+  display: grid;
+  gap: 22px;
+}
+
+.logDetailBody h1 {
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.logDetailBody p {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  line-height: 2;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.logModalOverlay {
+  background: rgb(0 0 0 / 0.56);
+  display: grid;
+  inset: 0;
+  padding: 24px;
+  place-items: center;
+  position: fixed;
+  z-index: 80;
+}
+
+.logDeleteDialog {
+  background: var(--color-background-default);
+  border-radius: 16px;
+  display: grid;
+  gap: 12px;
+  max-width: 420px;
+  padding: 20px;
+  width: 100%;
+}
+
+.logDeleteDialog h2,
+.logDeleteDialog p {
+  margin: 0;
+}
+
+.logDeleteDialog textarea {
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  display: block;
+  margin-top: 8px;
+  padding: 10px;
+  resize: vertical;
+  width: 100%;
+}
+
+.logDeleteActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.logDeleteActions button {
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  cursor: pointer;
+  min-height: 34px;
+  padding: 0 14px;
+}
+
+.logDeleteActions button:last-child {
+  background: #111;
+  border-color: #111;
+  color: #fff;
+}
+
+.logLightbox {
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+  max-width: 960px;
+  width: 100%;
+}
+
+.logLightboxActions {
+  display: flex;
+  gap: 12px;
+}
+
+.logLightboxActions button {
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  min-height: 34px;
+  padding: 0 12px;
+}
+
+.logLightbox img {
+  background: #111;
+  border-radius: 16px;
+  max-height: 70vh;
+  object-fit: contain;
+  width: 100%;
+}
+
+.logLightbox p {
+  color: #fff;
+  margin: 0;
+}
+
 .policyPanel {
   display: grid;
   gap: 12px;
