@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import MeetingLogEditorPage from "@/app/crews/[crewId]/meetings/[meetingId]/log/page";
 import { getMe } from "@/shared/auth/client";
+import { getCrewHub } from "@/shared/crew/client";
 import { OperationalError } from "@/shared/errors/operational";
 import { getMeetingDetail } from "@/shared/meeting/client";
 import {
@@ -26,6 +27,10 @@ vi.mock("@/shared/auth/client", () => ({
   getMe: vi.fn(),
 }));
 
+vi.mock("@/shared/crew/client", () => ({
+  getCrewHub: vi.fn(),
+}));
+
 vi.mock("@/shared/meeting/client", () => ({
   getMeetingDetail: vi.fn(),
 }));
@@ -45,6 +50,19 @@ function mockFullUser() {
     requiredTermsVersion: "2026-03-25",
     user: { id: 1, nickname: "banglog" },
     requiredTermsAcceptedAt: "2026-04-08T00:00:00Z",
+  });
+}
+
+function mockCrew() {
+  vi.mocked(getCrewHub).mockResolvedValue({
+    crewId: 11,
+    name: "Night runners",
+    description: "Private crew for late runners",
+    visibility: "PRIVATE",
+    imageUrl: null,
+    myRole: "MEMBER",
+    hasNotice: false,
+    pendingJoinRequestCount: 0,
   });
 }
 
@@ -136,6 +154,7 @@ describe("MeetingLogEditorPage", () => {
     vi.clearAllMocks();
     replaceMock.mockReset();
     pushMock.mockReset();
+    mockCrew();
   });
 
   afterEach(() => {
@@ -183,7 +202,15 @@ describe("MeetingLogEditorPage", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "방탈로그 작성하기" })).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("후기 본문"), {
+    expect(screen.getAllByText("Night runners").length).toBeGreaterThan(0);
+    expect(getCrewHub).toHaveBeenCalledWith(11);
+    expect(screen.getByText("4월 10일 (금)")).toBeInTheDocument();
+    expect(screen.getByText("[방탈출] 강남 이스케이프")).toBeInTheDocument();
+    expect(screen.getByText("사진 첨부")).toBeInTheDocument();
+    expect(screen.getByText("0 / 5장")).toBeInTheDocument();
+    expect(screen.getByText("성공 / 실패 여부")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("방탈출 후기를 자유롭게 남겨보세요.")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("탈출 후기 한마디"), {
       target: { value: "정말 재미있었던 모임이었어요." },
     });
     fireEvent.click(screen.getByLabelText("성공"));
@@ -192,7 +219,8 @@ describe("MeetingLogEditorPage", () => {
       target: { files: [createImageFile("log-1.jpg", 1024, "image/jpeg")] },
     });
     expect(await screen.findByText("업로드 완료")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "방탈로그 저장" }));
+    expect(screen.getByText("1 / 5장")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "방탈로그 저장하기" }));
 
     await waitFor(() => {
       expect(createMeetingLog).toHaveBeenCalledWith(99, {
@@ -218,16 +246,16 @@ describe("MeetingLogEditorPage", () => {
     );
 
     expect(await screen.findByRole("group", { name: "방탈 결과" })).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("후기 본문"), {
+    fireEvent.change(screen.getByLabelText("탈출 후기 한마디"), {
       target: { value: "정말 재미있었던 모임이었어요." },
     });
-    fireEvent.click(screen.getByRole("button", { name: "방탈로그 저장" }));
+    fireEvent.click(screen.getByRole("button", { name: "방탈로그 저장하기" }));
 
     expect(await screen.findByText("방탈 결과를 선택해 주세요.")).toBeInTheDocument();
     expect(createMeetingLog).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByLabelText("성공"));
-    fireEvent.click(screen.getByRole("button", { name: "방탈로그 저장" }));
+    fireEvent.click(screen.getByRole("button", { name: "방탈로그 저장하기" }));
 
     await waitFor(() => {
       expect(createMeetingLog).toHaveBeenCalledWith(99, {
@@ -254,11 +282,11 @@ describe("MeetingLogEditorPage", () => {
     );
 
     expect(await screen.findByRole("group", { name: "방탈 결과" })).toBeInTheDocument();
-    fireEvent.change(await screen.findByLabelText("후기 본문"), {
+    fireEvent.change(await screen.findByLabelText("탈출 후기 한마디"), {
       target: { value: "참여자로 남기는 방탈로그예요." },
     });
     fireEvent.click(screen.getByLabelText("실패"));
-    fireEvent.click(screen.getByRole("button", { name: "방탈로그 저장" }));
+    fireEvent.click(screen.getByRole("button", { name: "방탈로그 저장하기" }));
 
     await waitFor(() => {
       expect(createMeetingLog).toHaveBeenCalledWith(99, {
@@ -282,13 +310,13 @@ describe("MeetingLogEditorPage", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "방탈로그 수정하기" })).toBeInTheDocument();
-    expect(screen.getByLabelText("후기 본문")).toHaveValue("기존 로그예요.");
+    expect(screen.getByLabelText("탈출 후기 한마디")).toHaveValue("기존 로그예요.");
     expect(screen.getByText("기존 사진")).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText("후기 본문"), {
+    fireEvent.change(screen.getByLabelText("탈출 후기 한마디"), {
       target: { value: "수정한 로그예요." },
     });
-    fireEvent.click(screen.getByRole("button", { name: "방탈로그 수정" }));
+    fireEvent.click(screen.getByRole("button", { name: "방탈로그 저장하기" }));
 
     await waitFor(() => {
       expect(updateMeetingLog).toHaveBeenCalledWith(501, {
@@ -316,7 +344,7 @@ describe("MeetingLogEditorPage", () => {
       await screen.findByText("이 모임은 삭제된 방탈로그가 있어 다시 작성할 수 없어요."),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "방탈로그 저장" }),
+      screen.queryByRole("button", { name: "방탈로그 저장하기" }),
     ).not.toBeInTheDocument();
   });
 
@@ -332,7 +360,7 @@ describe("MeetingLogEditorPage", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "방탈로그 작성하기" })).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("후기 본문"), {
+    fireEvent.change(screen.getByLabelText("탈출 후기 한마디"), {
       target: { value: "정말 재미있었던 모임이었어요." },
     });
     fireEvent.click(screen.getByRole("button", { name: "사진 추가" }));

@@ -2,11 +2,22 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { FormEvent } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 
+import {
+  createCrewWorkspaceFallback,
+  CrewWorkspaceShell,
+} from "@/features/crew/components/CrewPageClient";
+import crewWorkspaceStyles from "@/features/crew/components/CrewPageClient.module.css";
 import { getMe } from "@/shared/auth/client";
 import { resolveProtectedDestination } from "@/shared/auth/guards";
+import { getCrewHub } from "@/shared/crew/client";
+import type { CrewHubResponse } from "@/shared/crew/types";
+import { Button } from "@/shared/ui/Button";
+import { Chip } from "@/shared/ui/Chip";
+import { Radio } from "@/shared/ui/Radio";
+import { Textarea } from "@/shared/ui/Textarea";
 import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
 import { getMeetingDetail } from "@/shared/meeting/client";
 import type { MeetingDetail } from "@/shared/meeting/types";
@@ -22,6 +33,7 @@ import type {
   MeetingLogMeResponse,
   MeetingLogResultInput,
 } from "@/shared/log/types";
+import styles from "./MeetingLogEditorPageClient.module.css";
 
 type MeetingLogEditorPageClientProps = {
   crewId: string;
@@ -63,6 +75,8 @@ const RESULT_REQUIRED_MESSAGE = "방탈 결과를 선택해 주세요.";
 function buildPublicCrewPath(crewId: string): string {
   return `/crews/public/${crewId}`;
 }
+
+const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"] as const;
 
 function buildPhotoFields(photos: string[]): PhotoField[] {
   if (photos.length === 0) {
@@ -150,7 +164,13 @@ function validatePhotos(photoFields: PhotoField[]): {
 }
 
 function formatDateLabel(value: string): string {
-  return value;
+  const date = new Date(`${value}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return `${date.getMonth() + 1}월 ${date.getDate()}일 (${WEEKDAY_LABELS[date.getDay()]})`;
 }
 
 function isSupportedPhotoFile(file: File): boolean {
@@ -189,6 +209,7 @@ export function MeetingLogEditorPageClient({
 }: MeetingLogEditorPageClientProps) {
   const router = useRouter();
   const { replace, push } = router;
+  const [crew, setCrew] = useState<CrewHubResponse | null>(null);
   const [meeting, setMeeting] = useState<MeetingDetail | null>(null);
   const [myMeetingLog, setMyMeetingLog] = useState<MeetingLogMeResponse | null>(null);
   const [body, setBody] = useState("");
@@ -237,13 +258,17 @@ export function MeetingLogEditorPageClient({
           return;
         }
 
-        const detail = await getMeetingDetail(crewIdNumber, meetingIdNumber);
+        const [crewResponse, detail] = await Promise.all([
+          getCrewHub(crewIdNumber),
+          getMeetingDetail(crewIdNumber, meetingIdNumber),
+        ]);
 
         if (!isMounted) {
           return;
         }
 
         setCurrentUserId(me.user?.id ?? null);
+        setCrew(crewResponse);
         setMeeting(detail);
 
         const nextMyMeetingLog = await getMyMeetingLog(meetingIdNumber);
@@ -551,9 +576,16 @@ export function MeetingLogEditorPageClient({
     );
   }
 
+  const resolvedCrew = crew ?? createCrewWorkspaceFallback(crewId);
+  const renderInWorkspace = (children: ReactNode) => (
+    <CrewWorkspaceShell activeMenu="logs" crew={resolvedCrew} crewId={crewId}>
+      {children}
+    </CrewWorkspaceShell>
+  );
+
   if (!isEditMode && (isRecreateBlocked || !canStartCreateMode)) {
-    return (
-      <main>
+    return renderInWorkspace(
+      <section className={crewWorkspaceStyles.tabPanel}>
         <h1>방탈로그 작성하기</h1>
         <p>
           {isRecreateBlocked
@@ -561,131 +593,189 @@ export function MeetingLogEditorPageClient({
             : "이 모임은 지금 방탈로그를 작성할 수 없어요."}
         </p>
         <Link href={meetingPath}>모임 상세로 돌아가기</Link>
-      </main>
+      </section>,
     );
   }
 
-  return (
-    <main>
-      <h1>{isEditMode ? "방탈로그 수정하기" : "방탈로그 작성하기"}</h1>
-      <p>{meeting.title}</p>
-      <p>
-        {meeting.themeName} · {meeting.place} · {formatDateLabel(meeting.date)}
-      </p>
-      <Link href={meetingPath}>모임 상세로 돌아가기</Link>
+  const dateLabel = formatDateLabel(meeting.date);
+  const meetingMetaText = `${dateLabel} · ${meeting.capacity}명 참여`;
+  const uploadedPhotoCount = photoFields.length;
 
-      {noticeMessage ? <p>{noticeMessage}</p> : null}
-      {errorMessage ? <p>{errorMessage}</p> : null}
-
-      <form onSubmit={(event) => void handleSubmit(event)}>
-        <div style={{ display: "grid", gap: 8, marginTop: 16 }}>
-          <label htmlFor="log-body">후기 본문</label>
-          <textarea
-            id="log-body"
-            value={body}
-            maxLength={BODY_MAX_LENGTH}
-            onChange={(event) => setBody(event.target.value)}
-            rows={8}
-          />
-          <p>{body.length}/{BODY_MAX_LENGTH}</p>
-        </div>
-
-        <fieldset aria-label="방탈 결과" style={{ display: "grid", gap: 8, marginTop: 20 }}>
-          <legend>방탈 결과</legend>
-          <p>내가 남기는 방탈로그 기준으로 이번 방탈의 성공 여부를 기록해 주세요.</p>
-          <label>
-            <input
-              type="radio"
-              name="meeting-result"
-              value="SUCCESS"
-              checked={selectedResult === "SUCCESS"}
-              onChange={() => setSelectedResult("SUCCESS")}
-            />
-            성공
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="meeting-result"
-              value="FAILURE"
-              checked={selectedResult === "FAILURE"}
-              onChange={() => setSelectedResult("FAILURE")}
-            />
-            실패
-          </label>
-        </fieldset>
-
-        <section aria-label="사진 입력" style={{ display: "grid", gap: 12, marginTop: 20 }}>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <strong>사진</strong>
-            <button
-              type="button"
-              onClick={handleAddPhoto}
-              disabled={photoFields.length >= MAX_PHOTO_COUNT}
-            >
-              사진 추가
-            </button>
+  return renderInWorkspace(
+    <section className={crewWorkspaceStyles.tabPanel}>
+      <section className={styles.card} aria-label="방탈로그 작성 폼">
+        <header className={styles.header}>
+          <h1>{isEditMode ? "방탈로그 수정하기" : "방탈로그 작성하기"}</h1>
+          <div className={styles.meetingMeta}>
+            <Chip size="sm" variant="solid" leftIcon={<span aria-hidden="true">📅</span>}>
+              <span>{dateLabel}</span>
+              <span aria-hidden="true"> · </span>
+              <span>{`[방탈출] ${meeting.place}`}</span>
+            </Chip>
           </div>
-          <p>최대 5장, jpg/jpeg/png, 한 장당 5MB 이하 파일만 업로드할 수 있어요.</p>
-          {photoFields.map((photoField, index) => (
-            <div
-              key={photoField.id}
-              style={{
-                display: "grid",
-                gap: 8,
-                border: "1px solid #d9d9d9",
-                borderRadius: 12,
-                padding: 12,
-              }}
-            >
-              <p>
-                {photoField.fileName
-                  ? `${photoField.fileName} · ${formatPhotoSize(photoField.sizeBytes)}`
-                  : "아직 선택한 사진이 없어요."}
-              </p>
-              {photoField.kind === "existing" ? (
-                <p>기존 사진</p>
-              ) : (
-                <>
-                  <label htmlFor={`log-photo-file-${photoField.id}`}>{`사진 파일 ${index + 1}`}</label>
-                  <input
-                    id={`log-photo-file-${photoField.id}`}
-                    type="file"
-                    accept=".jpg,.jpeg,.png,image/jpeg,image/png"
-                    onChange={(event) =>
-                      void handlePhotoSelect(photoField.id, event.currentTarget.files?.[0] ?? null)
-                    }
-                  />
-                  <p>
-                    {photoField.uploadStatus === "uploading"
-                      ? "업로드 중..."
-                      : photoField.uploadStatus === "uploaded"
-                        ? "업로드 완료"
-                        : photoField.uploadStatus === "failed"
-                          ? "업로드 실패"
-                          : "업로드 대기 중"}
-                  </p>
-                </>
-              )}
-              {photoField.errorMessage ? <p>{photoField.errorMessage}</p> : null}
-              <button type="button" onClick={() => handleRemovePhoto(photoField.id)}>
-                {`사진 제거 ${index + 1}`}
-              </button>
-            </div>
-          ))}
-          {photoErrorMessage ? <p>{photoErrorMessage}</p> : null}
-        </section>
+        </header>
 
-        <div style={{ display: "flex", gap: 8, marginTop: 24, flexWrap: "wrap" }}>
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting
-              ? "저장 중..."
-              : isEditMode
-                ? "방탈로그 수정"
-                : "방탈로그 저장"}
-          </button>
-        </div>
-      </form>
-    </main>
+        {noticeMessage ? <p className={styles.notice}>{noticeMessage}</p> : null}
+        {errorMessage ? <p className={styles.error}>{errorMessage}</p> : null}
+
+        <form className={styles.form} onSubmit={(event) => void handleSubmit(event)}>
+          <section className={styles.formSection} aria-label="사진 입력">
+            <div className={styles.sectionHeader}>
+              <h2>사진 첨부</h2>
+              <span className={styles.countBadge}>{uploadedPhotoCount} / {MAX_PHOTO_COUNT}장</span>
+            </div>
+
+            <div className={styles.photoGrid}>
+              {photoFields.map((photoField, index) => {
+                const photoStatus =
+                  photoField.uploadStatus === "uploading"
+                    ? "업로드 중..."
+                    : photoField.uploadStatus === "uploaded"
+                      ? "업로드 완료"
+                      : photoField.uploadStatus === "failed"
+                        ? "업로드 실패"
+                        : "업로드 대기 중";
+                const previewUrl =
+                  photoField.kind === "existing" ? photoField.url : photoField.url;
+
+                return (
+                  <div key={photoField.id} className={styles.photoTile}>
+                    {previewUrl ? (
+                      <span
+                        aria-label={photoField.kind === "existing" ? "기존 사진" : photoStatus}
+                        className={styles.photoPreview}
+                        style={{ backgroundImage: `url(${previewUrl})` }}
+                        role="img"
+                      />
+                    ) : (
+                      <label
+                        className={styles.photoUploadTile}
+                        htmlFor={`log-photo-file-${photoField.id}`}
+                      >
+                        <span aria-hidden="true">+</span>
+                        <span>{`사진 파일 ${index + 1}`}</span>
+                      </label>
+                    )}
+
+                    {photoField.kind === "uploaded" ? (
+                      <input
+                        id={`log-photo-file-${photoField.id}`}
+                        aria-label={`사진 파일 ${index + 1}`}
+                        className={styles.fileInput}
+                        type="file"
+                        accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                        onChange={(event) =>
+                          void handlePhotoSelect(
+                            photoField.id,
+                            event.currentTarget.files?.[0] ?? null,
+                          )
+                        }
+                      />
+                    ) : null}
+
+                    {previewUrl ? (
+                      <button
+                        type="button"
+                        aria-label={`사진 제거 ${index + 1}`}
+                        className={styles.removePhotoButton}
+                        onClick={() => handleRemovePhoto(photoField.id)}
+                      >
+                        ×
+                      </button>
+                    ) : null}
+
+                    <span className={styles.photoStatus}>
+                      {photoField.kind === "existing"
+                        ? "기존 사진"
+                        : photoStatus}
+                    </span>
+                    {photoField.kind === "uploaded" && photoField.fileName ? (
+                      <span className={styles.photoMeta}>
+                        {photoField.fileName} · {formatPhotoSize(photoField.sizeBytes)}
+                      </span>
+                    ) : null}
+                    {photoField.errorMessage ? (
+                      <span className={styles.photoError}>{photoField.errorMessage}</span>
+                    ) : null}
+                  </div>
+                );
+              })}
+
+              {photoFields.length < MAX_PHOTO_COUNT ? (
+                <button
+                  type="button"
+                  className={styles.addPhotoTile}
+                  onClick={handleAddPhoto}
+                >
+                  <span aria-hidden="true">+</span>
+                  <span>사진 추가</span>
+                </button>
+              ) : null}
+            </div>
+
+            <p className={styles.helperText}>
+              jpg · jpeg · png  |  파일당 최대 5MB  |  한 모임당 최대 5장
+            </p>
+            {photoErrorMessage ? <p className={styles.error}>{photoErrorMessage}</p> : null}
+          </section>
+
+          <fieldset aria-label="방탈 결과" className={styles.formSection}>
+            <div className={styles.sectionHeader}>
+              <legend>성공 / 실패 여부</legend>
+            </div>
+            <div className={styles.resultGrid}>
+              <div className={styles.resultCard} data-selected={selectedResult === "FAILURE"}>
+                <Radio
+                  name="meeting-result"
+                  value="FAILURE"
+                  label="실패"
+                  checked={selectedResult === "FAILURE"}
+                  onChange={() => setSelectedResult("FAILURE")}
+                />
+                <span>{meetingMetaText}</span>
+              </div>
+              <div className={styles.resultCard} data-selected={selectedResult === "SUCCESS"}>
+                <Radio
+                  name="meeting-result"
+                  value="SUCCESS"
+                  label="성공"
+                  checked={selectedResult === "SUCCESS"}
+                  onChange={() => setSelectedResult("SUCCESS")}
+                />
+                <span>{meetingMetaText}</span>
+              </div>
+            </div>
+          </fieldset>
+
+          <section className={styles.formSection} aria-label="탈출 후기 입력">
+            <div className={styles.sectionHeader}>
+              <h2>탈출 후기 한마디</h2>
+              <span className={styles.requiredBadge}>필수</span>
+            </div>
+            <Textarea
+              id="log-body"
+              label="탈출 후기 한마디"
+              className={styles.bodyTextarea}
+              value={body}
+              maxLength={BODY_MAX_LENGTH}
+              onChange={(event) => setBody(event.target.value)}
+              placeholder="방탈출 후기를 자유롭게 남겨보세요."
+              rows={5}
+              variant="filled"
+            />
+          </section>
+
+          <Button
+            type="submit"
+            size="lg"
+            variant="primary"
+            className={styles.submitButton}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "저장 중..." : "방탈로그 저장하기"}
+          </Button>
+        </form>
+      </section>
+    </section>,
   );
 }
