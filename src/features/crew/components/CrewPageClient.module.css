@@ -1151,6 +1151,229 @@
   color: #fff;
 }
 
+.meetingLogPickerDialog {
+  background: var(--color-background-default);
+  border-radius: 16px;
+  box-shadow: 0 28px 80px rgb(0 0 0 / 0.28);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  max-height: min(86vh, 612px);
+  max-width: 700px;
+  overflow: hidden;
+  width: min(100%, 700px);
+}
+
+.meetingLogPickerHeader {
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-default);
+  display: flex;
+  justify-content: space-between;
+  min-height: 76px;
+  padding: 0 30px;
+}
+
+.meetingLogPickerHeader h2 {
+  font-size: 22px;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.meetingLogPickerCloseButton {
+  align-items: center;
+  background: #111;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 30px;
+  font-weight: 700;
+  height: 34px;
+  justify-content: center;
+  line-height: 1;
+  width: 34px;
+}
+
+.meetingLogPickerBody {
+  display: grid;
+  gap: 16px;
+  min-height: 0;
+  overflow: hidden;
+  padding: 24px 30px 14px;
+}
+
+.meetingLogPickerBody > p {
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.meetingLogPickerState {
+  align-items: center;
+  background: var(--color-background-subtle);
+  border-radius: 12px;
+  display: flex;
+  min-height: 120px;
+  padding: 20px;
+}
+
+.meetingLogPickerList {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.meetingLogPickerItem {
+  align-items: center;
+  background: var(--color-background-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-height: 74px;
+  padding: 14px 20px;
+  text-align: left;
+  width: 100%;
+}
+
+.meetingLogPickerItem[data-selected="true"] {
+  background: #e7f2ff;
+  border-color: #111;
+  border-width: 2px;
+}
+
+.meetingLogPickerRadio {
+  border: 2px solid var(--color-border-default);
+  border-radius: 999px;
+  height: 22px;
+  position: relative;
+  width: 22px;
+}
+
+.meetingLogPickerItem[data-selected="true"] .meetingLogPickerRadio {
+  border-color: #111;
+}
+
+.meetingLogPickerItem[data-selected="true"] .meetingLogPickerRadio::after {
+  background: #111;
+  border-radius: 999px;
+  content: "";
+  height: 8px;
+  inset: 50% auto auto 50%;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 8px;
+}
+
+.meetingLogPickerInfo {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.meetingLogPickerInfo strong {
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.meetingLogPickerInfo span {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.meetingLogPickerStatus {
+  background: #b24df2;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 6px 10px;
+}
+
+.meetingLogPickerFooter {
+  align-items: center;
+  border-top: 1px solid var(--color-border-default);
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  min-height: 94px;
+  padding: 16px 30px;
+}
+
+.meetingLogPickerInlinePagination {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto 1fr auto;
+  justify-self: stretch;
+  margin-top: -2px;
+  min-height: 34px;
+}
+
+.meetingLogPickerPagination {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.meetingLogPickerDot {
+  background: #d9d9d9;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  height: 7px;
+  padding: 0;
+  width: 7px;
+}
+
+.meetingLogPickerDot[data-active="true"] {
+  background: #111;
+}
+
+.meetingLogPickerArrowButton {
+  align-items: center;
+  background: var(--color-background-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: 999px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 20px;
+  font-weight: 700;
+  height: 32px;
+  justify-content: center;
+  line-height: 1;
+  width: 32px;
+}
+
+.meetingLogPickerArrowButton:disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.meetingLogPickerActions {
+  align-items: center;
+  display: inline-flex;
+  gap: 10px;
+}
+
+.meetingLogPickerSubmitButton {
+  background: #111 !important;
+  border-radius: 10px;
+  min-height: 42px;
+  padding-inline: 24px;
+}
+
 .logLightbox {
   display: grid;
   gap: 16px;

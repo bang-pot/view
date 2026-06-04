@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { getMe } from "@/shared/auth/client";
+import { getJoinedMeetings, getMe } from "@/shared/auth/client";
+import type { JoinedMeetingListItem } from "@/shared/auth/types";
 import { resolveProtectedDestination } from "@/shared/auth/guards";
 import { getCrewHub } from "@/shared/crew/client";
 import type { CrewHubResponse } from "@/shared/crew/types";
@@ -24,6 +25,9 @@ type CrewLogFeedPageClientProps = {
 };
 
 const PAGE_SIZE = 20;
+const MEETING_PICKER_API_PAGE_SIZE = 20;
+const MEETING_PICKER_PAGE_SIZE = 4;
+const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"] as const;
 
 function buildPublicCrewPath(crewId: string): string {
   return `/crews/public/${crewId}`;
@@ -31,6 +35,10 @@ function buildPublicCrewPath(crewId: string): string {
 
 function buildCrewLogDetailPath(crewId: string, logId: number): string {
   return `/crews/${crewId}/logs/${logId}`;
+}
+
+function buildMeetingLogEditorPath(crewId: string, meetingId: number): string {
+  return `/crews/${crewId}/meetings/${meetingId}/log`;
 }
 
 function mergeItems(
@@ -56,6 +64,41 @@ function getExcerpt(excerpt: string): string {
 
 function getFeedExcerpt(item: CrewLogFeedItem): string {
   return `[${item.themeName}] ${getExcerpt(item.excerpt)}`;
+}
+
+function getMeetingPickerTitle(item: JoinedMeetingListItem): string {
+  return item.themeName.trim() || item.title;
+}
+
+function getMeetingPickerDateLabel(date: string): string {
+  const parsedDate = new Date(`${date}T00:00:00`);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return date;
+  }
+
+  const year = parsedDate.getFullYear();
+  const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+  const day = String(parsedDate.getDate()).padStart(2, "0");
+  const weekday = WEEKDAY_LABELS[parsedDate.getDay()];
+
+  return `${year}.${month}.${day} (${weekday})`;
+}
+
+function getMeetingPickerParticipantLabel(item: JoinedMeetingListItem): string {
+  if (typeof item.participantCount === "number") {
+    return `${item.participantCount}명 참여`;
+  }
+
+  if (typeof item.capacity === "number") {
+    return `${item.capacity}명 정원`;
+  }
+
+  return "참여 완료";
+}
+
+function isWritableCrewMeeting(item: JoinedMeetingListItem, crewId: number): boolean {
+  return item.crewId === crewId && item.status === "COMPLETED" && item.canWriteReview;
 }
 
 function toResultLabel(result: CrewLogFeedItem["result"]): string {
@@ -90,16 +133,186 @@ function LogPlaceholderGrid() {
   );
 }
 
-function LogFeedHeader({ crewId }: { crewId: string }) {
+type MeetingLogPickerModalProps = {
+  errorMessage: string | null;
+  isLoading: boolean;
+  items: JoinedMeetingListItem[];
+  onClose: () => void;
+  onPageChange: (page: number) => void;
+  onSelect: (meetingId: number) => void;
+  onSubmit: () => void;
+  page: number;
+  selectedMeetingId: number | null;
+};
+
+function MeetingLogPickerModal({
+  errorMessage,
+  isLoading,
+  items,
+  onClose,
+  onPageChange,
+  onSelect,
+  onSubmit,
+  page,
+  selectedMeetingId,
+}: MeetingLogPickerModalProps) {
+  const pageCount = Math.max(1, Math.ceil(items.length / MEETING_PICKER_PAGE_SIZE));
+  const resolvedPage = Math.min(page, pageCount - 1);
+  const visibleItems = items.slice(
+    resolvedPage * MEETING_PICKER_PAGE_SIZE,
+    resolvedPage * MEETING_PICKER_PAGE_SIZE + MEETING_PICKER_PAGE_SIZE,
+  );
+  const isSubmitDisabled = isLoading || selectedMeetingId === null;
+  const hasMultiplePages = pageCount > 1;
+  const handlePreviousPage = () => onPageChange(Math.max(0, resolvedPage - 1));
+  const handleNextPage = () => onPageChange(Math.min(pageCount - 1, resolvedPage + 1));
+
+  return (
+    <div className={crewWorkspaceStyles.logModalOverlay} onClick={onClose}>
+      <section
+        aria-label="참여한 모임 리스트"
+        aria-modal="true"
+        className={crewWorkspaceStyles.meetingLogPickerDialog}
+        onClick={(event) => event.stopPropagation()}
+        role="dialog"
+      >
+        <header className={crewWorkspaceStyles.meetingLogPickerHeader}>
+          <h2>참여한 모임 리스트</h2>
+          <button
+            type="button"
+            aria-label="닫기"
+            className={crewWorkspaceStyles.meetingLogPickerCloseButton}
+            onClick={onClose}
+          >
+            ×
+          </button>
+        </header>
+
+        <div className={crewWorkspaceStyles.meetingLogPickerBody}>
+          <p>방탈 로그를 작성할 완료된 방탈 모집을 선택해 주세요.</p>
+
+          {isLoading ? (
+            <p className={crewWorkspaceStyles.meetingLogPickerState}>
+              참여한 모임을 불러오는 중입니다.
+            </p>
+          ) : null}
+          {errorMessage ? (
+            <p className={crewWorkspaceStyles.meetingLogPickerState}>{errorMessage}</p>
+          ) : null}
+          {!isLoading && !errorMessage && items.length === 0 ? (
+            <p className={crewWorkspaceStyles.meetingLogPickerState}>
+              로그를 작성할 수 있는 완료된 모임이 없어요.
+            </p>
+          ) : null}
+
+          {!isLoading && !errorMessage && visibleItems.length > 0 ? (
+            <ul className={crewWorkspaceStyles.meetingLogPickerList}>
+              {visibleItems.map((item) => {
+                const title = getMeetingPickerTitle(item);
+                const isSelected = selectedMeetingId === item.meetingId;
+
+                return (
+                  <li key={item.meetingId}>
+                    <button
+                      type="button"
+                      aria-label={`${title} 선택`}
+                      aria-pressed={isSelected}
+                      className={crewWorkspaceStyles.meetingLogPickerItem}
+                      data-selected={isSelected ? "true" : "false"}
+                      onClick={() => onSelect(item.meetingId)}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={crewWorkspaceStyles.meetingLogPickerRadio}
+                      />
+                      <span className={crewWorkspaceStyles.meetingLogPickerInfo}>
+                        <strong>{title}</strong>
+                        <span>
+                          {getMeetingPickerDateLabel(item.date)} ·{" "}
+                          {getMeetingPickerParticipantLabel(item)}
+                        </span>
+                      </span>
+                      <span className={crewWorkspaceStyles.meetingLogPickerStatus}>완료</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+
+          {hasMultiplePages ? (
+            <nav
+              aria-label="참여 모임 페이지 이동"
+              className={crewWorkspaceStyles.meetingLogPickerInlinePagination}
+            >
+              <button
+                type="button"
+                aria-label="이전"
+                className={crewWorkspaceStyles.meetingLogPickerArrowButton}
+                disabled={resolvedPage === 0}
+                onClick={handlePreviousPage}
+              >
+                ‹
+              </button>
+              <div className={crewWorkspaceStyles.meetingLogPickerPagination}>
+                {Array.from({ length: pageCount }, (_, index) => (
+                  <button
+                    key={`meeting-picker-page-${index + 1}`}
+                    type="button"
+                    aria-current={index === resolvedPage ? "page" : undefined}
+                    aria-label={`${index + 1}페이지`}
+                    className={crewWorkspaceStyles.meetingLogPickerDot}
+                    data-active={index === resolvedPage ? "true" : "false"}
+                    onClick={() => onPageChange(index)}
+                  />
+                ))}
+              </div>
+              <button
+                type="button"
+                aria-label="다음"
+                className={crewWorkspaceStyles.meetingLogPickerArrowButton}
+                disabled={resolvedPage >= pageCount - 1}
+                onClick={handleNextPage}
+              >
+                ›
+              </button>
+            </nav>
+          ) : null}
+        </div>
+
+        <footer
+          aria-label="방탈로그 작성 액션"
+          className={crewWorkspaceStyles.meetingLogPickerFooter}
+        >
+          <div className={crewWorkspaceStyles.meetingLogPickerActions}>
+            <Button
+              type="button"
+              size="md"
+              variant="primary"
+              className={crewWorkspaceStyles.meetingLogPickerSubmitButton}
+              disabled={isSubmitDisabled}
+              onClick={onSubmit}
+            >
+              로그 작성하기
+            </Button>
+          </div>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
+function LogFeedHeader({ onOpenMeetingPicker }: { onOpenMeetingPicker: () => void }) {
   return (
     <header className={crewWorkspaceStyles.logFeedHeader}>
       <h1>방탈로그</h1>
       <Button
-        href={`/crews/${crewId}/meetings`}
+        type="button"
         size="sm"
         variant="primary"
         className={crewWorkspaceStyles.logWriteButton}
         leftIcon={<span className={crewWorkspaceStyles.squareIcon} aria-hidden="true" />}
+        onClick={onOpenMeetingPicker}
       >
         로그 작성하기
       </Button>
@@ -117,6 +330,12 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isMeetingPickerOpen, setIsMeetingPickerOpen] = useState(false);
+  const [isMeetingPickerLoading, setIsMeetingPickerLoading] = useState(false);
+  const [meetingPickerErrorMessage, setMeetingPickerErrorMessage] = useState<string | null>(null);
+  const [meetingPickerItems, setMeetingPickerItems] = useState<JoinedMeetingListItem[]>([]);
+  const [meetingPickerPage, setMeetingPickerPage] = useState(0);
+  const [selectedMeetingId, setSelectedMeetingId] = useState<number | null>(null);
 
   const crewIdNumber = Number(crewId);
   const hasValidCrewId = Number.isFinite(crewIdNumber);
@@ -237,6 +456,59 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
     }
   }
 
+  async function handleOpenMeetingPicker() {
+    setIsMeetingPickerOpen(true);
+    setIsMeetingPickerLoading(true);
+    setMeetingPickerErrorMessage(null);
+    setMeetingPickerPage(0);
+
+    try {
+      const response = await getJoinedMeetings({
+        page: 0,
+        size: MEETING_PICKER_API_PAGE_SIZE,
+      });
+      const writableMeetings = response.items.filter((item) =>
+        isWritableCrewMeeting(item, crewIdNumber),
+      );
+
+      setMeetingPickerItems(writableMeetings);
+      setSelectedMeetingId((currentMeetingId) => {
+        if (
+          currentMeetingId !== null &&
+          writableMeetings.some((item) => item.meetingId === currentMeetingId)
+        ) {
+          return currentMeetingId;
+        }
+
+        return writableMeetings[0]?.meetingId ?? null;
+      });
+    } catch (error) {
+      reportOperationalError("crew.log_feed.joined_meetings_load_failed", error, {
+        level: "warn",
+        route: routePath,
+      });
+      setMeetingPickerItems([]);
+      setSelectedMeetingId(null);
+      setMeetingPickerErrorMessage(
+        getUserMessage(error, "참여한 모임 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
+      );
+    } finally {
+      setIsMeetingPickerLoading(false);
+    }
+  }
+
+  function handleCloseMeetingPicker() {
+    setIsMeetingPickerOpen(false);
+  }
+
+  function handleSubmitMeetingPicker() {
+    if (selectedMeetingId === null) {
+      return;
+    }
+
+    router.push(buildMeetingLogEditorPath(crewId, selectedMeetingId));
+  }
+
   if (!hasValidCrewId) {
     return (
       <main>
@@ -247,22 +519,42 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
   }
 
   const resolvedCrew = crew ?? createCrewWorkspaceFallback(crewId);
+  const meetingPickerModal = isMeetingPickerOpen ? (
+    <MeetingLogPickerModal
+      errorMessage={meetingPickerErrorMessage}
+      isLoading={isMeetingPickerLoading}
+      items={meetingPickerItems}
+      onClose={handleCloseMeetingPicker}
+      onPageChange={setMeetingPickerPage}
+      onSelect={setSelectedMeetingId}
+      onSubmit={handleSubmitMeetingPicker}
+      page={meetingPickerPage}
+      selectedMeetingId={selectedMeetingId}
+    />
+  ) : null;
 
   if (isLoading) {
     return (
       <CrewWorkspaceShell activeMenu="logs" crew={resolvedCrew} crewId={crewId}>
-        <section className={`${crewWorkspaceStyles.tabPanel} ${crewWorkspaceStyles.logFeedPanel}`}>
-          <LogFeedHeader crewId={crewId} />
+        <section
+          aria-hidden={isMeetingPickerOpen ? true : undefined}
+          className={`${crewWorkspaceStyles.tabPanel} ${crewWorkspaceStyles.logFeedPanel}`}
+        >
+          <LogFeedHeader onOpenMeetingPicker={handleOpenMeetingPicker} />
           <p>크루 방탈로그 피드를 불러오는 중입니다.</p>
         </section>
+        {meetingPickerModal}
       </CrewWorkspaceShell>
     );
   }
 
   return (
     <CrewWorkspaceShell activeMenu="logs" crew={resolvedCrew} crewId={crewId}>
-      <section className={`${crewWorkspaceStyles.tabPanel} ${crewWorkspaceStyles.logFeedPanel}`}>
-      <LogFeedHeader crewId={crewId} />
+      <section
+        aria-hidden={isMeetingPickerOpen ? true : undefined}
+        className={`${crewWorkspaceStyles.tabPanel} ${crewWorkspaceStyles.logFeedPanel}`}
+      >
+      <LogFeedHeader onOpenMeetingPicker={handleOpenMeetingPicker} />
 
       {noticeMessage ? <p>{noticeMessage}</p> : null}
       {errorMessage ? <p>{errorMessage}</p> : null}
@@ -330,6 +622,7 @@ export function CrewLogFeedPageClient({ crewId }: CrewLogFeedPageClientProps) {
         </>
       ) : null}
       </section>
+      {meetingPickerModal}
     </CrewWorkspaceShell>
   );
 }
