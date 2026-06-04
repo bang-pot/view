@@ -1,18 +1,29 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
+import {
+  createCrewWorkspaceFallback,
+  CrewWorkspaceShell,
+} from "@/features/crew/components/CrewPageClient";
+import styles from "@/features/crew/components/CrewPageClient.module.css";
 import { getMe } from "@/shared/auth/client";
 import { resolveProtectedDestination } from "@/shared/auth/guards";
 import { getCrewHub } from "@/shared/crew/client";
+import type { CrewHubResponse } from "@/shared/crew/types";
 import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
 import {
   deleteMeetingLog,
   getCrewLogDetail,
   getMyMeetingLog,
 } from "@/shared/log/client";
-import type { MeetingLogDetail, MeetingLogMeResponse } from "@/shared/log/types";
+import type {
+  MeetingLogDetail,
+  MeetingLogMeResponse,
+  MeetingLogResultInput,
+} from "@/shared/log/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
 type MeetingLogDetailPageClientProps = {
@@ -28,11 +39,32 @@ function getDeleteSuccessNotice(deletedBy: "AUTHOR" | "LEADER"): string {
   return deletedBy === "AUTHOR" ? "deleted-own-log" : "deleted-crew-log";
 }
 
+function toResultLabel(result: MeetingLogResultInput): string {
+  return result === "SUCCESS" ? "성공" : "실패";
+}
+
+function formatLogDate(date: string): string {
+  const parsedDate = new Date(`${date}T00:00:00+09:00`);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return date;
+  }
+
+  const weekday = ["일", "월", "화", "수", "목", "금", "토"][parsedDate.getDay()];
+
+  return `${parsedDate.getMonth() + 1}월 ${parsedDate.getDate()}일 (${weekday})`;
+}
+
+function getAuthorInitial(nickname: string): string {
+  return nickname.trim().slice(0, 1).toUpperCase() || "방";
+}
+
 export function MeetingLogDetailPageClient({
   logId,
   crewId,
 }: MeetingLogDetailPageClientProps) {
   const router = useRouter();
+  const [crew, setCrew] = useState<CrewHubResponse | null>(null);
   const [log, setLog] = useState<MeetingLogDetail | null>(null);
   const [myMeetingLog, setMyMeetingLog] = useState<MeetingLogMeResponse | null>(null);
   const [crewRole, setCrewRole] = useState<string | null>(null);
@@ -51,6 +83,10 @@ export function MeetingLogDetailPageClient({
   const hasValidCrewId = Number.isFinite(crewIdNumber);
   const routePath = useMemo(() => `/crews/${crewId}/logs/${logId}`, [crewId, logId]);
   const feedPath = useMemo(() => `/crews/${crewId}/logs`, [crewId]);
+  const editPath = useMemo(
+    () => (log ? `/crews/${crewId}/meetings/${log.meetingId}/log` : feedPath),
+    [crewId, feedPath, log],
+  );
   const publicCrewPath = buildPublicCrewPath(crewId);
 
   useEffect(() => {
@@ -77,7 +113,7 @@ export function MeetingLogDetailPageClient({
 
         setCurrentUserNickname(me.user?.nickname ?? null);
 
-        const [crew, detail] = await Promise.all([
+        const [crewResponse, detail] = await Promise.all([
           getCrewHub(crewIdNumber),
           getCrewLogDetail(crewIdNumber, logIdNumber),
         ]);
@@ -101,7 +137,8 @@ export function MeetingLogDetailPageClient({
           return;
         }
 
-        setCrewRole(crew.myRole ?? null);
+        setCrew(crewResponse);
+        setCrewRole(crewResponse.myRole ?? null);
         setMyMeetingLog(nextMyMeetingLog);
         setLog(detail);
 
@@ -132,8 +169,8 @@ export function MeetingLogDetailPageClient({
           getUserMessage(
             error,
             crewId
-              ? "크루 방탈로그 상세를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."
-              : "방탈로그 상세를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+              ? "크루 방탈로그 상세를 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요."
+              : "방탈로그 상세를 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요.",
           ),
         );
         setIsLoading(false);
@@ -217,7 +254,7 @@ export function MeetingLogDetailPageClient({
       });
 
       setDeleteErrorMessage(
-        getUserMessage(error, "방탈로그를 삭제하지 못했어요. 잠시 후 다시 시도해 주세요."),
+        getUserMessage(error, "방탈로그를 삭제하지 못했어요. 잠시 뒤 다시 시도해 주세요."),
       );
       setIsDeleting(false);
     }
@@ -251,6 +288,7 @@ export function MeetingLogDetailPageClient({
 
   const previewPhotos = log.photos.slice(0, 3);
   const hasPhotos = log.photos.length > 0;
+  const hasHiddenPhotos = log.photos.length > previewPhotos.length;
   const selectedPhoto =
     selectedPhotoIndex != null ? log.photos[selectedPhotoIndex] : null;
   const isAuthor =
@@ -258,75 +296,90 @@ export function MeetingLogDetailPageClient({
     currentUserNickname === log.authorNickname;
   const canDeleteAsLeader = crewRole === "LEADER" && !isAuthor;
   const canDeleteLog = isAuthor || canDeleteAsLeader;
-  const selectedPhotoLabel =
-    selectedPhotoIndex == null ? `1 / ${log.photos.length}` : `${selectedPhotoIndex + 1} / ${log.photos.length}`;
+  const workspaceCrew = crew ?? createCrewWorkspaceFallback(crewId);
 
   return (
-    <main>
-      <h1>크루 방탈로그 상세</h1>
-      <p>{log.meetingTitle}</p>
-      <p>
-        {log.themeName} / {log.place} / {log.date}
-      </p>
-      <p>작성자 {log.authorNickname}</p>
-      <p>기록 시간 {log.createdAt}</p>
-      <p>수정 시간 {log.updatedAt}</p>
-
-      {canDeleteLog ? (
-        <section aria-label="방탈로그 관리" style={{ marginTop: 16 }}>
-          <button type="button" onClick={handleOpenDeleteModal}>
-            삭제
-          </button>
-        </section>
-      ) : null}
-
-      {hasPhotos ? (
-        <section aria-label="방탈로그 사진" style={{ marginTop: 16 }}>
-          <h2>사진</h2>
-          <div
-            style={{
-              display: "grid",
-              gridAutoFlow: "column",
-              gridAutoColumns: "minmax(220px, 240px)",
-              gap: 12,
-              overflowX: "auto",
-              paddingBottom: 8,
-            }}
+    <CrewWorkspaceShell activeMenu="logs" crew={workspaceCrew} crewId={crewId}>
+      <section className={styles.logDetailPanel} aria-label="방탈로그 상세">
+        <header className={styles.logDetailToolbar}>
+          <Link
+            className={styles.logDetailBackLink}
+            href={feedPath}
+            aria-label="방탈로그 목록"
           >
-            {previewPhotos.map((photo, index) => (
+            ← 방탈로그 목록
+          </Link>
+          <div className={styles.logDetailActions}>
+            {isAuthor ? (
+              <Link className={styles.logDetailEditLink} href={editPath}>
+                수정하기
+              </Link>
+            ) : null}
+            {canDeleteLog ? (
               <button
-                key={`${photo}-${index}`}
+                className={styles.logDetailDeleteButton}
                 type="button"
-                onClick={() => setSelectedPhotoIndex(index)}
-                aria-label={`사진 ${index + 1} 보기`}
-                style={{
-                  border: 0,
-                  padding: 0,
-                  background: "transparent",
-                  cursor: "pointer",
-                }}
+                onClick={handleOpenDeleteModal}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={photo}
-                  alt={`${log.themeName} 방탈로그 사진 ${index + 1}`}
-                  style={{
-                    width: "100%",
-                    aspectRatio: "4 / 3",
-                    objectFit: "cover",
-                    borderRadius: 12,
-                  }}
-                />
+                삭제
               </button>
-            ))}
+            ) : null}
           </div>
-          <p>{selectedPhotoLabel}</p>
-        </section>
-      ) : null}
+        </header>
 
-      <section aria-label="방탈로그 본문" style={{ marginTop: 16 }}>
-        <h2>기록 내용</h2>
-        <p style={{ whiteSpace: "pre-wrap" }}>{log.body}</p>
+        <article className={styles.logDetailCard}>
+          <header className={styles.logDetailAuthorRow}>
+            <span className={styles.logDetailAvatar} aria-hidden="true">
+              {getAuthorInitial(log.authorNickname)}
+            </span>
+            <div>
+              <strong>{log.authorNickname}</strong>
+              <p>
+                [{log.meetingTitle}] · {toResultLabel(log.result)} ·{" "}
+                {formatLogDate(log.date)}
+              </p>
+            </div>
+          </header>
+
+          {hasPhotos ? (
+            <section className={styles.logDetailPhotoSection} aria-label="방탈로그 사진">
+              <div className={styles.logDetailPhotoGrid}>
+                {previewPhotos.map((photo, index) => (
+                  <button
+                    key={`${photo}-${index}`}
+                    className={styles.logDetailPhotoButton}
+                    type="button"
+                    onClick={() => setSelectedPhotoIndex(index)}
+                    aria-label={`사진 ${index + 1} 보기`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={photo}
+                      alt={`${log.themeName} 방탈로그 사진 ${index + 1}`}
+                    />
+                  </button>
+                ))}
+                {hasHiddenPhotos ? (
+                  <button
+                    className={styles.logDetailPhotoNext}
+                    type="button"
+                    onClick={() => setSelectedPhotoIndex(previewPhotos.length)}
+                    aria-label="다음 사진 보기"
+                  >
+                    →
+                  </button>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
+
+          <div className={styles.logDetailDivider} />
+
+          <section className={styles.logDetailBody} aria-label="방탈로그 본문">
+            <h1>[{log.themeName}]</h1>
+            <p>{log.body}</p>
+          </section>
+        </article>
       </section>
 
       {isDeleteModalOpen ? (
@@ -334,31 +387,14 @@ export function MeetingLogDetailPageClient({
           role="dialog"
           aria-modal="true"
           aria-label={canDeleteAsLeader ? "운영 삭제 확인" : "내 방탈로그 삭제 확인"}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0, 0, 0, 0.56)",
-            display: "grid",
-            placeItems: "center",
-            padding: 24,
-          }}
+          className={styles.logModalOverlay}
         >
-          <div
-            style={{
-              width: "100%",
-              maxWidth: 420,
-              background: "#fff",
-              borderRadius: 16,
-              padding: 20,
-              display: "grid",
-              gap: 12,
-            }}
-          >
+          <div className={styles.logDeleteDialog}>
             <h2>{canDeleteAsLeader ? "운영 삭제" : "방탈로그 삭제"}</h2>
             <p>
               {canDeleteAsLeader
-                ? "크루장 삭제는 삭제 사유를 꼭 남겨야 해요. 삭제 후 이 로그는 다시 읽을 수 없어요."
-                : "삭제 후 이 로그는 다시 읽을 수 없어요. 현재 정책상 같은 모임에 다시 작성할 수도 없어요."}
+                ? "크루장이 삭제할 때는 삭제 사유를 꼭 남겨야 해요. 삭제 후 로그는 다시 읽을 수 없어요."
+                : "삭제 후 로그는 다시 읽을 수 없어요. 현재 모임과 같은 모임에 다시 작성할 수도 없어요."}
             </p>
             {canDeleteAsLeader ? (
               <label>
@@ -367,12 +403,11 @@ export function MeetingLogDetailPageClient({
                   value={leaderDeleteReason}
                   onChange={(event) => setLeaderDeleteReason(event.target.value)}
                   rows={4}
-                  style={{ display: "block", width: "100%", marginTop: 8 }}
                 />
               </label>
             ) : null}
             {deleteErrorMessage ? <p>{deleteErrorMessage}</p> : null}
-            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+            <div className={styles.logDeleteActions}>
               <button type="button" onClick={handleCloseDeleteModal} disabled={isDeleting}>
                 취소
               </button>
@@ -389,25 +424,10 @@ export function MeetingLogDetailPageClient({
           role="dialog"
           aria-modal="true"
           aria-label="방탈로그 사진 크게 보기"
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0, 0, 0, 0.72)",
-            display: "grid",
-            placeItems: "center",
-            padding: 24,
-          }}
+          className={styles.logModalOverlay}
         >
-          <div
-            style={{
-              maxWidth: 960,
-              width: "100%",
-              display: "grid",
-              gap: 16,
-              justifyItems: "center",
-            }}
-          >
-            <div style={{ display: "flex", gap: 12 }}>
+          <div className={styles.logLightbox}>
+            <div className={styles.logLightboxActions}>
               <button type="button" onClick={() => handleMovePhoto(-1)}>
                 이전 사진
               </button>
@@ -423,13 +443,6 @@ export function MeetingLogDetailPageClient({
             <img
               src={selectedPhoto}
               alt={`${log.themeName} 방탈로그 크게 보기 ${selectedPhotoIndex! + 1}`}
-              style={{
-                width: "100%",
-                maxHeight: "70vh",
-                objectFit: "contain",
-                borderRadius: 16,
-                background: "#111",
-              }}
             />
             <p>
               {selectedPhotoIndex! + 1} / {log.photos.length}
@@ -437,6 +450,6 @@ export function MeetingLogDetailPageClient({
           </div>
         </div>
       ) : null}
-    </main>
+    </CrewWorkspaceShell>
   );
 }

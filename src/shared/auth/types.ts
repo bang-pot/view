@@ -238,6 +238,8 @@ export type JoinedMeetingListItem = {
   time: string;
   status: JoinedMeetingStatus;
   canWriteReview: boolean;
+  participantCount?: number | null;
+  capacity?: number | null;
 };
 
 export type JoinedMeetingsResponse = {
