@@ -43,16 +43,21 @@ function toResultLabel(result: MeetingLogResultInput): string {
   return result === "SUCCESS" ? "성공" : "실패";
 }
 
-function formatLogDate(date: string): string {
-  const parsedDate = new Date(`${date}T00:00:00+09:00`);
+const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"] as const;
 
-  if (Number.isNaN(parsedDate.getTime())) {
+function formatLogDate(date: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+
+  if (!match) {
     return date;
   }
 
-  const weekday = ["일", "월", "화", "수", "목", "금", "토"][parsedDate.getDay()];
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const weekdayIndex = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
 
-  return `${parsedDate.getMonth() + 1}월 ${parsedDate.getDate()}일 (${weekday})`;
+  return `${month}월 ${day}일 (${WEEKDAY_LABELS[weekdayIndex]})`;
 }
 
 function getAuthorInitial(nickname: string): string {
