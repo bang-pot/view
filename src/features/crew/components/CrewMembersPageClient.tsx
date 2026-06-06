@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -14,79 +13,34 @@ import {
   CrewWorkspaceShell,
   CrewWorkspaceStatePage,
 } from "./CrewPageClient";
-import styles from "./CrewPageClient.module.css";
+import { CrewMembersDirectory } from "./CrewMembersDirectory";
 
 type CrewMembersPageClientProps = {
   crewId: string;
 };
 
-const MEMBERS_PAGE_SIZE = 20;
+const MEMBERS_PAGE_SIZE = 8;
 
 function buildPublicCrewPath(crewId: string): string {
   return `/crews/public/${crewId}`;
 }
 
-function formatJoinedAt(joinedAt: string): string {
-  const parsed = new Date(joinedAt);
+function appendUniqueMembers(currentMembers: CrewMember[], nextMembers: CrewMember[]): CrewMember[] {
+  const seenUserIds = new Set(currentMembers.map((member) => member.userId));
+  const uniqueNextMembers = nextMembers.filter((member) => {
+    if (seenUserIds.has(member.userId)) {
+      return false;
+    }
 
-  if (Number.isNaN(parsed.getTime())) {
-    return `${joinedAt} 가입`;
-  }
+    seenUserIds.add(member.userId);
+    return true;
+  });
 
-  const year = parsed.getUTCFullYear();
-  const month = String(parsed.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(parsed.getUTCDate()).padStart(2, "0");
-
-  return `${year}.${month}.${day} 가입`;
+  return [...currentMembers, ...uniqueNextMembers];
 }
 
 function isCrewHubResponse(value: unknown): value is CrewHubResponse {
   return typeof value === "object" && value !== null && "crewId" in value && "name" in value;
-}
-
-function toRoleLabel(role: CrewMember["role"]): string {
-  return role === "LEADER" ? "크루장" : "크루원";
-}
-
-function toGenderLabel(gender: string | null): string {
-  if (!gender) {
-    return "미설정";
-  }
-
-  if (gender === "MALE" || gender === "남") {
-    return "남";
-  }
-
-  if (gender === "FEMALE" || gender === "여") {
-    return "여";
-  }
-
-  return gender;
-}
-
-function toMemberStat(member: CrewMember): string {
-  return `${toGenderLabel(member.gender)} · ${member.escapeCount}방`;
-}
-
-function MemberAvatar({ member }: { member: CrewMember }) {
-  if (member.profileImageUrl) {
-    return (
-      <Image
-        src={member.profileImageUrl}
-        alt={`${member.nickname} 프로필 이미지`}
-        width={46}
-        height={46}
-        className={styles.memberAvatarImage}
-      />
-    );
-  }
-
-  return (
-    <span
-      className={styles.memberAvatarFallback}
-      aria-label={`${member.nickname} 기본 프로필 이미지`}
-    />
-  );
 }
 
 export function CrewMembersPageClient({ crewId }: CrewMembersPageClientProps) {
@@ -119,7 +73,7 @@ export function CrewMembersPageClient({ crewId }: CrewMembersPageClientProps) {
         size: MEMBERS_PAGE_SIZE,
       });
 
-      setMembers((currentMembers) => [...currentMembers, ...response.items]);
+      setMembers((currentMembers) => appendUniqueMembers(currentMembers, response.items));
       setPage(response.pageInfo.page);
       setHasNext(response.pageInfo.hasNext);
     } catch (error) {
@@ -160,7 +114,7 @@ export function CrewMembersPageClient({ crewId }: CrewMembersPageClientProps) {
           setCrew(crewResult.value);
         }
 
-        setMembers(membersResult.value.items);
+        setMembers(appendUniqueMembers([], membersResult.value.items));
         setPage(membersResult.value.pageInfo.page);
         setHasNext(membersResult.value.pageInfo.hasNext);
         setIsLoading(false);
@@ -246,51 +200,13 @@ export function CrewMembersPageClient({ crewId }: CrewMembersPageClientProps) {
 
   return (
     <CrewWorkspaceShell activeMenu="members" crew={resolvedCrew} crewId={crewId}>
-      <section className={styles.memberDirectoryPanel}>
-        <header className={styles.memberDirectoryHeader}>
-          <h1>크루원</h1>
-          <span>총 {members.length}명</span>
-        </header>
-
-        {members.length === 0 ? (
-          <p className={styles.memberEmpty}>아직 표시할 크루원이 없습니다.</p>
-        ) : (
-          <>
-            <ul className={styles.memberDirectoryList} aria-label="크루원 목록">
-              {members.map((member) => (
-                <li
-                  key={member.userId}
-                  className={styles.memberDirectoryItem}
-                  data-member-role={member.role}
-                >
-                  <MemberAvatar member={member} />
-                  <div className={styles.memberMainInfo}>
-                    <div className={styles.memberNameLine}>
-                      <strong>{member.nickname}</strong>
-                      <span>{toRoleLabel(member.role)}</span>
-                    </div>
-                    <p>{member.bio ?? "한 줄 소개가 아직 없습니다."}</p>
-                  </div>
-                  <div className={styles.memberSubInfo}>
-                    <strong>{toMemberStat(member)}</strong>
-                    <span>{formatJoinedAt(member.joinedAt)}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            {hasNext ? (
-              <div ref={loadMoreTargetRef} className={styles.memberLoadGuide}>
-                <span>{isLoadingMore ? "크루원을 더 불러오는 중입니다." : "스크롤하여 더 불러옵니다."}</span>
-                {typeof IntersectionObserver === "undefined" ? (
-                  <button type="button" onClick={() => void loadMoreMembers()}>
-                    더 보기
-                  </button>
-                ) : null}
-              </div>
-            ) : null}
-          </>
-        )}
-      </section>
+      <CrewMembersDirectory
+        members={members}
+        hasNext={hasNext}
+        isLoadingMore={isLoadingMore}
+        loadMoreTargetRef={loadMoreTargetRef}
+        onLoadMore={() => void loadMoreMembers()}
+      />
     </CrewWorkspaceShell>
   );
 }
