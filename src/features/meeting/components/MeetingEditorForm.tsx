@@ -2,6 +2,10 @@
 
 import type { FormEvent } from "react";
 
+export type MeetingCostMode = "PER_PERSON" | "TOTAL";
+export type MeetingProgressStatusDraft = "scheduled" | "completed" | "cancelled";
+export type MeetingRecruitmentStatusDraft = "recruiting" | "closed";
+
 export type MeetingEditorFormValues = {
   title: string;
   date: string;
@@ -9,6 +13,9 @@ export type MeetingEditorFormValues = {
   place: string;
   themeName: string;
   capacity: string;
+  costMode: MeetingCostMode;
+  recruitmentStatus: MeetingRecruitmentStatusDraft;
+  meetingStatus: MeetingProgressStatusDraft;
   totalCost: string;
   contactLink: string;
   description: string;
@@ -16,7 +23,10 @@ export type MeetingEditorFormValues = {
 
 type MeetingEditorFormProps = {
   values: MeetingEditorFormValues;
-  onChange: (field: keyof MeetingEditorFormValues, value: string) => void;
+  onChange: <TField extends keyof MeetingEditorFormValues>(
+    field: TField,
+    value: MeetingEditorFormValues[TField],
+  ) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   errorMessage: string | null;
   isSubmitting: boolean;

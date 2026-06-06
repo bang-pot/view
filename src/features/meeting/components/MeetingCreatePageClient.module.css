@@ -1,0 +1,213 @@
+.page {
+  min-height: 100vh;
+  padding: 32px 44px 56px;
+  background: #f7f7f8;
+  color: #111827;
+}
+
+.createPanel {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin: 0 0 8px;
+  gap: 16px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.18;
+  letter-spacing: 0;
+}
+
+.header p,
+.crewContext {
+  margin: 8px 0 0;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.crewContext {
+  margin: -4px 0 2px;
+}
+
+.backLink {
+  color: #4b5563;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.form {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+}
+
+.createContent {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  gap: 16px;
+  align-items: start;
+}
+
+.formColumn {
+  min-width: 0;
+}
+
+.card {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.cardHeader {
+  display: flex;
+  min-height: 66px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cardHeader h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.collapseButton {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: #eef0f2;
+  color: #8b949e;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cardBody {
+  padding: 18px 20px 18px;
+}
+
+.field {
+  display: grid;
+  gap: 5px;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.field strong {
+  color: #ef4444;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  border: 1px solid #dfe3e8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  font-weight: 500;
+  outline: none;
+}
+
+.field input {
+  height: 42px;
+  padding: 0 14px;
+}
+
+.field textarea {
+  min-height: 118px;
+  resize: vertical;
+  padding: 18px;
+  line-height: 1.6;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #9ca3af;
+}
+
+.field small,
+.helper {
+  color: #8b949e;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.groupLabel {
+  margin: 6px 0 8px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.twoColumn {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.radioGroup {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.radioGroup legend {
+  padding: 0;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.radioGroup > span {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.errorMessage {
+  margin: 12px 0;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 24px 16px 40px;
+  }
+
+  .header {
+    display: grid;
+  }
+
+  .twoColumn {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 920px) {
+  .createContent {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,138 @@
+.fullField {
+  width: 100%;
+}
+
+.fullField > label {
+  color: #111827;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.fullField > div {
+  min-height: 42px;
+  padding: 0 14px;
+}
+
+.fullField input {
+  font-size: 14px;
+}
+
+.fullField > p,
+.supportingText {
+  margin: 0;
+  color: #8b949e;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.supportingText {
+  margin-top: -3px;
+}
+
+.themePickerIcon {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: #9ca3af;
+}
+
+.capacityBlock {
+  display: grid;
+  justify-items: start;
+  gap: 7px;
+  margin-top: 5px;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.compactSegmented {
+  padding: 3px;
+}
+
+.compactSegmented button {
+  min-height: 34px;
+  min-width: 66px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.descriptionTextarea {
+  width: 100%;
+}
+
+.descriptionTextarea > label {
+  color: #111827;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.descriptionTextarea > div {
+  min-height: 96px;
+  gap: 8px;
+  padding: 14px 14px 10px;
+}
+
+.descriptionTextarea textarea {
+  min-height: 50px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.descriptionTextarea > p {
+  margin: 0;
+  color: #8b949e;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.capacityControl {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.capacityControl input {
+  width: 36px;
+  height: 34px;
+  border: 0;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  font-weight: 500;
+  outline: none;
+  padding: 0;
+  text-align: center;
+}
+
+.capacityValue {
+  display: inline-flex;
+  width: 72px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid #dfe3e8;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.capacityValue span {
+  font-weight: 700;
+}
+
+.stepperButton {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 8px;
+  background: #4f8df7;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 800;
+}

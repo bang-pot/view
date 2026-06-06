@@ -94,7 +94,7 @@ describe("Crew workspace tab routes", () => {
   it.each([
     ["크루원", CrewMembersPage, "크루원"],
     ["방장 일정", CrewSchedulePage, "방탈 일정"],
-    ["방탈 모집", CrewMeetingsPage, "모임 목록"],
+    ["방탈 모집", CrewMeetingsPage, "방탈 모집"],
     ["사진첩", CrewGalleryPage, "크루 사진첩"],
     ["방탈로그", CrewLogFeedPage, "방탈로그"],
   ])("renders the %s tab inside the fixed crew workspace layout", async (tabName, Page, heading) => {
