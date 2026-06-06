@@ -82,6 +82,7 @@ export type MeetingDetail = {
   description: string | null;
   status: MeetingStatus;
   myParticipationStatus: MeetingParticipationStatus;
+  participantCount: number;
 };
 
 export type UpdateMeetingInput = {

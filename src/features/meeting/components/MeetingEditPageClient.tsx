@@ -88,6 +88,9 @@ export function MeetingEditPageClient({ crewId, meetingId }: MeetingEditPageClie
           place: detail.place,
           themeName: detail.themeName,
           capacity: String(detail.capacity),
+          costMode: "TOTAL",
+          recruitmentStatus: detail.status === "RECRUITMENT_CLOSED" ? "closed" : "recruiting",
+          meetingStatus: "scheduled",
           totalCost: detail.totalCost === null ? "" : String(detail.totalCost),
           contactLink: detail.contactLink ?? "",
           description: detail.description ?? "",
@@ -126,7 +129,10 @@ export function MeetingEditPageClient({ crewId, meetingId }: MeetingEditPageClie
     };
   }, [crewIdNumber, editPath, hasValidIds, meetingIdNumber, publicCrewPath, router]);
 
-  function handleChange(field: keyof MeetingEditorFormValues, value: string) {
+  function handleChange<TField extends keyof MeetingEditorFormValues>(
+    field: TField,
+    value: MeetingEditorFormValues[TField],
+  ) {
     setValues((current) =>
       current
         ? {

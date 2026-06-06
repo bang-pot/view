@@ -11,20 +11,17 @@ import {
   createCrewWorkspaceFallback,
   CrewWorkspaceShell,
 } from "@/features/crew/components/CrewPageClient";
-import crewWorkspaceStyles from "@/features/crew/components/CrewPageClient.module.css";
 import { getMeetings } from "@/shared/meeting/client";
-import {
-  getMeetingStatusDescription,
-  getMeetingStatusLabel,
-} from "@/shared/meeting/presentation";
 import type { MeetingListItem } from "@/shared/meeting/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
+
+import { MeetingListContent } from "./MeetingListContent";
 
 type MeetingListPageClientProps = {
   crewId: string;
 };
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 4;
 
 function buildPublicCrewPath(crewId: string): string {
   return `/crews/public/${crewId}`;
@@ -169,45 +166,14 @@ export function MeetingListPageClient({ crewId }: MeetingListPageClientProps) {
 
   return (
     <CrewWorkspaceShell activeMenu="meetings" crew={resolvedCrew} crewId={crewId}>
-      <section className={crewWorkspaceStyles.tabPanel}>
-      <h1>모임 목록</h1>
-      {resolvedCrew.name ? <p>{resolvedCrew.name} 크루의 모임입니다.</p> : null}
-      <Link href={hubPath}>크루 허브로 돌아가기</Link>
-      <div>
-        <Link href={createPath}>모임 만들기</Link>
-      </div>
-
-      {items.length === 0 ? (
-        <p>아직 등록된 모임이 없습니다.</p>
-      ) : (
-        <ul aria-label="모임 목록">
-          {items.map((meeting) => (
-            <li key={meeting.meetingId}>
-              <article>
-                <h2>
-                  <Link href={`/crews/${crewId}/meetings/${meeting.meetingId}`}>
-                    {meeting.title ?? meeting.themeName}
-                  </Link>
-                </h2>
-                <p>테마명: {meeting.themeName}</p>
-                <p>장소: {meeting.place}</p>
-                <p>
-                  일시: {meeting.date} {meeting.time}
-                </p>
-                <p>모집 인원: {meeting.participantCount} / {meeting.capacity}명</p>
-                <p>모집 상태: {getMeetingStatusLabel(meeting.status)}</p>
-                <p>{getMeetingStatusDescription(meeting.status)}</p>
-              </article>
-            </li>
-          ))}
-        </ul>
-      )}
-      {hasNext ? (
-        <button type="button" onClick={() => void handleLoadMore()} disabled={isLoadingMore}>
-          {isLoadingMore ? "불러오는 중" : "더 보기"}
-        </button>
-      ) : null}
-      </section>
+      <MeetingListContent
+        crewId={crewId}
+        createPath={createPath}
+        items={items}
+        hasNext={hasNext}
+        isLoadingMore={isLoadingMore}
+        onLoadMore={() => void handleLoadMore()}
+      />
     </CrewWorkspaceShell>
   );
 }

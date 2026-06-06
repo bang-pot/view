@@ -1,0 +1,287 @@
+.page {
+  display: grid;
+  gap: 18px;
+}
+
+.backLink {
+  align-items: center;
+  color: var(--color-text-primary);
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 600;
+  gap: 6px;
+  justify-self: start;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.backLink span {
+  background: #111;
+  display: inline-block;
+  height: 8px;
+  width: 8px;
+}
+
+.header {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.header h1 {
+  font-size: 24px;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.statusChip {
+  background: #4897ff !important;
+  border-color: #4897ff !important;
+  color: #fff !important;
+}
+
+.detailCard {
+  background: #fff;
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  display: grid;
+  gap: 48px;
+  grid-template-columns: 276px minmax(0, 1fr);
+  min-height: 430px;
+  padding: 22px;
+  position: relative;
+}
+
+.summaryColumn {
+  align-content: start;
+  display: grid;
+  gap: 12px;
+}
+
+.posterPlaceholder {
+  background: #d9d9d9;
+  height: 282px;
+  width: 230px;
+}
+
+.metaList {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.metaList div {
+  align-items: start;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 38px minmax(0, 1fr);
+}
+
+.metaList dt {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.metaList dd {
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.contentColumn {
+  display: grid;
+  gap: 12px;
+  grid-template-rows: minmax(180px, 1fr) auto;
+  min-width: 0;
+}
+
+.infoPanel,
+.participantPanel {
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  display: grid;
+}
+
+.infoPanel {
+  align-content: start;
+  gap: 16px;
+  padding: 18px 22px;
+}
+
+.infoPanel h2,
+.participantPanel h2 {
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.infoPanel p {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0;
+  white-space: pre-line;
+}
+
+.participantPanel {
+  gap: 18px;
+  min-height: 138px;
+  padding: 16px 22px;
+  position: relative;
+}
+
+.participantPanel header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.participantHeading {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.participantHeading span {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.participantList {
+  display: flex;
+  gap: 28px;
+  list-style: none;
+  margin: 0;
+  padding: 0 0 42px;
+}
+
+.participantList li {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+
+.participantList li > span {
+  background: #f3f3f3;
+  border-radius: 999px;
+  height: 36px;
+  width: 36px;
+}
+
+.participantList strong {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.35;
+  max-width: 72px;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.joinButton.joinButton {
+  background: #111;
+  border-color: #111;
+  border-radius: 10px;
+  bottom: 18px;
+  min-height: 44px;
+  min-width: 116px;
+  position: absolute;
+  right: 22px;
+}
+
+.hostActionButton {
+  background: #fff;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 32px;
+  padding: 7px 14px;
+}
+
+.hostActionButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.editButton {
+  align-items: center;
+  background: #4897ff;
+  border-radius: 8px;
+  bottom: 18px;
+  color: #fff;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 700;
+  justify-content: center;
+  min-height: 36px;
+  min-width: 76px;
+  padding: 8px 14px;
+  position: absolute;
+  right: 22px;
+  text-decoration: none;
+}
+
+.actionError {
+  bottom: 66px;
+  color: #d43d4a;
+  font-size: 13px;
+  margin: 0;
+  position: absolute;
+  right: 22px;
+}
+
+.logActions {
+  display: grid;
+  gap: 6px;
+}
+
+.logActions a {
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.logActions p {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  margin: 0;
+}
+
+.visuallyHidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+@media (max-width: 900px) {
+  .detailCard {
+    gap: 24px;
+    grid-template-columns: 1fr;
+  }
+
+  .posterPlaceholder {
+    height: 240px;
+    width: 100%;
+  }
+
+  .contentColumn {
+    grid-template-rows: auto auto;
+  }
+}

@@ -51,35 +51,49 @@ describe("MeetingsPage", () => {
       items: [
         {
           meetingId: 99,
-          title: "Friday Escape",
-          themeName: "Time Attack",
-          place: "Gangnam",
-          date: "2026-04-20",
-          time: "19:30",
+          title: "에비스 : 영흥의 주민들",
+          themeName: "이스케이프 FSC 강남점",
+          place: "방탈오빠",
+          date: "2026-06-10",
+          time: "19:00",
           status: "RECRUITING",
-          participantCount: 2,
-          capacity: 4,
+          participantCount: 3,
+          capacity: 6,
         },
       ],
       pageInfo: {
         page: 0,
-        size: 20,
+        size: 4,
         hasNext: false,
       },
     });
 
     render(await CrewMeetingsPage({ params: Promise.resolve({ crewId: "11" }) }));
 
-    const list = await screen.findByRole("list");
+    expect(await screen.findByRole("heading", { name: "방탈 모집" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "모집 만들기" })).toHaveAttribute(
+      "href",
+      "/crews/11/meetings/new",
+    );
+    expect(screen.getByText("모집 상태")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "모집 중" })).toBeInTheDocument();
+    expect(screen.getByText("모임 상태")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "예정" })).toBeInTheDocument();
+
+    const list = screen.getByRole("list", { name: "방탈 모집 목록" });
     const item = within(list).getByRole("listitem");
 
-    expect(getMeetings).toHaveBeenCalledWith(11, { page: 0, size: 20 });
-    expect(within(item).getByRole("link", { name: "Friday Escape" })).toHaveAttribute(
+    expect(getMeetings).toHaveBeenCalledWith(11, { page: 0, size: 4 });
+    expect(within(item).getByRole("link", { name: "에비스 : 영흥의 주민들" })).toHaveAttribute(
       "href",
       "/crews/11/meetings/99",
     );
-    expect(within(item).getByText("모집 인원: 2 / 4명")).toBeInTheDocument();
-    expect(within(item).getByText("테마명: Time Attack")).toBeInTheDocument();
+    expect(within(item).getByText("모집 중")).toBeInTheDocument();
+    expect(within(item).getByText("예정")).toBeInTheDocument();
+    expect(within(item).getByText("이스케이프 FSC 강남점")).toBeInTheDocument();
+    expect(within(item).getByText("2026. 06. 10 (수) 19:00")).toBeInTheDocument();
+    expect(within(item).getByText("3 / 6명")).toBeInTheDocument();
+    expect(within(item).getByText("방탈오빠")).toBeInTheDocument();
   });
 
   it("loads the next meeting page and keeps the existing items", async () => {
@@ -101,7 +115,7 @@ describe("MeetingsPage", () => {
         ],
         pageInfo: {
           page: 0,
-          size: 20,
+          size: 4,
           hasNext: true,
         },
       })
@@ -121,7 +135,7 @@ describe("MeetingsPage", () => {
         ],
         pageInfo: {
           page: 1,
-          size: 20,
+          size: 4,
           hasNext: false,
         },
       });
@@ -130,10 +144,10 @@ describe("MeetingsPage", () => {
 
     expect(await screen.findByRole("link", { name: "Friday Escape" })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "더 보기" }));
+    fireEvent.click(screen.getByRole("button", { name: "더보기" }));
 
     await waitFor(() => {
-      expect(getMeetings).toHaveBeenLastCalledWith(11, { page: 1, size: 20 });
+      expect(getMeetings).toHaveBeenLastCalledWith(11, { page: 1, size: 4 });
     });
 
     expect(screen.getByRole("link", { name: "Friday Escape" })).toBeInTheDocument();
@@ -146,7 +160,7 @@ describe("MeetingsPage", () => {
       items: [],
       pageInfo: {
         page: 0,
-        size: 20,
+        size: 4,
         hasNext: false,
       },
     });
@@ -154,9 +168,10 @@ describe("MeetingsPage", () => {
     render(await CrewMeetingsPage({ params: Promise.resolve({ crewId: "11" }) }));
 
     await waitFor(() => {
-      expect(getMeetings).toHaveBeenCalledWith(11, { page: 0, size: 20 });
+      expect(getMeetings).toHaveBeenCalledWith(11, { page: 0, size: 4 });
     });
-    expect(screen.queryByRole("list")).not.toBeInTheDocument();
+    expect(screen.getByText("아직 등록된 방탈 모집이 없어요.")).toBeInTheDocument();
+    expect(screen.queryByRole("list", { name: "방탈 모집 목록" })).not.toBeInTheDocument();
 
     cleanup();
     vi.clearAllMocks();

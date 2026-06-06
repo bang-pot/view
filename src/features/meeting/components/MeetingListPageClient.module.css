@@ -1,0 +1,265 @@
+.meetingPanel {
+  display: grid;
+  gap: 26px;
+}
+
+.pageHeader {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.pageHeader h1 {
+  font-size: 24px;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.createButton {
+  background: #111 !important;
+  border-color: #111 !important;
+  border-radius: 8px;
+  min-height: 44px;
+  padding-inline: 18px;
+}
+
+.buttonIcon {
+  background: #fff;
+  border-radius: 2px;
+  display: inline-block;
+  height: 8px;
+  width: 8px;
+}
+
+.filterBar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filterGroup {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filterLabel {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.filterDivider {
+  background: var(--color-border-default);
+  height: 18px;
+  width: 1px;
+}
+
+.filterChip {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--color-border-default);
+  border-radius: 999px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 13px;
+}
+
+.filterChip[data-active="true"] {
+  background: #f1f1f1;
+  border-color: #d7d7d7;
+}
+
+.meetingGrid {
+  display: grid;
+  gap: 18px 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.meetingCard {
+  background: #fff;
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  color: var(--color-text-primary);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
+  min-height: 160px;
+  overflow: hidden;
+}
+
+.meetingCard[data-has-visual="true"] {
+  grid-template-columns: 164px minmax(0, 1fr);
+  min-height: 218px;
+}
+
+.meetingVisual {
+  background: #d9d9d9;
+  grid-row: 1 / 3;
+  height: 182px;
+  margin: 18px 0 18px 18px;
+  width: 122px;
+}
+
+.meetingBody {
+  align-content: start;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 22px 26px 16px;
+}
+
+.statusRow {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.statusOpen {
+  background: #4897ff !important;
+  border-color: #4897ff !important;
+  color: #fff !important;
+}
+
+.statusClosed {
+  background: #ff5a68 !important;
+  border-color: #ff5a68 !important;
+  color: #fff !important;
+}
+
+.statusPlanned {
+  background: #ffd84d !important;
+  border-color: #ffd84d !important;
+  color: #111 !important;
+}
+
+.statusDone {
+  background: #b15cff !important;
+  border-color: #b15cff !important;
+  color: #fff !important;
+}
+
+.statusCanceled {
+  background: #ff8dba !important;
+  border-color: #ff8dba !important;
+  color: #fff !important;
+}
+
+.meetingBody h2 {
+  font-size: 18px;
+  line-height: 1.35;
+  margin: 3px 0 0;
+}
+
+.meetingBody h2 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.meetingBody h2 a:hover {
+  text-decoration: underline;
+}
+
+.themeName,
+.dateText,
+.progressText {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.progressText {
+  color: var(--color-text-primary);
+  margin-top: 4px;
+}
+
+.cardFooter {
+  align-items: center;
+  border-top: 1px solid var(--color-border-default);
+  display: flex;
+  gap: 12px;
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 0 22px;
+}
+
+.meetingCard[data-has-visual="true"] .meetingBody {
+  padding-left: 4px;
+}
+
+.meetingCard[data-has-visual="true"] .cardFooter {
+  grid-column: 2 / -1;
+  padding-left: 4px;
+}
+
+.cardFooter strong {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.cardFooter span {
+  align-items: center;
+  color: var(--color-text-secondary);
+  display: inline-flex;
+  font-size: 13px;
+  gap: 7px;
+}
+
+.cardFooter i {
+  background: #f5f5f5;
+  border-radius: 999px;
+  display: inline-block;
+  height: 20px;
+  width: 20px;
+}
+
+.emptyState {
+  background: #fff;
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  color: var(--color-text-secondary);
+  margin: 0;
+  min-height: 150px;
+  padding: 28px;
+}
+
+.loadMoreButton {
+  background: #fff !important;
+  border-color: var(--color-border-default) !important;
+  border-radius: 8px;
+  color: var(--color-text-primary) !important;
+  justify-self: center;
+  min-height: 42px;
+  min-width: 88px;
+}
+
+@media (max-width: 900px) {
+  .meetingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .meetingCard[data-has-visual="true"] {
+    grid-template-columns: 146px minmax(0, 1fr);
+  }
+
+  .meetingVisual {
+    height: 168px;
+    margin: 18px 0 18px 16px;
+    width: 112px;
+  }
+}

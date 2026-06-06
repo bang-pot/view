@@ -1,0 +1,89 @@
+.preview {
+  position: sticky;
+  top: 16px;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.preview h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.recruitingBadge,
+.meetingBadge {
+  display: inline-flex;
+  min-height: 20px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.recruitingBadge {
+  min-width: 44px;
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.meetingBadge {
+  min-width: 34px;
+  background: #facc15;
+  color: #3f3f46;
+}
+
+.metaList {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.metaList div {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+}
+
+.metaList dt {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.metaList dd {
+  min-width: 0;
+  margin: 0;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 920px) {
+  .preview {
+    position: static;
+  }
+}
