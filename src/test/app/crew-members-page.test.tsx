@@ -115,7 +115,7 @@ describe("CrewMembersPage", () => {
           joinedAt: "2026-04-09T00:00:00Z",
         },
       ],
-      pageInfo: { page: 0, size: 20, hasNext: false },
+      pageInfo: { page: 0, size: 8, hasNext: false },
     });
 
     render(await CrewMembersPage({ params: Promise.resolve({ crewId: "11" }) }));
@@ -133,11 +133,10 @@ describe("CrewMembersPage", () => {
 
     expect(within(items[0]).getByText("크루장")).toBeInTheDocument();
     expect(within(items[0]).getByText("방탈 입문자도 같이 데려가는 서울 탈출러")).toBeInTheDocument();
-    expect(within(items[0]).getByText("남 · 87방")).toBeInTheDocument();
-    expect(within(items[0]).getByText("2026.04.08 가입")).toBeInTheDocument();
+    expect(within(items[0]).getByText("남 · 87방 · 2026.04.08 가입")).toBeInTheDocument();
     expect(within(items[0]).getByLabelText("leader-one 기본 프로필 이미지")).toBeInTheDocument();
 
-    expect(within(items[1]).getByText("여 · 64방")).toBeInTheDocument();
+    expect(within(items[1]).getByText("여 · 64방 · 2026.04.10 가입")).toBeInTheDocument();
     expect(within(items[1]).getByAltText("member-three 프로필 이미지")).toHaveAttribute(
       "src",
       expect.stringContaining(encodeURIComponent("https://example.com/member-three.png")),
@@ -145,9 +144,9 @@ describe("CrewMembersPage", () => {
 
     expect(within(items[2]).getByText("크루원")).toBeInTheDocument();
     expect(within(items[2]).getByText("한 줄 소개가 아직 없습니다.")).toBeInTheDocument();
-    expect(within(items[2]).getByText("미설정 · 0방")).toBeInTheDocument();
+    expect(within(items[2]).getByText("미설정 · 0방 · 2026.04.09 가입")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /위임|퇴출/ })).not.toBeInTheDocument();
-    expect(getCrewMembers).toHaveBeenCalledWith(11, { page: 0, size: 20 });
+    expect(getCrewMembers).toHaveBeenCalledWith(11, { page: 0, size: 8 });
   });
 
   it("appends the next page when the member list has another page", async () => {
@@ -165,10 +164,20 @@ describe("CrewMembersPage", () => {
             joinedAt: "2026-04-08T00:00:00Z",
           },
         ],
-        pageInfo: { page: 0, size: 20, hasNext: true },
+        pageInfo: { page: 0, size: 8, hasNext: true },
       })
       .mockResolvedValueOnce({
         items: [
+          {
+            userId: 11,
+            nickname: "leader-one",
+            profileImageUrl: null,
+            bio: null,
+            gender: null,
+            escapeCount: 87,
+            role: "LEADER",
+            joinedAt: "2026-04-08T00:00:00Z",
+          },
           {
             userId: 22,
             nickname: "member-two",
@@ -180,23 +189,24 @@ describe("CrewMembersPage", () => {
             joinedAt: "2026-04-09T00:00:00Z",
           },
         ],
-        pageInfo: { page: 1, size: 20, hasNext: false },
+        pageInfo: { page: 1, size: 8, hasNext: false },
       });
 
     render(await CrewMembersPage({ params: Promise.resolve({ crewId: "11" }) }));
 
     expect(await screen.findByText("leader-one")).toBeInTheDocument();
     await waitFor(() => {
-      expect(getCrewMembers).toHaveBeenCalledWith(11, { page: 1, size: 20 });
+      expect(getCrewMembers).toHaveBeenCalledWith(11, { page: 1, size: 8 });
     });
     expect(await screen.findByText("member-two")).toBeInTheDocument();
     expect(screen.getByText("총 2명")).toBeInTheDocument();
+    expect(within(screen.getByRole("list", { name: "크루원 목록" })).getAllByText("leader-one")).toHaveLength(1);
   });
 
   it("shows empty and load failure states without crashing", async () => {
     vi.mocked(getCrewMembers).mockResolvedValueOnce({
       items: [],
-      pageInfo: { page: 0, size: 20, hasNext: false },
+      pageInfo: { page: 0, size: 8, hasNext: false },
     });
 
     render(await CrewMembersPage({ params: Promise.resolve({ crewId: "11" }) }));

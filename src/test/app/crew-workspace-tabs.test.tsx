@@ -70,20 +70,20 @@ describe("Crew workspace tab routes", () => {
     });
     vi.mocked(getCrewMembers).mockResolvedValue({
       items: [],
-      pageInfo: { page: 0, size: 20, hasNext: false },
+      pageInfo: { page: 0, size: 8, hasNext: false },
     });
     vi.mocked(getCrewSchedule).mockResolvedValue({ items: [] });
     vi.mocked(getMeetings).mockResolvedValue({
       items: [],
-      pageInfo: { page: 0, size: 20, hasNext: false },
+      pageInfo: { page: 0, size: 8, hasNext: false },
     });
     vi.mocked(getCrewGallery).mockResolvedValue({
       items: [],
-      pageInfo: { page: 0, size: 20, hasNext: false },
+      pageInfo: { page: 0, size: 8, hasNext: false },
     });
     vi.mocked(getCrewLogFeed).mockResolvedValue({
       items: [],
-      pageInfo: { page: 0, size: 20, hasNext: false },
+      pageInfo: { page: 0, size: 8, hasNext: false },
     });
   });
 

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import type {
   MeetingEditorFormValues,
   MeetingProgressStatusDraft,
@@ -7,6 +9,11 @@ import styles from "./MeetingCreatePreviewPanel.module.css";
 
 type MeetingCreatePreviewPanelProps = {
   values: MeetingEditorFormValues;
+  formId: string;
+  errorMessage: string | null;
+  isSubmitting: boolean;
+  submitLabel: string;
+  cancelHref: string;
 };
 
 const recruitmentLabels: Record<MeetingRecruitmentStatusDraft, string> = {
@@ -68,7 +75,14 @@ function buildCost(values: MeetingEditorFormValues): string {
   return values.costMode === "PER_PERSON" ? `1인당 ${formattedCost}` : formattedCost;
 }
 
-export function MeetingCreatePreviewPanel({ values }: MeetingCreatePreviewPanelProps) {
+export function MeetingCreatePreviewPanel({
+  values,
+  formId,
+  errorMessage,
+  isSubmitting,
+  submitLabel,
+  cancelHref,
+}: MeetingCreatePreviewPanelProps) {
   const recruitmentStatus = values.recruitmentStatus ?? "recruiting";
   const meetingStatus = values.meetingStatus ?? "scheduled";
 
@@ -105,6 +119,18 @@ export function MeetingCreatePreviewPanel({ values }: MeetingCreatePreviewPanelP
           <dd>{buildCost(values)}</dd>
         </div>
       </dl>
+
+      <div className={styles.footer}>
+        {errorMessage ? <p className={styles.errorMessage}>{errorMessage}</p> : null}
+        <div className={styles.actions}>
+          <Link className={styles.cancelButton} href={cancelHref}>
+            취소
+          </Link>
+          <button className={styles.submitButton} type="submit" form={formId} disabled={isSubmitting}>
+            {submitLabel}
+          </button>
+        </div>
+      </div>
     </aside>
   );
 }

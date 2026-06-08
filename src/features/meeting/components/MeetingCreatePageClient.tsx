@@ -22,6 +22,8 @@ import { MeetingCreatePreviewPanel } from "./MeetingCreatePreviewPanel";
 import type { MeetingEditorFormValues } from "./MeetingEditorForm";
 import styles from "./MeetingCreatePageClient.module.css";
 
+const MEETING_CREATE_FORM_ID = "meeting-create-form";
+
 type MeetingCreatePageClientProps = {
   crewId: string;
   initialExploreDefaults?: {
@@ -282,17 +284,16 @@ export function MeetingCreatePageClient({
 
         <div className={styles.createContent}>
           <div className={styles.formColumn}>
-            <MeetingCreateForm
-              values={values}
-              onChange={handleChange}
-              onSubmit={handleSubmit}
-              errorMessage={errorMessage}
-              isSubmitting={isSubmitting}
-              submitLabel="모집 만들기"
-              cancelHref={meetingsPath}
-            />
+            <MeetingCreateForm formId={MEETING_CREATE_FORM_ID} values={values} onChange={handleChange} onSubmit={handleSubmit} />
           </div>
-          <MeetingCreatePreviewPanel values={values} />
+          <MeetingCreatePreviewPanel
+            values={values}
+            formId={MEETING_CREATE_FORM_ID}
+            errorMessage={errorMessage}
+            isSubmitting={isSubmitting}
+            submitLabel="모집 만들기"
+            cancelHref={meetingsPath}
+          />
         </div>
       </section>
     </CrewWorkspaceShell>

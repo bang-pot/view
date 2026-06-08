@@ -75,7 +75,7 @@ export function CrewJoinRequestsPageClient({ crewId }: CrewJoinRequestsPageClien
           return;
         }
 
-        setItems(response);
+        setItems(response.items);
         setIsLoading(false);
       })
       .catch((error) => {

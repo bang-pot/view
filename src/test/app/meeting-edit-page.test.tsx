@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import CrewMeetingEditPage from "@/app/crews/[crewId]/meetings/[meetingId]/edit/page";
@@ -88,7 +88,7 @@ describe("MeetingEditPage", () => {
     cleanup();
   });
 
-  it("loads the existing meeting fields for the host", async () => {
+  it("loads the create flow with the existing meeting fields for the host", async () => {
     mockCurrentUser(1);
     mockCrewHub();
     mockMeetingDetail();
@@ -99,11 +99,27 @@ describe("MeetingEditPage", () => {
       }),
     );
 
-    expect(await screen.findByRole("heading", { name: "모임 수정" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "모집 수정하기" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Night runners" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "방탈 모집" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByText("기존 방탈출 모임 정보를 수정합니다.")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "테마 설정" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "모임 정보" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "비용" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "연락 링크" })).toBeInTheDocument();
+    const preview = screen.getByRole("complementary", { name: "모집 미리보기" });
+    expect(preview).toBeInTheDocument();
     expect(screen.getByDisplayValue("금요일 한강 러닝")).toBeInTheDocument();
     expect(screen.getByDisplayValue("러닝")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("강남역")).toBeInTheDocument();
+    expect(screen.queryByLabelText("장소")).not.toBeInTheDocument();
     expect(screen.getByDisplayValue("https://open.kakao.com/o/example")).toBeInTheDocument();
+    expect(screen.getByText("2026.04.20 19:30")).toBeInTheDocument();
+    expect(screen.getByText("120,000원")).toBeInTheDocument();
+    expect(within(preview).getByRole("link", { name: "취소" })).toHaveAttribute(
+      "href",
+      "/crews/11/meetings/99",
+    );
+    expect(within(preview).getByRole("button", { name: "모집 수정하기" })).toBeInTheDocument();
   });
 
   it("patches the meeting and routes back to detail after success", async () => {
@@ -132,24 +148,24 @@ describe("MeetingEditPage", () => {
       }),
     );
 
-    fireEvent.change(await screen.findByLabelText("제목"), { target: { value: "수정된 모임 제목" } });
-    fireEvent.change(screen.getByLabelText("테마명"), { target: { value: "보드게임" } });
-    fireEvent.change(screen.getByLabelText("장소"), { target: { value: "성수" } });
+    fireEvent.change(await screen.findByLabelText("모집 제목"), { target: { value: "수정된 모임 제목" } });
+    fireEvent.change(screen.getByLabelText("테마 선택"), { target: { value: "보드게임" } });
     fireEvent.change(screen.getByLabelText("날짜"), { target: { value: "2026-04-21" } });
     fireEvent.change(screen.getByLabelText("시간"), { target: { value: "20:00" } });
     fireEvent.change(screen.getByLabelText("정원"), { target: { value: "6" } });
-    fireEvent.change(screen.getByLabelText("비용 안내 (총 비용)"), { target: { value: "90000" } });
-    fireEvent.change(screen.getByLabelText("연락 링크"), {
+    fireEvent.change(screen.getByLabelText("금액"), { target: { value: "90000" } });
+    fireEvent.change(screen.getByLabelText("오픈채팅 또는 연락 링크"), {
       target: { value: "https://open.kakao.com/o/updated" },
     });
-    fireEvent.change(screen.getByLabelText("설명"), { target: { value: "수정된 설명" } });
-    fireEvent.click(screen.getByRole("button", { name: "모임 수정 저장" }));
+    fireEvent.change(screen.getByLabelText("모임 설명"), { target: { value: "수정된 설명" } });
+    const preview = screen.getByRole("complementary", { name: "모집 미리보기" });
+    fireEvent.click(within(preview).getByRole("button", { name: "모집 수정하기" }));
 
     await waitFor(() => {
       expect(updateMeeting).toHaveBeenCalledWith(11, 99, {
         title: "수정된 모임 제목",
         themeName: "보드게임",
-        place: "성수",
+        place: "강남역",
         date: "2026-04-21",
         time: "20:00",
         capacity: 6,
@@ -178,6 +194,6 @@ describe("MeetingEditPage", () => {
     );
 
     expect(await screen.findByText("이 모임은 지금 수정할 수 없습니다.")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "모임 수정 저장" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "모집 수정하기" })).not.toBeInTheDocument();
   });
 });

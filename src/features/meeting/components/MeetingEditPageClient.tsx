@@ -5,14 +5,25 @@ import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 
+import {
+  createCrewWorkspaceFallback,
+  CrewWorkspaceShell,
+} from "@/features/crew/components/CrewPageClient";
 import { getMe } from "@/shared/auth/client";
 import { resolveProtectedDestination } from "@/shared/auth/guards";
 import { getCrewHub } from "@/shared/crew/client";
+import type { CrewHubResponse } from "@/shared/crew/types";
 import { getUserMessage, isOperationalError } from "@/shared/errors/operational";
 import { getMeetingDetail, updateMeeting } from "@/shared/meeting/client";
+import type { MeetingDetail } from "@/shared/meeting/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
-import { MeetingEditorForm, type MeetingEditorFormValues } from "./MeetingEditorForm";
+import { MeetingCreateForm } from "./MeetingCreateForm";
+import { MeetingCreatePreviewPanel } from "./MeetingCreatePreviewPanel";
+import type { MeetingEditorFormValues } from "./MeetingEditorForm";
+import styles from "./MeetingCreatePageClient.module.css";
+
+const MEETING_EDIT_FORM_ID = "meeting-edit-form";
 
 type MeetingEditPageClientProps = {
   crewId: string;
@@ -27,9 +38,46 @@ function isEditableStatus(status: string): boolean {
   return status === "RECRUITING" || status === "RECRUITMENT_CLOSED";
 }
 
+function toFormValues(detail: MeetingDetail): MeetingEditorFormValues {
+  return {
+    title: detail.title,
+    date: detail.date,
+    time: detail.time,
+    place: detail.place,
+    themeName: detail.themeName,
+    capacity: String(detail.capacity),
+    costMode: "TOTAL",
+    recruitmentStatus: detail.status === "RECRUITMENT_CLOSED" ? "closed" : "recruiting",
+    meetingStatus: "scheduled",
+    totalCost: detail.totalCost === null ? "" : String(detail.totalCost),
+    contactLink: detail.contactLink ?? "",
+    description: detail.description ?? "",
+  };
+}
+
+function resolveTotalCost(values: MeetingEditorFormValues): number | null {
+  const parsedCost = Number(values.totalCost);
+
+  if (!Number.isFinite(parsedCost) || parsedCost <= 0) {
+    return null;
+  }
+
+  if (values.costMode === "TOTAL") {
+    return parsedCost;
+  }
+
+  const parsedCapacity = Number(values.capacity);
+
+  if (!Number.isFinite(parsedCapacity) || parsedCapacity <= 0) {
+    return parsedCost;
+  }
+
+  return parsedCost * parsedCapacity;
+}
+
 export function MeetingEditPageClient({ crewId, meetingId }: MeetingEditPageClientProps) {
   const router = useRouter();
-  const [crewName, setCrewName] = useState<string | null>(null);
+  const [crew, setCrew] = useState<CrewHubResponse | null>(null);
   const [values, setValues] = useState<MeetingEditorFormValues | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -74,27 +122,14 @@ export function MeetingEditPageClient({ crewId, meetingId }: MeetingEditPageClie
         }
 
         if (detail.hostUserId !== me.user?.id || !isEditableStatus(detail.status)) {
-          setCrewName(crew.name);
+          setCrew(crew);
           setErrorMessage("이 모임은 지금 수정할 수 없습니다.");
           setIsLoading(false);
           return;
         }
 
-        setCrewName(crew.name);
-        setValues({
-          title: detail.title,
-          date: detail.date,
-          time: detail.time,
-          place: detail.place,
-          themeName: detail.themeName,
-          capacity: String(detail.capacity),
-          costMode: "TOTAL",
-          recruitmentStatus: detail.status === "RECRUITMENT_CLOSED" ? "closed" : "recruiting",
-          meetingStatus: "scheduled",
-          totalCost: detail.totalCost === null ? "" : String(detail.totalCost),
-          contactLink: detail.contactLink ?? "",
-          description: detail.description ?? "",
-        });
+        setCrew(crew);
+        setValues(toFormValues(detail));
         setIsLoading(false);
       } catch (error) {
         const shouldRedirect =
@@ -161,7 +196,7 @@ export function MeetingEditPageClient({ crewId, meetingId }: MeetingEditPageClie
         date: values.date,
         time: values.time,
         capacity: Number(values.capacity),
-        totalCost: values.totalCost.trim() ? Number(values.totalCost) : null,
+        totalCost: resolveTotalCost(values),
         contactLink: values.contactLink.trim() || null,
         description: values.description.trim() || null,
       });
@@ -190,37 +225,66 @@ export function MeetingEditPageClient({ crewId, meetingId }: MeetingEditPageClie
 
   if (isLoading) {
     return (
-      <main>
+      <main className={styles.page}>
         <p>모임 수정 화면을 준비하고 있습니다.</p>
       </main>
     );
   }
 
+  const resolvedCrew = crew ?? createCrewWorkspaceFallback(crewId);
+
   if (!values) {
     return (
-      <main>
-        <h1>모임 수정</h1>
-        {crewName ? <p>{crewName} 크루의 모임 수정 화면입니다.</p> : null}
-        <p>{errorMessage ?? "이 모임은 지금 수정할 수 없습니다."}</p>
-        <Link href={detailPath}>모임 상세로 돌아가기</Link>
-      </main>
+      <CrewWorkspaceShell activeMenu="meetings" crew={resolvedCrew} crewId={crewId}>
+        <section className={styles.createPanel}>
+          <header className={styles.header}>
+            <div>
+              <h1>모집 수정하기</h1>
+              <p>기존 방탈출 모임 정보를 수정합니다.</p>
+            </div>
+            <Link className={styles.backLink} href={detailPath}>
+              모임 상세
+            </Link>
+          </header>
+          <p>{errorMessage ?? "이 모임은 지금 수정할 수 없습니다."}</p>
+        </section>
+      </CrewWorkspaceShell>
     );
   }
 
   return (
-    <main>
-      <h1>모임 수정</h1>
-      {crewName ? <p>{crewName} 크루의 모임 정보를 수정합니다.</p> : null}
-      <Link href={detailPath}>모임 상세로 돌아가기</Link>
+    <CrewWorkspaceShell activeMenu="meetings" crew={resolvedCrew} crewId={crewId}>
+      <section className={styles.createPanel}>
+        <header className={styles.header}>
+          <div>
+            <h1>모집 수정하기</h1>
+            <p>기존 방탈출 모임 정보를 수정합니다.</p>
+          </div>
+          <Link className={styles.backLink} href={detailPath}>
+            모임 상세
+          </Link>
+        </header>
+        <p className={styles.crewContext}>{resolvedCrew.name} 크루에서 수정 중</p>
 
-      <MeetingEditorForm
-        values={values}
-        onChange={handleChange}
-        onSubmit={handleSubmit}
-        errorMessage={errorMessage}
-        isSubmitting={isSubmitting}
-        submitLabel="모임 수정 저장"
-      />
-    </main>
+        <div className={styles.createContent}>
+          <div className={styles.formColumn}>
+            <MeetingCreateForm
+              formId={MEETING_EDIT_FORM_ID}
+              values={values}
+              onChange={handleChange}
+              onSubmit={handleSubmit}
+            />
+          </div>
+          <MeetingCreatePreviewPanel
+            values={values}
+            formId={MEETING_EDIT_FORM_ID}
+            errorMessage={errorMessage}
+            isSubmitting={isSubmitting}
+            submitLabel="모집 수정하기"
+            cancelHref={detailPath}
+          />
+        </div>
+      </section>
+    </CrewWorkspaceShell>
   );
 }

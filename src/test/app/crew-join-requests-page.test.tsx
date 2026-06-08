@@ -94,22 +94,29 @@ describe("CrewJoinRequestsPage", () => {
       user: { id: 1, nickname: "leader" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
-    vi.mocked(getCrewJoinRequests).mockResolvedValue([
-      {
-        requestId: 91,
-        userId: 7,
-        nickname: "runner7",
-        message: "Please let me join.",
-        status: "PENDING",
+    vi.mocked(getCrewJoinRequests).mockResolvedValue({
+      items: [
+        {
+          requestId: 91,
+          userId: 7,
+          nickname: "runner7",
+          message: "Please let me join.",
+          status: "PENDING",
+        },
+        {
+          requestId: 92,
+          userId: 8,
+          nickname: "runner8",
+          message: null,
+          status: "APPROVED",
+        },
+      ],
+      pageInfo: {
+        page: 0,
+        size: 20,
+        hasNext: false,
       },
-      {
-        requestId: 92,
-        userId: 8,
-        nickname: "runner8",
-        message: null,
-        status: "APPROVED",
-      },
-    ]);
+    });
     vi.mocked(approveCrewJoinRequest).mockResolvedValue({
       crewId: 11,
       requestId: 91,
@@ -144,15 +151,22 @@ describe("CrewJoinRequestsPage", () => {
       user: { id: 1, nickname: "leader" },
       requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
     });
-    vi.mocked(getCrewJoinRequests).mockResolvedValue([
-      {
-        requestId: 93,
-        userId: 9,
-        nickname: "runner9",
-        message: "I can help with events.",
-        status: "PENDING",
+    vi.mocked(getCrewJoinRequests).mockResolvedValue({
+      items: [
+        {
+          requestId: 93,
+          userId: 9,
+          nickname: "runner9",
+          message: "I can help with events.",
+          status: "PENDING",
+        },
+      ],
+      pageInfo: {
+        page: 0,
+        size: 20,
+        hasNext: false,
       },
-    ]);
+    });
 
     render(await CrewJoinRequestsPage({ params: Promise.resolve({ crewId: "11" }) }));
 
