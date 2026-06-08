@@ -5,6 +5,7 @@
   align-content: start;
   gap: 12px;
   min-width: 0;
+  min-height: 260px;
   padding: 16px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -82,8 +83,66 @@
   overflow-wrap: anywhere;
 }
 
+.footer {
+  display: grid;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.errorMessage {
+  margin: 0;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.cancelButton,
+.submitButton {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-decoration: none;
+}
+
+.cancelButton {
+  min-width: 58px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #111827;
+}
+
+.submitButton {
+  width: 100%;
+  border: 0;
+  background: #111111;
+  color: #ffffff;
+}
+
+.submitButton:disabled {
+  background: #9ca3af;
+}
+
 @media (max-width: 920px) {
   .preview {
     position: static;
+  }
+}
+
+@media (max-width: 420px) {
+  .actions {
+    grid-template-columns: 1fr;
   }
 }

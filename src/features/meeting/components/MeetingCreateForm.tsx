@@ -21,16 +21,13 @@ import controlStyles from "./MeetingCreateFormControls.module.css";
 import styles from "./MeetingCreatePageClient.module.css";
 
 type MeetingCreateFormProps = {
+  formId: string;
   values: MeetingEditorFormValues;
   onChange: <TField extends keyof MeetingEditorFormValues>(
     field: TField,
     value: MeetingEditorFormValues[TField],
   ) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  errorMessage: string | null;
-  isSubmitting: boolean;
-  submitLabel: string;
-  cancelHref: string;
 };
 
 const MIN_CAPACITY = 2;
@@ -62,13 +59,10 @@ function isMeetingStatus(value: string): value is MeetingProgressStatusDraft {
 }
 
 export function MeetingCreateForm({
+  formId,
   values,
   onChange,
   onSubmit,
-  errorMessage,
-  isSubmitting,
-  submitLabel,
-  cancelHref,
 }: MeetingCreateFormProps) {
   const [openSections, setOpenSections] = useState(INITIAL_OPEN_SECTIONS);
 
@@ -89,7 +83,7 @@ export function MeetingCreateForm({
   }
 
   return (
-    <form className={styles.form} onSubmit={onSubmit}>
+    <form id={formId} className={styles.form} onSubmit={onSubmit}>
       <MeetingCreateAccordionSection
         bodyId="meeting-theme-section-body"
         headingId="meeting-theme-section"
@@ -219,10 +213,6 @@ export function MeetingCreateForm({
       <MeetingCreateCostContactSection
         values={values}
         onChange={onChange}
-        errorMessage={errorMessage}
-        isSubmitting={isSubmitting}
-        submitLabel={submitLabel}
-        cancelHref={cancelHref}
       />
     </form>
   );

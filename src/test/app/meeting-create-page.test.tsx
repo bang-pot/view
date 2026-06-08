@@ -1,4 +1,4 @@
-﻿import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import CrewMeetingCreatePage from "@/app/crews/[crewId]/meetings/new/page";
@@ -107,8 +107,11 @@ describe("MeetingCreatePage", () => {
       "placeholder",
       "https://open.kakao.com/...",
     );
-    expect(screen.getByRole("link", { name: "취소" })).toHaveAttribute("href", "/crews/11/meetings");
-    expect(screen.getByRole("button", { name: "모집 만들기" })).toBeInTheDocument();
+    expect(within(preview).getByRole("link", { name: "취소" })).toHaveAttribute(
+      "href",
+      "/crews/11/meetings",
+    );
+    expect(within(preview).getByRole("button", { name: "모집 만들기" })).toBeInTheDocument();
   });
 
   it("lets members operate accordions and selectable controls", async () => {
@@ -224,7 +227,8 @@ describe("MeetingCreatePage", () => {
     expect(screen.getByText("러닝")).toBeInTheDocument();
     expect(screen.getByText("2026.04.20 19:30")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "모집 만들기" }));
+    const preview = screen.getByRole("complementary", { name: "모집 미리보기" });
+    fireEvent.click(within(preview).getByRole("button", { name: "모집 만들기" }));
 
     await waitFor(() => {
       expect(createMeeting).toHaveBeenCalledWith(11, {

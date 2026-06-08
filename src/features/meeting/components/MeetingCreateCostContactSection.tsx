@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 
 import { MeetingCreateAccordionSection } from "./MeetingCreateAccordionSection";
@@ -14,10 +13,6 @@ type MeetingCreateCostContactSectionProps = {
     field: TField,
     value: MeetingEditorFormValues[TField],
   ) => void;
-  errorMessage: string | null;
-  isSubmitting: boolean;
-  submitLabel: string;
-  cancelHref: string;
 };
 
 const DEFAULT_PER_PERSON_PRICE = 25000;
@@ -85,10 +80,6 @@ function buildCostPreview(values: MeetingEditorFormValues, costMode: MeetingCost
 export function MeetingCreateCostContactSection({
   values,
   onChange,
-  errorMessage,
-  isSubmitting,
-  submitLabel,
-  cancelHref,
 }: MeetingCreateCostContactSectionProps) {
   const [openSections, setOpenSections] = useState(INITIAL_OPEN_SECTIONS);
   const costPreview = buildCostPreview(values, values.costMode);
@@ -175,15 +166,6 @@ export function MeetingCreateCostContactSection({
         </label>
       </MeetingCreateAccordionSection>
 
-      {errorMessage ? <p className={styles.errorMessage}>{errorMessage}</p> : null}
-      <div className={sectionStyles.actions}>
-        <Link className={sectionStyles.cancelButton} href={cancelHref}>
-          취소
-        </Link>
-        <button className={sectionStyles.submitButton} type="submit" disabled={isSubmitting}>
-          {submitLabel}
-        </button>
-      </div>
     </>
   );
 }
