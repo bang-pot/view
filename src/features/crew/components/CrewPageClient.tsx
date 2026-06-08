@@ -13,6 +13,7 @@ import { Button } from "@/shared/ui/Button";
 import { Chip } from "@/shared/ui/Chip";
 import { TextButton } from "@/shared/ui/TextButton";
 
+import { CrewManagementSettingsModal } from "./CrewManagementSettingsModal";
 import styles from "./CrewPageClient.module.css";
 
 type CrewPageClientProps = {
@@ -146,6 +147,7 @@ export function createCrewWorkspaceFallback(crewId: string, name = "크루"): Cr
 }
 
 export function CrewWorkspaceShell({ activeMenu, children, crew, crewId }: CrewWorkspaceShellProps) {
+  const [isManagementModalOpen, setIsManagementModalOpen] = useState(false);
   const leader = isLeader(crew.myRole);
   const meetingsPath = `/crews/${crewId}/meetings`;
   const schedulePath = `/crews/${crewId}/schedule`;
@@ -153,7 +155,6 @@ export function CrewWorkspaceShell({ activeMenu, children, crew, crewId }: CrewW
   const galleryPath = `/crews/${crewId}/gallery`;
   const policiesPath = `/crews/${crewId}/policies`;
   const membersPath = `/crews/${crewId}/members`;
-  const settingsPath = `/crews/${crewId}/settings`;
   const manageJoinRequestsPath = `/crews/${crewId}/join-requests`;
   const menuItems: MenuItem[] = [
     { key: "plaza", label: "광장", href: `/crews/${crewId}` },
@@ -206,7 +207,13 @@ export function CrewWorkspaceShell({ activeMenu, children, crew, crewId }: CrewW
               </dl>
               <span className={styles.visuallyHidden}>{toRoleLabel(crew.myRole)}</span>
               {leader ? (
-                <Button href={settingsPath} variant="ghost" size="sm" className={styles.manageButton}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className={styles.manageButton}
+                  onClick={() => setIsManagementModalOpen(true)}
+                >
                   크루 관리 설정
                 </Button>
               ) : null}
@@ -252,6 +259,9 @@ export function CrewWorkspaceShell({ activeMenu, children, crew, crewId }: CrewW
           {children}
         </div>
       </div>
+      {isManagementModalOpen ? (
+        <CrewManagementSettingsModal crew={crew} onClose={() => setIsManagementModalOpen(false)} />
+      ) : null}
     </main>
   );
 }

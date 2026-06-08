@@ -6,6 +6,7 @@ import {
   createCrewInvite,
   createCrewJoinRequest,
   deleteCrew,
+  getCrewDeletionAvailability,
   removeCrewMember,
   transferCrewLeadership,
   leaveCrew,
@@ -524,6 +525,42 @@ describe("crew client", () => {
     );
   });
 
+  it("loads crew deletion availability before the destructive action", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          crewId: 11,
+          canDelete: false,
+          hasOnlyLeader: true,
+          hasNoUnfinishedMeetings: false,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await getCrewDeletionAvailability(11);
+
+    expect(result).toEqual({
+      crewId: 11,
+      canDelete: false,
+      hasOnlyLeader: true,
+      hasNoUnfinishedMeetings: false,
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/backend/api/crews/11/delete-check",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
+    );
+  });
+
   it("loads the crew member list contract for joined members", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(
@@ -603,15 +640,22 @@ describe("crew client", () => {
   it("loads the crew join request management list with applicant message and status", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(
-        JSON.stringify([
-          {
-            requestId: 91,
-            userId: 7,
-            nickname: "runner7",
-            message: "Please let me join.",
-            status: "PENDING",
+        JSON.stringify({
+          items: [
+            {
+              requestId: 91,
+              userId: 7,
+              nickname: "runner7",
+              message: "Please let me join.",
+              status: "PENDING",
+            },
+          ],
+          pageInfo: {
+            page: 0,
+            size: 20,
+            hasNext: false,
           },
-        ]),
+        }),
         {
           status: 200,
           headers: {

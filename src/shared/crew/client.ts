@@ -8,6 +8,7 @@ import type {
   CrewMembersResponse,
   CrewPolicy,
   CrewJoinRequestApproveResponse,
+  CrewJoinRequestsResponse,
   CrewCreateInput,
   CrewCreateResponse,
   CrewInviteCandidate,
@@ -15,11 +16,9 @@ import type {
   CrewInviteRejectResponse,
   CrewInviteResponse,
   CrewJoinRequestInput,
-  CrewJoinRequestRecord,
   CrewJoinRequestRejectResponse,
   CrewJoinRequestResponse,
   CrewLeaveResponse,
-  CrewDeleteResponse,
   CrewRemoveMemberResponse,
   CrewTransferLeadershipResponse,
   CrewJoinViewResponse,
@@ -31,6 +30,8 @@ import type {
   CrewVisibility,
   CrewVisibilityUpdateResponse,
 } from "@/shared/crew/types";
+
+export { deleteCrew, getCrewDeletionAvailability } from "@/shared/crew/deletionClient";
 
 function getApiBaseUrl(): string {
   return getPublicRuntimeConfig().apiBaseUrl;
@@ -177,31 +178,6 @@ export async function leaveCrew(crewId: number): Promise<CrewLeaveResponse> {
   );
 }
 
-export async function deleteCrew(
-  crewId: number,
-  crewName: string,
-): Promise<CrewDeleteResponse> {
-  return requestJson<CrewDeleteResponse>(
-    getApiBaseUrl(),
-    `/api/crews/${crewId}/delete`,
-    {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        crewName,
-      }),
-    },
-    {
-      code: "CREW_DELETE_FAILED",
-      message: "크루를 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-    },
-    IDEMPOTENCY_OPTIONS,
-  );
-}
-
 export async function transferCrewLeadership(
   crewId: number,
   targetUserId: number,
@@ -326,8 +302,8 @@ export async function getPendingCrewJoinRequests(
 
 export async function getCrewJoinRequests(
   crewId: number,
-): Promise<CrewJoinRequestRecord[]> {
-  return requestJson<CrewJoinRequestRecord[]>(
+): Promise<CrewJoinRequestsResponse> {
+  return requestJson<CrewJoinRequestsResponse>(
     getApiBaseUrl(),
     `/api/crews/${crewId}/join-requests`,
     {

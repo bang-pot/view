@@ -107,6 +107,13 @@ export type CrewDeleteResponse = {
   crewId: number;
 };
 
+export type CrewDeletionAvailabilityResponse = {
+  crewId: number;
+  canDelete: boolean;
+  hasOnlyLeader: boolean;
+  hasNoUnfinishedMeetings: boolean;
+};
+
 export type CrewMemberRole = "LEADER" | "MEMBER";
 
 export type CrewMember = {
@@ -163,6 +170,11 @@ export type CrewJoinRequestRecord = {
   nickname: string;
   message: string | null;
   status: CrewJoinRequestStatus;
+};
+
+export type CrewJoinRequestsResponse = {
+  items: CrewJoinRequestRecord[];
+  pageInfo: CrewMembersPageInfo;
 };
 
 export type CrewJoinRequestApproveResponse = {
