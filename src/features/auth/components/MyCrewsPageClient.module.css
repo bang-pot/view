@@ -1,0 +1,114 @@
+.pageShell {
+  display: grid;
+  gap: 30px;
+  width: min(100%, 960px);
+  margin: 0 auto;
+  padding: 34px 24px 72px;
+  color: #111827;
+}
+
+.introSection {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #dfe3e8;
+}
+
+.introSection h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.introSection p,
+.sectionTitle,
+.stateText,
+.emptyText,
+.endMessage {
+  margin: 0;
+  color: #687385;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.crewSection {
+  display: grid;
+  gap: 22px;
+}
+
+.sectionTitle {
+  color: #6b7280;
+}
+
+.crewList {
+  display: grid;
+  gap: 22px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.errorMessage {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #ffd7d7;
+  border-radius: 8px;
+  background: #fff5f5;
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.emptyState {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid #dde2e8;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.emptyState a,
+.retryButton,
+.loadMoreButton {
+  width: fit-content;
+  min-height: 38px;
+  padding: 0 16px;
+  border: 1px solid #111111;
+  border-radius: 8px;
+  background: #111111;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.retryButton,
+.loadMoreButton {
+  display: inline-flex;
+  align-items: center;
+}
+
+.loadMoreButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.loadMoreArea {
+  display: flex;
+  justify-content: center;
+}
+
+.endMessage {
+  text-align: center;
+}
+
+@media (max-width: 680px) {
+  .pageShell {
+    padding: 28px 18px 56px;
+  }
+}

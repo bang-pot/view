@@ -1,0 +1,98 @@
+.pageShell {
+  display: grid;
+  gap: 30px;
+  width: min(100%, 960px);
+  margin: 0 auto;
+  padding: 34px 24px 72px;
+  color: #111827;
+}
+
+.introSection {
+  display: grid;
+  gap: 12px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #dfe3e8;
+}
+
+.introSection h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.introSection p,
+.stateText,
+.emptyState,
+.endMessage {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.meetingSection {
+  display: grid;
+  gap: 22px;
+}
+
+.meetingSection h2 {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.meetingList {
+  display: grid;
+  gap: 24px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.errorMessage {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #ffd7d7;
+  border-radius: 8px;
+  background: #fff5f5;
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.moreAction {
+  display: flex;
+  justify-content: center;
+}
+
+.retryButton,
+.moreAction button {
+  min-height: 38px;
+  padding: 0 16px;
+  border: 1px solid #111111;
+  border-radius: 8px;
+  background: #111111;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.moreAction button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.endMessage {
+  text-align: center;
+}
+
+@media (max-width: 680px) {
+  .pageShell {
+    padding: 28px 18px 56px;
+  }
+}

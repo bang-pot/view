@@ -1,0 +1,157 @@
+.item {
+  min-width: 0;
+}
+
+.itemLink {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 18px;
+  min-height: 148px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.posterFrame {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 136px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  background: #d9d9d9;
+  color: #8b95a1;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.posterFrame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.copy {
+  display: grid;
+  gap: 9px;
+  min-width: 0;
+}
+
+.titleLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.titleLine strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #111111;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.genreBadge {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border: 1px solid #ff9f9f;
+  border-radius: 999px;
+  background: #fff2f2;
+  color: #ef4444;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.metaLine {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metaDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #111111;
+}
+
+.description {
+  display: -webkit-box;
+  max-width: 620px;
+  margin: 0;
+  overflow: hidden;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.8;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.arrow {
+  justify-self: center;
+  color: #111111;
+  font-size: 32px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.itemLink:hover .titleLine strong,
+.itemLink:focus-visible .titleLine strong {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.itemLink:focus-visible {
+  outline: 2px solid #111111;
+  outline-offset: 8px;
+}
+
+@media (max-width: 760px) {
+  .itemLink {
+    grid-template-columns: 84px minmax(0, 1fr) 30px;
+    gap: 14px;
+    min-height: 126px;
+  }
+
+  .posterFrame {
+    width: 84px;
+    height: 112px;
+  }
+
+  .arrow {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 520px) {
+  .itemLink {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  .posterFrame {
+    width: 76px;
+    height: 104px;
+  }
+
+  .arrow {
+    display: none;
+  }
+}

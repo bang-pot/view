@@ -1,17 +1,17 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { JoinedMeetingCard } from "@/features/auth/components/JoinedMeetingCard";
+import { ProfileTopHeader } from "@/features/auth/components/ProfileTopHeader";
 import { getJoinedMeetings, getMe } from "@/shared/auth/client";
 import { resolveProtectedDestination } from "@/shared/auth/guards";
 import { getUserMessage } from "@/shared/errors/operational";
 import { reportOperationalError } from "@/shared/monitoring/operations";
-import type {
-  JoinedMeetingListItem,
-  JoinedMeetingStatus,
-} from "@/shared/auth/types";
+import type { JoinedMeetingListItem } from "@/shared/auth/types";
+
+import styles from "./JoinedMeetingsPageClient.module.css";
 
 const JOINED_MEETINGS_PATH = "/profile/joined-meetings";
 const PAGE_SIZE = 20;
@@ -33,19 +33,8 @@ function mergeItems(
   return merged;
 }
 
-function toStatusLabel(status: JoinedMeetingStatus): string {
-  switch (status) {
-    case "RECRUITING":
-      return "모집 중";
-    case "RECRUITMENT_CLOSED":
-      return "모집 마감";
-    case "COMPLETED":
-      return "완료";
-    case "CANCELED":
-      return "취소됨";
-    default:
-      return status;
-  }
+function isPastMeeting(item: JoinedMeetingListItem): boolean {
+  return item.status === "COMPLETED" || item.status === "CANCELED";
 }
 
 export function JoinedMeetingsPageClient() {
@@ -170,102 +159,79 @@ export function JoinedMeetingsPageClient() {
 
   if (isLoading) {
     return (
-      <main>
-        <h1>참여 모임</h1>
-        <p>참여 모임 목록을 불러오는 중입니다.</p>
-      </main>
+      <>
+        <ProfileTopHeader />
+        <main className={styles.pageShell}>
+          <section className={styles.introSection} aria-labelledby="joined-meetings-title">
+            <h1 id="joined-meetings-title">내가 참여한 모임</h1>
+            <p>내가 참여한 모든 모임입니다.</p>
+          </section>
+          <p className={styles.stateText}>참여 모임 목록을 불러오는 중입니다.</p>
+        </main>
+      </>
     );
   }
 
+  const activeItems = items.filter((item) => !isPastMeeting(item));
+  const pastItems = items.filter(isPastMeeting);
+
   return (
-    <main style={{ display: "grid", gap: 16 }}>
-      <h1>참여 모임</h1>
-      <p>참여했던 모임 이력을 다시 확인하고, 필요하면 기존 모임 상세로 바로 이어갈 수 있어요.</p>
+    <>
+      <ProfileTopHeader />
+      <main className={styles.pageShell}>
+        <section className={styles.introSection} aria-labelledby="joined-meetings-title">
+          <h1 id="joined-meetings-title">내가 참여한 모임</h1>
+          <p>내가 참여한 모든 모임입니다.</p>
+        </section>
 
-      {errorMessage ? <p>{errorMessage}</p> : null}
+        {errorMessage ? <p className={styles.errorMessage}>{errorMessage}</p> : null}
 
-      {!errorMessage && items.length === 0 ? <p>아직 참여한 모임이 없어요.</p> : null}
+        {!errorMessage && items.length === 0 ? (
+          <p className={styles.emptyState}>아직 참여한 모임이 없어요.</p>
+        ) : null}
 
-      {items.length > 0 ? (
-        <>
-          <ul
-            aria-label="참여 모임 목록"
-            style={{
-              listStyle: "none",
-              margin: 0,
-              padding: 0,
-              display: "grid",
-              gap: 12,
-            }}
-          >
-            {items.map((item) => {
-              const meetingHref = `/crews/${item.crewId}/meetings/${item.meetingId}`;
+        {activeItems.length > 0 ? (
+          <section className={styles.meetingSection} aria-labelledby="active-meetings-title">
+            <h2 id="active-meetings-title">진행 중 모임</h2>
+            <ul className={styles.meetingList} aria-label="진행 중 참여 모임 목록">
+              {activeItems.map((item) => (
+                <JoinedMeetingCard key={item.meetingId} item={item} />
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
-              return (
-                <li
-                  key={item.meetingId}
-                  style={{
-                    display: "grid",
-                    gap: 10,
-                    padding: 16,
-                    border: "1px solid #d9d9d9",
-                    borderRadius: 16,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 12,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <Link
-                      href={meetingHref}
-                      style={{
-                        color: "inherit",
-                        textDecoration: "none",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {item.title}
-                    </Link>
-                    <span>{toStatusLabel(item.status)}</span>
-                  </div>
+        {pastItems.length > 0 ? (
+          <section className={styles.meetingSection} aria-labelledby="past-meetings-title">
+            <h2 id="past-meetings-title">지난 모임</h2>
+            <ul className={styles.meetingList} aria-label="지난 참여 모임 목록">
+              {pastItems.map((item) => (
+                <JoinedMeetingCard key={item.meetingId} item={item} />
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
-                  <div style={{ display: "grid", gap: 4 }}>
-                    <span>{item.themeName}</span>
-                    <span>{item.crewName}</span>
-                    <span>
-                      {item.date} {item.time}
-                    </span>
-                  </div>
-
-                  <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                    <Link href={meetingHref}>모임 상세 보기</Link>
-                    {item.canWriteReview ? <Link href={meetingHref}>리뷰 작성하기</Link> : null}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-
-          {hasNext ? (
+        {items.length > 0 && hasNext ? (
+          <div className={styles.moreAction}>
             <button type="button" onClick={handleLoadMore} disabled={isLoadingMore}>
               {isLoadingMore ? "더 불러오는 중..." : "더 보기"}
             </button>
-          ) : (
-            <p>여기까지 모두 확인했어요.</p>
-          )}
-        </>
-      ) : null}
+          </div>
+        ) : null}
 
-      {!items.length && errorMessage ? (
-        <button type="button" onClick={handleRetry}>
-          다시 시도
-        </button>
-      ) : null}
-    </main>
+        {items.length > 0 && !hasNext ? (
+          <p className={styles.endMessage}>여기까지 모두 확인했어요.</p>
+        ) : null}
+
+        {!items.length && errorMessage ? (
+          <div>
+            <button className={styles.retryButton} type="button" onClick={handleRetry}>
+              다시 시도
+            </button>
+          </div>
+        ) : null}
+      </main>
+    </>
   );
 }

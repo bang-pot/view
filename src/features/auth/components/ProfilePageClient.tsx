@@ -2,14 +2,18 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import type { FormEvent } from "react";
+import { useEffect, useState } from "react";
 
+import { ProfileActivitySummary } from "@/features/auth/components/ProfileActivitySummary";
 import { ProfileCalendarSection } from "@/features/auth/components/ProfileCalendarSection";
+import { ProfileEditPanel } from "@/features/auth/components/ProfileEditPanel";
 import { ProfileFavoriteThemesSummarySection } from "@/features/auth/components/ProfileFavoriteThemesSummarySection";
-import { logoutAndConfirmGuest } from "@/features/auth/logout";
+import { ProfileMeetingLogsSummarySection } from "@/features/auth/components/ProfileMeetingLogsSummarySection";
+import { ProfileTopHeader } from "@/features/auth/components/ProfileTopHeader";
 import { getMe, getProfile, updateProfile } from "@/shared/auth/client";
-import type { AuthProfileHubResponse } from "@/shared/auth/types";
 import { resolveProtectedDestination } from "@/shared/auth/guards";
+import type { AuthProfileHubResponse } from "@/shared/auth/types";
 import {
   getFieldErrorMessage,
   getUserMessage,
@@ -18,30 +22,9 @@ import {
 import { uploadProfileImage } from "@/shared/image/client";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
-const PROFILE_PATH = "/profile";
+import styles from "./ProfilePageClient.module.css";
 
-const ACTIVITY_LINKS = [
-  {
-    href: "/profile/created-meetings",
-    label: "생성 모임",
-    countKey: "createdMeetingsCount",
-  },
-  {
-    href: "/profile/joined-meetings",
-    label: "참여 모임",
-    countKey: "joinedMeetingsCount",
-  },
-  {
-    href: "/profile/crews",
-    label: "소속 크루",
-    countKey: "myCrewsCount",
-  },
-  {
-    href: "/profile/pending-crews",
-    label: "가입 대기 중 크루",
-    countKey: "pendingCrewsCount",
-  },
-] as const;
+const PROFILE_PATH = "/profile";
 
 function resolveNicknameMessage(error: unknown): string | null {
   const fieldMessage = getFieldErrorMessage(error, "nickname");
@@ -71,6 +54,10 @@ function isExpectedProfileSaveError(code: string): boolean {
   );
 }
 
+function getProfileInitial(nickname: string): string {
+  return nickname.trim().charAt(0).toUpperCase() || "A";
+}
+
 export function ProfilePageClient() {
   const router = useRouter();
   const [profile, setProfile] = useState<AuthProfileHubResponse | null>(null);
@@ -80,7 +67,7 @@ export function ProfilePageClient() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -141,14 +128,14 @@ export function ProfilePageClient() {
       const uploadedProfileImage = profileImageFile
         ? await uploadProfileImage(profileImageFile)
         : null;
-      const profileUpdateInput =
+      const nextProfile = await updateProfile(
         uploadedProfileImage === null
           ? { nickname: nickname.trim() }
           : {
               nickname: nickname.trim(),
               profileImageUploadId: uploadedProfileImage.uploadId,
-            };
-      const nextProfile = await updateProfile(profileUpdateInput);
+            },
+      );
 
       setProfile((currentProfile) =>
         currentProfile
@@ -161,6 +148,7 @@ export function ProfilePageClient() {
       );
       setNickname(nextProfile.nickname);
       setProfileImageFile(null);
+      setIsEditing(false);
     } catch (error) {
       const operationalError = toOperationalError(error);
 
@@ -170,10 +158,7 @@ export function ProfilePageClient() {
       });
 
       const fieldMessage = resolveNicknameMessage(operationalError);
-      if (fieldMessage) {
-        setNicknameMessage(fieldMessage);
-      }
-
+      setNicknameMessage(fieldMessage);
       setErrorMessage(
         fieldMessage
           ? null
@@ -187,203 +172,84 @@ export function ProfilePageClient() {
     }
   }
 
-  async function handleLogout() {
-    setNicknameMessage(null);
-    setErrorMessage(null);
-    setIsLoggingOut(true);
-
-    try {
-      const isGuest = await logoutAndConfirmGuest();
-
-      if (isGuest) {
-        router.replace("/login");
-        return;
-      }
-
-      setErrorMessage("로그아웃 상태를 확인하지 못했어요. 다시 시도해 주세요.");
-    } catch (error) {
-      reportOperationalError("auth.profile.logout_failed", error, {
-        route: PROFILE_PATH,
-      });
-
-      setErrorMessage(
-        getUserMessage(error, "로그아웃에 실패했어요. 잠시 후 다시 시도해 주세요."),
-      );
-    } finally {
-      setIsLoggingOut(false);
-    }
-  }
-
   if (isLoading) {
     return (
-      <main>
-        <p>프로필 허브를 불러오는 중입니다.</p>
-      </main>
+      <>
+        <ProfileTopHeader />
+        <main className={styles.pageShell}>
+          <p className={styles.stateText}>프로필 허브를 불러오는 중입니다.</p>
+        </main>
+      </>
     );
   }
 
   if (!profile) {
     return (
-      <main>
-        <h1>내 프로필</h1>
-        <p>{errorMessage ?? "프로필 허브를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."}</p>
-      </main>
+      <>
+        <ProfileTopHeader />
+        <main className={styles.pageShell}>
+          <h1>마이페이지</h1>
+          <p className={styles.stateText}>
+            {errorMessage ?? "프로필 허브를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."}
+          </p>
+        </main>
+      </>
     );
   }
 
   return (
-    <main style={{ display: "grid", gap: 24 }}>
-      <h1>내 프로필</h1>
+    <>
+      <ProfileTopHeader />
+      <main className={styles.pageShell}>
+      <h1 className={styles.visuallyHidden}>마이페이지</h1>
 
-      <section
-        aria-label="프로필 기본 정보"
-        style={{
-          display: "grid",
-          gap: 16,
-          padding: 20,
-          border: "1px solid #d9d9d9",
-          borderRadius: 16,
-        }}
-      >
-        <div
-          style={{
-            width: 88,
-            height: 88,
-            borderRadius: "50%",
-            background: "#f5f5f5",
-            display: "grid",
-            placeItems: "center",
-            overflow: "hidden",
-          }}
-        >
+      <section className={styles.profileCard} aria-label="프로필 기본 정보">
+        <div className={styles.avatarLarge} aria-label="프로필 이미지 없음">
           {profile.profileImageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={profile.profileImageUrl}
-              alt={`${profile.nickname} 프로필 이미지`}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
+            <img src={profile.profileImageUrl} alt={`${profile.nickname} 프로필 이미지`} />
           ) : (
-            <span>프로필 이미지 준비 중</span>
+            <span>{getProfileInitial(profile.nickname)}</span>
           )}
         </div>
 
-        <div style={{ display: "grid", gap: 6 }}>
-          <strong style={{ fontSize: 24 }}>{profile.nickname}</strong>
-          <span>내 활동을 한 화면에서 확인하고 바로 이어서 들어갈 수 있어요.</span>
+        <div className={styles.profileCopy}>
+          <strong className={styles.nickname}>{profile.nickname}</strong>
+          <span className={styles.profileMeta}>
+            방탈출 기록 {profile.joinedMeetingsCount + profile.createdMeetingsCount}방
+          </span>
+          <p>방탈출을 사랑하는 Banglog 크루원</p>
+        </div>
+
+        <div className={styles.profileActions}>
+          <button type="button" className={styles.primaryButton} onClick={() => setIsEditing(true)}>
+            프로필 수정
+          </button>
+          <Link href="/profile/withdrawal" className={styles.secondaryButton}>
+            계정관리
+          </Link>
         </div>
       </section>
 
-      <section aria-label="활동 허브" style={{ display: "grid", gap: 12 }}>
-        <h2>내 활동</h2>
-        <div
-          style={{
-            display: "grid",
-            gap: 12,
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          }}
-        >
-          {ACTIVITY_LINKS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              style={{
-                display: "grid",
-                gap: 8,
-                padding: 16,
-                border: "1px solid #d9d9d9",
-                borderRadius: 16,
-                textDecoration: "none",
-                color: "inherit",
-              }}
-            >
-              <strong>
-                {item.label} {profile[item.countKey]}
-              </strong>
-              <span>상세 목록 보기</span>
-            </Link>
-          ))}
-        </div>
-      </section>
+      {isEditing ? (
+        <ProfileEditPanel
+          nickname={nickname}
+          profileImageUrl={profile.profileImageUrl}
+          nicknameMessage={nicknameMessage}
+          errorMessage={errorMessage}
+          isSaving={isSaving}
+          onNicknameChange={setNickname}
+          onProfileImageChange={setProfileImageFile}
+          onSubmit={handleSubmit}
+          onClose={() => setIsEditing(false)}
+        />
+      ) : null}
 
-      <ProfileCalendarSection />
-
-      <ProfileFavoriteThemesSummarySection />
-
-      <section
-        aria-label="내 기록"
-        style={{
-          display: "grid",
-          gap: 8,
-          padding: 20,
-          border: "1px solid #d9d9d9",
-          borderRadius: 16,
-        }}
-      >
-        <h2>내 기록</h2>
-        <p>내가 직접 작성한 방탈로그만 따로 모아보고, 기존 상세 화면으로 바로 이어서 볼 수 있어요.</p>
-        <div>
-          <Link href="/profile/logs">내 방탈로그</Link>
-        </div>
-      </section>
-
-      <section
-        aria-label="계정 관리"
-        style={{
-          display: "grid",
-          gap: 8,
-          padding: 20,
-          border: "1px solid #d9d9d9",
-          borderRadius: 16,
-        }}
-      >
-        <h2>계정 관리</h2>
-        <p>회원탈퇴 전에 현재 정리해야 하는 크루와 모임 관계를 먼저 확인할 수 있어요.</p>
-        <div>
-          <Link href="/profile/withdrawal">회원탈퇴</Link>
-        </div>
-      </section>
-
-      <section
-        aria-label="프로필 수정"
-        style={{
-          display: "grid",
-          gap: 12,
-          padding: 20,
-          border: "1px solid #d9d9d9",
-          borderRadius: 16,
-        }}
-      >
-        <h2>닉네임 수정</h2>
-        <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12 }}>
-          <label htmlFor="profile-nickname">닉네임</label>
-          <input
-            id="profile-nickname"
-            name="nickname"
-            value={nickname}
-            onChange={(event) => setNickname(event.target.value)}
-          />
-          <label htmlFor="profile-image">Profile image</label>
-          <input
-            id="profile-image"
-            name="profileImage"
-            type="file"
-            accept=".jpg,.jpeg,.png,image/jpeg,image/png"
-            onChange={(event) => setProfileImageFile(event.currentTarget.files?.[0] ?? null)}
-          />
-          {nicknameMessage ? <p>{nicknameMessage}</p> : null}
-          {errorMessage ? <p>{errorMessage}</p> : null}
-
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <button type="submit" disabled={isSaving || isLoggingOut}>
-              닉네임 저장
-            </button>
-            <button type="button" onClick={handleLogout} disabled={isSaving || isLoggingOut}>
-              로그아웃
-            </button>
-          </div>
-        </form>
-      </section>
-    </main>
+        <ProfileActivitySummary profile={profile} />
+        <ProfileCalendarSection />
+        <ProfileMeetingLogsSummarySection authorName={profile.nickname} />
+        <ProfileFavoriteThemesSummarySection />
+      </main>
+    </>
   );
 }

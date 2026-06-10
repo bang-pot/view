@@ -434,6 +434,7 @@ describe("auth client", () => {
               createdAt: "2026-04-19T10:15:30Z",
               excerpt: "?닿? 吏곸젒 ??諛⑺깉濡쒓렇 ?붿빟",
               coverPhotoUrl: "https://cdn.example.com/log-cover.jpg",
+              result: "SUCCESS",
               photoCount: 3,
             },
           ],

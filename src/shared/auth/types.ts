@@ -78,6 +78,7 @@ export type MyMeetingLogListItem = {
   meetingTitle: string;
   meetingDate: string;
   createdAt: string;
+  result: "SUCCESS" | "FAILURE";
   excerpt: string | null;
   coverPhotoUrl: string | null;
   photoCount: number;
@@ -114,6 +115,10 @@ export type FavoriteThemeListItem = {
   storeName: string;
   regionName: string;
   thumbnailUrl: string | null;
+  genreName?: string | null;
+  difficulty?: number | null;
+  runningTimeMinutes?: number | null;
+  description?: string | null;
   favoriteCount: number;
   isFavorite: boolean;
 };
@@ -206,11 +211,14 @@ export type CreatedMeetingStatus =
 export type CreatedMeetingListItem = {
   meetingId: number;
   title: string;
+  themeName?: string | null;
   status: CreatedMeetingStatus;
   date: string;
   time: string;
   crewId: number;
   crewName: string;
+  participantCount?: number | null;
+  capacity?: number | null;
 };
 
 export type CreatedMeetingsResponse = {
@@ -252,13 +260,17 @@ export type JoinedMeetingsResponse = {
 };
 
 export type MyCrewVisibility = "PUBLIC" | "PRIVATE";
+export type MyCrewRole = "LEADER" | "MEMBER";
 
 export type MyCrewListItem = {
   crewId: number;
   crewName: string;
+  description: string | null;
   visibility: MyCrewVisibility;
   leaderNickname: string;
   coverImageUrl: string | null;
+  myRole: MyCrewRole;
+  memberCount: number;
 };
 
 export type MyCrewsResponse = {
@@ -274,6 +286,11 @@ export type PendingCrewListItem = {
   joinRequestId: number;
   crewId: number;
   crewName: string;
+  description: string | null;
+  visibility: MyCrewVisibility;
+  leaderNickname: string;
+  coverImageUrl: string | null;
+  memberCount: number;
   requestedAt: string;
   messageSummary: string | null;
 };

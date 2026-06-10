@@ -1,14 +1,17 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { CreatedMeetingCard } from "@/features/auth/components/CreatedMeetingCard";
+import { ProfileTopHeader } from "@/features/auth/components/ProfileTopHeader";
 import { getCreatedMeetings, getMe } from "@/shared/auth/client";
 import { resolveProtectedDestination } from "@/shared/auth/guards";
 import { getUserMessage } from "@/shared/errors/operational";
 import { reportOperationalError } from "@/shared/monitoring/operations";
-import type { CreatedMeetingListItem, CreatedMeetingStatus } from "@/shared/auth/types";
+import type { CreatedMeetingListItem } from "@/shared/auth/types";
+
+import styles from "./JoinedMeetingsPageClient.module.css";
 
 const CREATED_MEETINGS_PATH = "/profile/created-meetings";
 const PAGE_SIZE = 20;
@@ -30,19 +33,8 @@ function mergeItems(
   return merged;
 }
 
-function toStatusLabel(status: CreatedMeetingStatus): string {
-  switch (status) {
-    case "RECRUITING":
-      return "모집 중";
-    case "RECRUITMENT_CLOSED":
-      return "모집 마감";
-    case "COMPLETED":
-      return "완료";
-    case "CANCELED":
-      return "취소됨";
-    default:
-      return status;
-  }
+function isPastMeeting(item: CreatedMeetingListItem): boolean {
+  return item.status === "COMPLETED" || item.status === "CANCELED";
 }
 
 export function CreatedMeetingsPageClient() {
@@ -158,84 +150,79 @@ export function CreatedMeetingsPageClient() {
 
   if (isLoading) {
     return (
-      <main>
-        <h1>생성 모임</h1>
-        <p>생성 모임 목록을 불러오는 중입니다.</p>
-      </main>
+      <>
+        <ProfileTopHeader />
+        <main className={styles.pageShell}>
+          <section className={styles.introSection} aria-labelledby="created-meetings-title">
+            <h1 id="created-meetings-title">내가 만든 모임</h1>
+            <p>내가 만든 모임입니다.</p>
+          </section>
+          <p className={styles.stateText}>생성 모임 목록을 불러오는 중입니다.</p>
+        </main>
+      </>
     );
   }
 
+  const activeItems = items.filter((item) => !isPastMeeting(item));
+  const pastItems = items.filter(isPastMeeting);
+
   return (
-    <main style={{ display: "grid", gap: 16 }}>
-      <h1>생성 모임</h1>
-      <p>내가 host로 연 모임을 다시 확인하고, 바로 기존 모임 상세로 이어갈 수 있어요.</p>
+    <>
+      <ProfileTopHeader />
+      <main className={styles.pageShell}>
+        <section className={styles.introSection} aria-labelledby="created-meetings-title">
+          <h1 id="created-meetings-title">내가 만든 모임</h1>
+          <p>내가 만든 모임입니다.</p>
+        </section>
 
-      {errorMessage ? <p>{errorMessage}</p> : null}
+        {errorMessage ? <p className={styles.errorMessage}>{errorMessage}</p> : null}
 
-      {!errorMessage && items.length === 0 ? <p>아직 만든 모임이 없어요.</p> : null}
+        {!errorMessage && items.length === 0 ? (
+          <p className={styles.emptyState}>아직 만든 모임이 없어요.</p>
+        ) : null}
 
-      {items.length > 0 ? (
-        <>
-          <ul
-            aria-label="생성 모임 목록"
-            style={{
-              listStyle: "none",
-              margin: 0,
-              padding: 0,
-              display: "grid",
-              gap: 12,
-            }}
-          >
-            {items.map((item) => (
-              <li key={item.meetingId}>
-                <Link
-                  href={`/crews/${item.crewId}/meetings/${item.meetingId}`}
-                  style={{
-                    display: "grid",
-                    gap: 8,
-                    padding: 16,
-                    border: "1px solid #d9d9d9",
-                    borderRadius: 16,
-                    textDecoration: "none",
-                    color: "inherit",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 12,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <strong>{item.title}</strong>
-                    <span>{toStatusLabel(item.status)}</span>
-                  </div>
-                  <span>
-                    {item.date} {item.time}
-                  </span>
-                  <span>{item.crewName}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+        {activeItems.length > 0 ? (
+          <section className={styles.meetingSection} aria-labelledby="active-created-meetings-title">
+            <h2 id="active-created-meetings-title">진행 중 모임</h2>
+            <ul className={styles.meetingList} aria-label="진행 중 생성 모임 목록">
+              {activeItems.map((item) => (
+                <CreatedMeetingCard key={item.meetingId} item={item} />
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
-          {hasNext ? (
+        {pastItems.length > 0 ? (
+          <section className={styles.meetingSection} aria-labelledby="past-created-meetings-title">
+            <h2 id="past-created-meetings-title">지난 모임</h2>
+            <ul className={styles.meetingList} aria-label="지난 생성 모임 목록">
+              {pastItems.map((item) => (
+                <CreatedMeetingCard key={item.meetingId} item={item} />
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        {items.length > 0 && hasNext ? (
+          <div className={styles.moreAction}>
             <button type="button" onClick={handleLoadMore} disabled={isLoadingMore}>
               {isLoadingMore ? "더 불러오는 중..." : "더 보기"}
             </button>
-          ) : (
-            <p>여기까지 모두 확인했어요.</p>
-          )}
-        </>
-      ) : null}
+          </div>
+        ) : null}
 
-      {!items.length && errorMessage ? (
-        <button type="button" onClick={handleRetry}>
-          다시 시도
-        </button>
-      ) : null}
-    </main>
+        {items.length > 0 && !hasNext ? (
+          <p className={styles.endMessage}>여기까지 모두 확인했어요.</p>
+        ) : null}
+
+        {!items.length && errorMessage ? (
+          <div>
+            <button className={styles.retryButton} type="button" onClick={handleRetry}>
+              다시 시도
+            </button>
+          </div>
+        ) : null}
+      </main>
+    </>
   );
 }
