@@ -6,10 +6,12 @@ import {
   getFavoriteThemesSummary,
   getMe,
   getMyCalendar,
+  getMyMeetingLogs,
   getProfile,
-  logout,
   updateProfile,
 } from "@/shared/auth/client";
+import { getExploreThemeDetail } from "@/shared/explore/client";
+import type { ExploreThemeDetail } from "@/shared/explore/types";
 import { uploadProfileImage } from "@/shared/image/client";
 
 const replaceMock = vi.fn();
@@ -25,6 +27,7 @@ vi.mock("@/shared/auth/client", () => ({
   getFavoriteThemesSummary: vi.fn(),
   getMe: vi.fn(),
   getMyCalendar: vi.fn(),
+  getMyMeetingLogs: vi.fn(),
   getProfile: vi.fn(),
   updateProfile: vi.fn(),
   logout: vi.fn(),
@@ -33,6 +36,17 @@ vi.mock("@/shared/auth/client", () => ({
 vi.mock("@/shared/image/client", () => ({
   uploadProfileImage: vi.fn(),
 }));
+
+vi.mock("@/shared/explore/client", async () => {
+  const actual = await vi.importActual<typeof import("@/shared/explore/client")>(
+    "@/shared/explore/client",
+  );
+
+  return {
+    ...actual,
+    getExploreThemeDetail: vi.fn(),
+  };
+});
 
 function mockFullUser() {
   vi.mocked(getMe).mockResolvedValue({
@@ -84,6 +98,63 @@ function mockFavoriteSummary() {
   });
 }
 
+function mockThemeDetail(overrides: Partial<ExploreThemeDetail> = {}) {
+  vi.mocked(getExploreThemeDetail).mockResolvedValue({
+    themeId: 301,
+    themeName: "포비든 룸",
+    storeId: 12,
+    storeName: "서울 이스케이프",
+    regionLabel: "서울 강남",
+    genres: ["공포"],
+    posterImageUrl: null,
+    difficulty: 3,
+    runningTimeMinutes: 75,
+    description: "숨겨진 방의 단서를 따라 진실을 찾아야 합니다.",
+    externalLink: "https://example.com/forbidden-room",
+    isFavorite: true,
+    relatedThemes: [],
+    ...overrides,
+  });
+}
+
+function mockMeetingLogs() {
+  vi.mocked(getMyMeetingLogs).mockResolvedValue({
+    items: [
+      {
+        logId: 501,
+        crewId: 11,
+        crewName: "강남 탈출 크루",
+        meetingId: 71,
+        meetingTitle: "정기 모임 후기",
+        meetingDate: "2026-05-15",
+        createdAt: "2026-05-16T09:00:00Z",
+        excerpt: "이번엔 힌트 3개로 클리어했어요. 난이도가 꽤 높았지만 팀워크가 빛났던 시간이었습니다.",
+        coverPhotoUrl: null,
+        result: "SUCCESS",
+        photoCount: 0,
+      },
+      {
+        logId: 502,
+        crewId: 12,
+        crewName: "테마이트",
+        meetingId: 72,
+        meetingTitle: "처음 참여한 정기 모임",
+        meetingDate: "2026-05-12",
+        createdAt: "2026-05-13T11:00:00Z",
+        excerpt: "다들 너무 친절하게 맞이해줬어요.",
+        coverPhotoUrl: "https://cdn.example.com/log-cover.jpg",
+        result: "SUCCESS",
+        photoCount: 2,
+      },
+    ],
+    pageInfo: {
+      page: 0,
+      size: 3,
+      hasNext: true,
+    },
+  });
+}
+
 describe("ProfilePage", () => {
   beforeEach(() => {
     replaceMock.mockReset();
@@ -117,6 +188,7 @@ describe("ProfilePage", () => {
     mockFullUser();
     mockProfile();
     mockFavoriteSummary();
+    mockMeetingLogs();
     vi.mocked(getMyCalendar).mockResolvedValue({
       items: [
         {
@@ -147,65 +219,82 @@ describe("ProfilePage", () => {
 
     render(<ProfilePage />);
 
-    expect(await screen.findByRole("heading", { name: "내 프로필" })).toBeInTheDocument();
-    expect(screen.getByText("프로필 이미지 준비 중")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "마이페이지" })).toBeInTheDocument();
+    expect(screen.getByLabelText("프로필 이미지 없음")).toBeInTheDocument();
     expect(screen.getByText("banglog")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /생성 모임 3/ })).toHaveAttribute(
-      "href",
-      "/profile/created-meetings",
-    );
-    expect(screen.getByRole("link", { name: /참여 모임 4/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /참여한 모임 4/ })).toHaveAttribute(
       "href",
       "/profile/joined-meetings",
+    );
+    expect(screen.getByRole("link", { name: /만든 모임 3/ })).toHaveAttribute(
+      "href",
+      "/profile/created-meetings",
     );
     expect(screen.getByRole("link", { name: /소속 크루 2/ })).toHaveAttribute(
       "href",
       "/profile/crews",
     );
-    expect(screen.getByRole("link", { name: /가입 대기 중 크루 1/ })).toHaveAttribute(
-      "href",
-      "/profile/pending-crews",
-    );
-    expect(screen.getByRole("link", { name: "내 방탈로그" })).toHaveAttribute(
+    expect(await screen.findByRole("heading", { name: "방팟 로그" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "방팟 로그 전체보기" })).toHaveAttribute(
       "href",
       "/profile/logs",
     );
+    expect(screen.getByText(/이번엔 힌트 3개로 클리어했어요/)).toBeInTheDocument();
+    expect(screen.getByText(/\[정기 모임 후기\] · 성공/)).toBeInTheDocument();
     expect(await screen.findByRole("heading", { name: "찜한 테마" })).toBeInTheDocument();
-    expect(await screen.findByText("테마 이미지 준비 중")).toBeInTheDocument();
+    expect(await screen.findByText("포비든 룸 이미지 준비 중")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "포비든 룸" })).toHaveAttribute(
       "href",
       "/explore/themes/301",
     );
-    expect(screen.getAllByText("서울 이스케이프").length).toBeGreaterThan(0);
-    expect(screen.getByText("서울 강남")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "전체보기" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "찜한 테마 전체보기" })).toHaveAttribute(
       "href",
       "/profile/favorites",
     );
-    expect(screen.getByRole("link", { name: "회원탈퇴" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "계정관리" })).toHaveAttribute(
       "href",
       "/profile/withdrawal",
     );
 
-    expect(screen.getByRole("heading", { name: "달력" })).toBeInTheDocument();
-    expect(await screen.findByRole("button", { name: "15일" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "18일" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "예정 일정" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "15일 일정 1개" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "18일 취소 1개" })).toBeInTheDocument();
     expect(screen.getByText("금요일 방탈출")).toBeInTheDocument();
     expect(screen.getByText("방탈출 크루")).toBeInTheDocument();
-    expect(screen.getByText("모임장")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "18일" }));
+    fireEvent.click(screen.getByRole("button", { name: "18일 취소 1개" }));
 
     expect(screen.getByText("토요일 리벤지")).toBeInTheDocument();
     expect(screen.getAllByText("서울 이스케이프").length).toBeGreaterThan(0);
-    expect(screen.getByText("참여자")).toBeInTheDocument();
-    expect(screen.getByText("취소")).toBeInTheDocument();
+    expect(screen.getByText(/취소됨/)).toBeInTheDocument();
+  });
+
+  it("opens the explore-style theme detail dialog from the favorite summary", async () => {
+    mockFullUser();
+    mockProfile();
+    mockFavoriteSummary();
+    mockMeetingLogs();
+    mockThemeDetail();
+    vi.mocked(getMyCalendar).mockResolvedValue({
+      items: [],
+      totalCount: 0,
+    });
+
+    render(<ProfilePage />);
+
+    fireEvent.click(await screen.findByRole("link", { name: "포비든 룸" }));
+
+    expect(getExploreThemeDetail).toHaveBeenCalledWith(301);
+    expect(await screen.findByRole("dialog", { name: "포비든 룸" })).toBeInTheDocument();
+    expect(screen.getByText("테마 소개")).toBeInTheDocument();
+    expect(screen.getByText(/숨겨진 방의 단서/)).toBeInTheDocument();
   });
 
   it("keeps the hub counts from get profile even when patch returns null counts", async () => {
     mockFullUser();
     mockProfile();
     mockFavoriteSummary();
+    mockMeetingLogs();
     vi.mocked(getMyCalendar).mockResolvedValue({
       items: [],
       totalCount: 0,
@@ -227,12 +316,13 @@ describe("ProfilePage", () => {
 
     render(<ProfilePage />);
 
+    fireEvent.click(await screen.findByRole("button", { name: "프로필 수정" }));
     const nicknameInput = await screen.findByLabelText("닉네임");
     fireEvent.change(nicknameInput, { target: { value: "potmaster" } });
     fireEvent.change(screen.getByLabelText("Profile image"), {
       target: { files: [new File(["profile"], "profile.jpg", { type: "image/jpeg" })] },
     });
-    fireEvent.click(screen.getByRole("button", { name: "닉네임 저장" }));
+    fireEvent.click(screen.getByRole("button", { name: "저장" }));
 
     await waitFor(() => {
       expect(uploadProfileImage).toHaveBeenCalledWith(expect.any(File));
@@ -242,11 +332,10 @@ describe("ProfilePage", () => {
       });
     });
 
-    expect(screen.getByDisplayValue("potmaster")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /생성 모임 3/ })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /참여 모임 4/ })).toBeInTheDocument();
+    expect(screen.getAllByText("potmaster").length).toBeGreaterThan(0);
+    expect(screen.getByRole("link", { name: /만든 모임 3/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /참여한 모임 4/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /소속 크루 2/ })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /가입 대기 중 크루 1/ })).toBeInTheDocument();
   });
 
   it("shows the backend nickname validation message on profile update failure", async () => {
@@ -255,6 +344,7 @@ describe("ProfilePage", () => {
     mockFullUser();
     mockProfile();
     mockFavoriteSummary();
+    mockMeetingLogs();
     vi.mocked(getMyCalendar).mockResolvedValue({
       items: [],
       totalCount: 0,
@@ -276,9 +366,10 @@ describe("ProfilePage", () => {
 
     render(<ProfilePage />);
 
+    fireEvent.click(await screen.findByRole("button", { name: "프로필 수정" }));
     const nicknameInput = await screen.findByLabelText("닉네임");
     fireEvent.change(nicknameInput, { target: { value: "" } });
-    fireEvent.click(screen.getByRole("button", { name: "닉네임 저장" }));
+    fireEvent.click(screen.getByRole("button", { name: "저장" }));
 
     expect(await screen.findByText("닉네임이 비어 있을 수 없습니다.")).toBeInTheDocument();
   });
@@ -287,6 +378,7 @@ describe("ProfilePage", () => {
     mockFullUser();
     mockProfile();
     mockFavoriteSummary();
+    mockMeetingLogs();
     vi.mocked(getMyCalendar)
       .mockRejectedValueOnce(new Error("calendar boom"))
       .mockResolvedValueOnce({
@@ -310,46 +402,41 @@ describe("ProfilePage", () => {
     expect(screen.getByText("아직 표시할 일정이 없어요")).toBeInTheDocument();
   });
 
-  it("logs out, re-checks auth state, and routes back to login when the user becomes guest", async () => {
-    vi.mocked(getMe)
-      .mockResolvedValueOnce({
-        authStatus: "FULL",
-        completionRequired: false,
-        redirectTo: null,
-        requiredTermsVersion: "2026-03-25",
-        user: { id: 1, nickname: "banglog" },
-        requiredTermsAcceptedAt: "2026-03-31T00:00:00Z",
-      })
-      .mockResolvedValueOnce({
-        authStatus: "GUEST",
-        completionRequired: false,
-        redirectTo: null,
-        requiredTermsVersion: "2026-03-25",
-        user: null,
-        requiredTermsAcceptedAt: null,
-      });
+  it("opens the profile edit dialog with editable profile fields and closes it", async () => {
+    mockFullUser();
     mockProfile();
     mockFavoriteSummary();
+    mockMeetingLogs();
     vi.mocked(getMyCalendar).mockResolvedValue({
       items: [],
       totalCount: 0,
     });
-    vi.mocked(logout).mockResolvedValue(undefined);
 
     render(<ProfilePage />);
 
-    expect(await screen.findByRole("heading", { name: "내 프로필" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "로그아웃" }));
+    expect(await screen.findByRole("heading", { name: "마이페이지" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "프로필 수정" }));
 
-    await waitFor(() => {
-      expect(logout).toHaveBeenCalledTimes(1);
-      expect(replaceMock).toHaveBeenCalledWith("/login");
-    });
+    expect(await screen.findByRole("dialog", { name: "프로필 수정" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Profile image")).toBeInTheDocument();
+    expect(screen.getByLabelText("닉네임")).toHaveValue("banglog");
+    expect(screen.getByLabelText("한줄소개")).toBeInTheDocument();
+    expect(screen.getByLabelText("방수")).toBeInTheDocument();
+    expect(screen.getByLabelText("성별")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("한줄소개"), { target: { value: "hello" } });
+
+    expect(screen.getByText("5 / 200")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "프로필 수정 닫기" }));
+
+    expect(screen.queryByRole("dialog", { name: "프로필 수정" })).not.toBeInTheDocument();
   });
 
   it("keeps the profile hub visible when the favorites summary section fails and allows retry", async () => {
     mockFullUser();
     mockProfile();
+    mockMeetingLogs();
     vi.mocked(getFavoriteThemesSummary)
       .mockRejectedValueOnce(new Error("favorites boom"))
       .mockResolvedValueOnce({

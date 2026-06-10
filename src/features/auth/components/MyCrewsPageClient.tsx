@@ -2,18 +2,28 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
-import { getMe, getMyCrews } from "@/shared/auth/client";
+import { ActiveCrewSection, PendingCrewSection } from "@/features/auth/components/MyCrewSections";
+import { ProfileTopHeader } from "@/features/auth/components/ProfileTopHeader";
+import { getMe, getMyCrews, getPendingCrews } from "@/shared/auth/client";
 import { resolveProtectedDestination } from "@/shared/auth/guards";
-import type { MyCrewListItem, MyCrewVisibility } from "@/shared/auth/types";
+import type { MyCrewListItem, PendingCrewListItem } from "@/shared/auth/types";
 import { getUserMessage } from "@/shared/errors/operational";
 import { reportOperationalError } from "@/shared/monitoring/operations";
 
+import styles from "./MyCrewsPageClient.module.css";
+
 const MY_CREWS_PATH = "/profile/crews";
 const PAGE_SIZE = 20;
+const LOAD_ERROR_MESSAGE = "소속 크루 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.";
+const PARTIAL_LOAD_ERROR_MESSAGE =
+  "일부 크루 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.";
 
-function mergeItems(previousItems: MyCrewListItem[], nextItems: MyCrewListItem[]): MyCrewListItem[] {
+function mergeMyCrewItems(
+  previousItems: readonly MyCrewListItem[],
+  nextItems: readonly MyCrewListItem[],
+): MyCrewListItem[] {
   const seen = new Set(previousItems.map((item) => item.crewId));
   const merged = [...previousItems];
 
@@ -27,66 +37,91 @@ function mergeItems(previousItems: MyCrewListItem[], nextItems: MyCrewListItem[]
   return merged;
 }
 
-function toVisibilityLabel(visibility: MyCrewVisibility): string {
-  switch (visibility) {
-    case "PUBLIC":
-      return "공개";
-    case "PRIVATE":
-      return "비공개";
-    default:
-      return visibility;
+function mergePendingCrewItems(
+  previousItems: readonly PendingCrewListItem[],
+  nextItems: readonly PendingCrewListItem[],
+): PendingCrewListItem[] {
+  const seen = new Set(previousItems.map((item) => item.joinRequestId));
+  const merged = [...previousItems];
+
+  for (const item of nextItems) {
+    if (!seen.has(item.joinRequestId)) {
+      merged.push(item);
+      seen.add(item.joinRequestId);
+    }
   }
+
+  return merged;
 }
 
 export function MyCrewsPageClient() {
   const router = useRouter();
-  const hasBootstrappedRef = useRef(false);
-  const [items, setItems] = useState<MyCrewListItem[]>([]);
-  const [page, setPage] = useState(0);
-  const [hasNext, setHasNext] = useState(false);
+  const [myCrews, setMyCrews] = useState<MyCrewListItem[]>([]);
+  const [pendingCrews, setPendingCrews] = useState<PendingCrewListItem[]>([]);
+  const [myCrewsPage, setMyCrewsPage] = useState(0);
+  const [pendingCrewsPage, setPendingCrewsPage] = useState(0);
+  const [hasNextMyCrews, setHasNextMyCrews] = useState(false);
+  const [hasNextPendingCrews, setHasNextPendingCrews] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isLoadingMoreMyCrews, setIsLoadingMoreMyCrews] = useState(false);
+  const [isLoadingMorePendingCrews, setIsLoadingMorePendingCrews] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [failedImageIds, setFailedImageIds] = useState<number[]>([]);
 
-  async function loadFirstPage() {
+  async function loadFirstPage(shouldApplyResult: () => boolean = () => true) {
     setIsLoading(true);
     setErrorMessage(null);
 
-    try {
-      const response = await getMyCrews({
-        page: 0,
-        size: PAGE_SIZE,
-      });
+    const [pendingResult, myCrewsResult] = await Promise.allSettled([
+      getPendingCrews({ page: 0, size: PAGE_SIZE }),
+      getMyCrews({ page: 0, size: PAGE_SIZE }),
+    ]);
 
-      setItems(response.items);
-      setPage(response.pageInfo.page);
-      setHasNext(response.pageInfo.hasNext);
-      setFailedImageIds([]);
-    } catch (error) {
-      reportOperationalError("auth.my_crews.bootstrap_failed", error, {
-        route: MY_CREWS_PATH,
-      });
-      setErrorMessage(
-        getUserMessage(error, "소속 크루 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    if (hasBootstrappedRef.current) {
+    if (!shouldApplyResult()) {
       return;
     }
 
-    hasBootstrappedRef.current = true;
+    if (pendingResult.status === "fulfilled") {
+      const pendingResponse = pendingResult.value;
+      setPendingCrews(pendingResponse.items);
+      setPendingCrewsPage(pendingResponse.pageInfo.page);
+      setHasNextPendingCrews(pendingResponse.pageInfo.hasNext);
+    } else {
+      reportOperationalError("auth.my_crews.pending_bootstrap_failed", pendingResult.reason, {
+        route: MY_CREWS_PATH,
+      });
+    }
+
+    if (myCrewsResult.status === "fulfilled") {
+      const myCrewsResponse = myCrewsResult.value;
+      setMyCrews(myCrewsResponse.items);
+      setMyCrewsPage(myCrewsResponse.pageInfo.page);
+      setHasNextMyCrews(myCrewsResponse.pageInfo.hasNext);
+    } else {
+      reportOperationalError("auth.my_crews.active_bootstrap_failed", myCrewsResult.reason, {
+        route: MY_CREWS_PATH,
+      });
+    }
+
+    setFailedImageIds([]);
+
+    if (pendingResult.status === "rejected" && myCrewsResult.status === "rejected") {
+      setErrorMessage(getUserMessage(myCrewsResult.reason, LOAD_ERROR_MESSAGE));
+    } else if (pendingResult.status === "rejected") {
+      setErrorMessage(getUserMessage(pendingResult.reason, PARTIAL_LOAD_ERROR_MESSAGE));
+    } else if (myCrewsResult.status === "rejected") {
+      setErrorMessage(getUserMessage(myCrewsResult.reason, LOAD_ERROR_MESSAGE));
+    }
+
+    setIsLoading(false);
+  }
+
+  useEffect(() => {
     let isMounted = true;
 
     async function bootstrap() {
       try {
         const me = await getMe();
-
         if (!isMounted) {
           return;
         }
@@ -97,19 +132,14 @@ export function MyCrewsPageClient() {
           return;
         }
 
-        await loadFirstPage();
+        await loadFirstPage(() => isMounted);
       } catch (error) {
-        reportOperationalError("auth.my_crews.auth_failed", error, {
-          route: MY_CREWS_PATH,
-        });
-
+        reportOperationalError("auth.my_crews.auth_failed", error, { route: MY_CREWS_PATH });
         if (!isMounted) {
           return;
         }
 
-        setErrorMessage(
-          getUserMessage(error, "소속 크루 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
-        );
+        setErrorMessage(getUserMessage(error, LOAD_ERROR_MESSAGE));
         setIsLoading(false);
       }
     }
@@ -121,33 +151,41 @@ export function MyCrewsPageClient() {
     };
   }, [router]);
 
-  async function handleRetry() {
-    await loadFirstPage();
-  }
-
-  async function handleLoadMore() {
-    setIsLoadingMore(true);
-
+  async function handleLoadMoreMyCrews() {
+    setIsLoadingMoreMyCrews(true);
     try {
-      const response = await getMyCrews({
-        page: page + 1,
-        size: PAGE_SIZE,
-      });
-
-      setItems((currentItems) => mergeItems(currentItems, response.items));
-      setPage(response.pageInfo.page);
-      setHasNext(response.pageInfo.hasNext);
+      const response = await getMyCrews({ page: myCrewsPage + 1, size: PAGE_SIZE });
+      setMyCrews((currentItems) => mergeMyCrewItems(currentItems, response.items));
+      setMyCrewsPage(response.pageInfo.page);
+      setHasNextMyCrews(response.pageInfo.hasNext);
       setErrorMessage(null);
     } catch (error) {
       reportOperationalError("auth.my_crews.load_more_failed", error, {
         level: "warn",
         route: MY_CREWS_PATH,
       });
-      setErrorMessage(
-        getUserMessage(error, "소속 크루 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
-      );
+      setErrorMessage(getUserMessage(error, LOAD_ERROR_MESSAGE));
     } finally {
-      setIsLoadingMore(false);
+      setIsLoadingMoreMyCrews(false);
+    }
+  }
+
+  async function handleLoadMorePendingCrews() {
+    setIsLoadingMorePendingCrews(true);
+    try {
+      const response = await getPendingCrews({ page: pendingCrewsPage + 1, size: PAGE_SIZE });
+      setPendingCrews((currentItems) => mergePendingCrewItems(currentItems, response.items));
+      setPendingCrewsPage(response.pageInfo.page);
+      setHasNextPendingCrews(response.pageInfo.hasNext);
+      setErrorMessage(null);
+    } catch (error) {
+      reportOperationalError("auth.my_crews.pending_load_more_failed", error, {
+        level: "warn",
+        route: MY_CREWS_PATH,
+      });
+      setErrorMessage(getUserMessage(error, LOAD_ERROR_MESSAGE));
+    } finally {
+      setIsLoadingMorePendingCrews(false);
     }
   }
 
@@ -157,118 +195,68 @@ export function MyCrewsPageClient() {
 
   if (isLoading) {
     return (
-      <main>
-        <h1>소속 크루</h1>
-        <p>소속 크루 목록을 불러오는 중입니다.</p>
-      </main>
+      <>
+        <ProfileTopHeader />
+        <main className={styles.pageShell}>
+          <section className={styles.introSection}>
+            <h1>내가 속한 크루</h1>
+            <p className={styles.stateText}>소속 크루 목록을 불러오는 중입니다.</p>
+          </section>
+        </main>
+      </>
     );
   }
 
+  const isEmpty = pendingCrews.length === 0 && myCrews.length === 0;
+
   return (
-    <main style={{ display: "grid", gap: 16 }}>
-      <h1>소속 크루</h1>
-      <p>지금 함께 활동 중인 크루를 다시 확인하고, 바로 기존 크루 페이지로 이어갈 수 있어요.</p>
-
-      {errorMessage ? <p>{errorMessage}</p> : null}
-
-      {!errorMessage && items.length === 0 ? (
-        <section style={{ display: "grid", gap: 12 }}>
-          <p>아직 소속된 크루가 없어요.</p>
-          <div>
-            <Link href="/crews/public">공개 크루 탐색</Link>
-          </div>
+    <>
+      <ProfileTopHeader />
+      <main className={styles.pageShell}>
+        <section className={styles.introSection} aria-labelledby="my-crews-title">
+          <h1 id="my-crews-title">내가 속한 크루</h1>
+          <p>내가 소속된 크루들입니다</p>
         </section>
-      ) : null}
 
-      {items.length > 0 ? (
-        <>
-          <ul
-            aria-label="소속 크루 목록"
-            style={{
-              listStyle: "none",
-              margin: 0,
-              padding: 0,
-              display: "grid",
-              gap: 12,
+        {errorMessage ? <p className={styles.errorMessage}>{errorMessage}</p> : null}
+
+        {!errorMessage && isEmpty ? (
+          <section className={styles.emptyState}>
+            <p className={styles.emptyText}>아직 소속된 크루가 없어요.</p>
+            <Link href="/crews/public">공개 크루 탐색</Link>
+          </section>
+        ) : null}
+
+        <PendingCrewSection
+          items={pendingCrews}
+          hasNext={hasNextPendingCrews}
+          isLoadingMore={isLoadingMorePendingCrews}
+          failedImageIds={failedImageIds}
+          onImageError={handleImageError}
+          onLoadMore={handleLoadMorePendingCrews}
+        />
+
+        <ActiveCrewSection
+          items={myCrews}
+          hasNext={hasNextMyCrews}
+          isLoadingMore={isLoadingMoreMyCrews}
+          failedImageIds={failedImageIds}
+          onImageError={handleImageError}
+          onLoadMore={handleLoadMoreMyCrews}
+        />
+
+        {isEmpty && errorMessage ? (
+          <button
+            type="button"
+            className={styles.retryButton}
+            onClick={() => {
+              void loadFirstPage();
             }}
           >
-            {items.map((item) => {
-              const shouldShowImage = item.coverImageUrl && !failedImageIds.includes(item.crewId);
-
-              return (
-                <li key={item.crewId}>
-                  <Link
-                    href={`/crews/${item.crewId}`}
-                    style={{
-                      display: "grid",
-                      gap: 12,
-                      padding: 16,
-                      border: "1px solid #d9d9d9",
-                      borderRadius: 16,
-                      textDecoration: "none",
-                      color: "inherit",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "100%",
-                        aspectRatio: "16 / 9",
-                        borderRadius: 12,
-                        overflow: "hidden",
-                        background: "#f5f5f5",
-                        display: "grid",
-                        placeItems: "center",
-                      }}
-                    >
-                      {shouldShowImage ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={item.coverImageUrl ?? ""}
-                          alt={`${item.crewName} 대표 이미지`}
-                          onError={() => handleImageError(item.crewId)}
-                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                        />
-                      ) : (
-                        <span>크루 이미지 준비 중</span>
-                      )}
-                    </div>
-
-                    <div style={{ display: "grid", gap: 6 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          gap: 12,
-                          flexWrap: "wrap",
-                        }}
-                      >
-                        <strong>{item.crewName}</strong>
-                        <span>{toVisibilityLabel(item.visibility)}</span>
-                      </div>
-                      <span>{`크루장 ${item.leaderNickname}`}</span>
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-
-          {hasNext ? (
-            <button type="button" onClick={handleLoadMore} disabled={isLoadingMore}>
-              {isLoadingMore ? "더 불러오는 중..." : "더 보기"}
-            </button>
-          ) : (
-            <p>여기까지 모두 확인했어요.</p>
-          )}
-        </>
-      ) : null}
-
-      {!items.length && errorMessage ? (
-        <button type="button" onClick={handleRetry}>
-          다시 시도
-        </button>
-      ) : null}
-    </main>
+            다시 시도
+          </button>
+        ) : null}
+      </main>
+    </>
   );
 }

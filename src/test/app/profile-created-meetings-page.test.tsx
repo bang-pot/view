@@ -62,20 +62,26 @@ describe("CreatedMeetingsProfilePage", () => {
         {
           meetingId: 31,
           title: "토요일 방탈출",
+          themeName: "어비스 : 0층의 주민들",
           status: "RECRUITING",
           date: "2026-04-20",
           time: "14:00",
           crewId: 7,
           crewName: "방로그 크루",
+          participantCount: 3,
+          capacity: 6,
         },
         {
           meetingId: 32,
           title: "일요일 방탈출",
+          themeName: "저택의 비밀",
           status: "COMPLETED",
           date: "2026-04-21",
           time: "18:30",
           crewId: 8,
           crewName: "서브 크루",
+          participantCount: 3,
+          capacity: 6,
         },
       ],
       pageInfo: {
@@ -87,7 +93,9 @@ describe("CreatedMeetingsProfilePage", () => {
 
     render(<CreatedMeetingsProfilePage />);
 
-    expect(await screen.findByRole("heading", { name: "생성 모임" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "내가 만든 모임" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "진행 중 모임" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "지난 모임" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /토요일 방탈출/ })).toHaveAttribute(
       "href",
       "/crews/7/meetings/31",
@@ -96,10 +104,17 @@ describe("CreatedMeetingsProfilePage", () => {
       "href",
       "/crews/8/meetings/32",
     );
-    expect(screen.getByText("모집 중")).toBeInTheDocument();
-    expect(screen.getByText("완료")).toBeInTheDocument();
-    expect(screen.getByText("방로그 크루")).toBeInTheDocument();
-    expect(screen.getByText("2026-04-20 14:00")).toBeInTheDocument();
+    expect(screen.getByText("어비스 : 0층의 주민들")).toBeInTheDocument();
+    expect(screen.getByText("저택의 비밀")).toBeInTheDocument();
+    expect(screen.getByText("모집중")).toBeInTheDocument();
+    expect(screen.getByText("마감")).toBeInTheDocument();
+    expect(screen.getAllByText("방로그 크루")).toHaveLength(2);
+    expect(screen.getByText("2026. 04. 20 (월) 14:00")).toBeInTheDocument();
+    expect(screen.getAllByText("3 / 6명")).toHaveLength(2);
+    expect(
+      screen.getByText((_, element) => element?.textContent === "탈출 진행도 : 완료"),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "수정하기" })[0]).toHaveAttribute("href", "/crews/7/meetings/31/edit");
   });
 
   it("shows an empty state when the user has no created meetings in the list response", async () => {
@@ -186,10 +201,7 @@ describe("CreatedMeetingsProfilePage", () => {
     const loadMoreButton = await screen.findByRole("button", { name: "더 보기" });
     fireEvent.click(loadMoreButton);
 
-    expect(await screen.findByRole("link", { name: /심야 방탈출/ })).toHaveAttribute(
-      "href",
-      "/crews/7/meetings/33",
-    );
+    expect(await screen.findByRole("link", { name: /심야 방탈출/ })).toHaveAttribute("href", "/crews/7/meetings/33");
     expect(screen.getAllByRole("link", { name: /토요일 방탈출/ })).toHaveLength(1);
   });
 
@@ -227,7 +239,9 @@ describe("CreatedMeetingsProfilePage", () => {
 
     render(<CreatedMeetingsProfilePage />);
 
-    expect(await screen.findByText("생성 모임 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("생성 모임 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "다시 시도" }));
 

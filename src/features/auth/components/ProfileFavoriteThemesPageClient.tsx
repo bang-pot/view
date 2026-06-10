@@ -2,14 +2,20 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { ThemeFavoriteButton } from "@/features/explore/components/ThemeFavoriteButton";
+import { ProfileFavoriteThemeListItem } from "@/features/auth/components/ProfileFavoriteThemeListItem";
+import { ProfileTopHeader } from "@/features/auth/components/ProfileTopHeader";
+import { ExploreThemeDetailDialog } from "@/features/explore/components/ExploreThemeDetailDialog";
 import { getFavoriteThemes, getMe } from "@/shared/auth/client";
 import { resolveProtectedDestination } from "@/shared/auth/guards";
 import type { FavoriteThemeListItem } from "@/shared/auth/types";
 import { getUserMessage } from "@/shared/errors/operational";
+import { getExploreThemeDetail } from "@/shared/explore/client";
+import type { ExploreThemeDetail } from "@/shared/explore/types";
 import { reportOperationalError } from "@/shared/monitoring/operations";
+
+import styles from "./ProfileFavoriteThemesPageClient.module.css";
 
 const PROFILE_FAVORITES_PATH = "/profile/favorites";
 const PAGE_SIZE = 20;
@@ -33,7 +39,6 @@ function mergeItems(
 
 export function ProfileFavoriteThemesPageClient() {
   const router = useRouter();
-  const hasBootstrappedRef = useRef(false);
   const [items, setItems] = useState<FavoriteThemeListItem[]>([]);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(false);
@@ -41,6 +46,9 @@ export function ProfileFavoriteThemesPageClient() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [failedImageIds, setFailedImageIds] = useState<number[]>([]);
+  const [selectedThemeDetail, setSelectedThemeDetail] = useState<ExploreThemeDetail | null>(null);
+  const [isThemeDetailLoading, setIsThemeDetailLoading] = useState(false);
+  const [themeDetailErrorMessage, setThemeDetailErrorMessage] = useState<string | null>(null);
 
   const loadPage = useCallback(async (targetPage: number) => {
     return getFavoriteThemes({
@@ -49,12 +57,16 @@ export function ProfileFavoriteThemesPageClient() {
     });
   }, []);
 
-  const loadFirstPage = useCallback(async () => {
+  const loadFirstPage = useCallback(async (shouldApplyResult: () => boolean = () => true) => {
     setIsLoading(true);
     setErrorMessage(null);
 
     try {
       const response = await loadPage(0);
+
+      if (!shouldApplyResult()) {
+        return;
+      }
 
       setItems(response.items);
       setPage(response.pageInfo.page);
@@ -64,20 +76,23 @@ export function ProfileFavoriteThemesPageClient() {
       reportOperationalError("auth.favorite_themes.bootstrap_failed", error, {
         route: PROFILE_FAVORITES_PATH,
       });
+      if (!shouldApplyResult()) {
+        return;
+      }
+
       setErrorMessage(
         getUserMessage(error, "찜한 테마 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
       );
     } finally {
+      if (!shouldApplyResult()) {
+        return;
+      }
+
       setIsLoading(false);
     }
   }, [loadPage]);
 
   useEffect(() => {
-    if (hasBootstrappedRef.current) {
-      return;
-    }
-
-    hasBootstrappedRef.current = true;
     let isMounted = true;
 
     async function bootstrap() {
@@ -94,7 +109,7 @@ export function ProfileFavoriteThemesPageClient() {
           return;
         }
 
-        await loadFirstPage();
+        await loadFirstPage(() => isMounted);
       } catch (error) {
         reportOperationalError("auth.favorite_themes.auth_failed", error, {
           route: PROFILE_FAVORITES_PATH,
@@ -117,10 +132,6 @@ export function ProfileFavoriteThemesPageClient() {
       isMounted = false;
     };
   }, [loadFirstPage, router]);
-
-  async function handleRetry() {
-    await loadFirstPage();
-  }
 
   async function handleLoadMore() {
     setIsLoadingMore(true);
@@ -151,151 +162,136 @@ export function ProfileFavoriteThemesPageClient() {
     );
   }
 
-  function handleFavoriteChange(input: { themeId: number; isFavorite: boolean }) {
-    if (input.isFavorite) {
-      return;
-    }
+  async function handleOpenThemeDetail(themeId: number) {
+    setThemeDetailErrorMessage(null);
+    setIsThemeDetailLoading(true);
 
-    setItems((currentItems) => currentItems.filter((item) => item.themeId !== input.themeId));
+    try {
+      const response = await getExploreThemeDetail(themeId);
+
+      setSelectedThemeDetail(response);
+    } catch (error) {
+      reportOperationalError("auth.favorite_themes.detail_load_failed", error, {
+        level: "warn",
+        route: PROFILE_FAVORITES_PATH,
+      });
+      setThemeDetailErrorMessage(
+        getUserMessage(error, "테마 상세 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."),
+      );
+    } finally {
+      setIsThemeDetailLoading(false);
+    }
+  }
+
+  function handleDialogFavoriteChange(input: { isFavorite: boolean; favoriteCount: number }) {
+    setSelectedThemeDetail((currentDetail) =>
+      currentDetail
+        ? {
+            ...currentDetail,
+            isFavorite: input.isFavorite,
+          }
+        : currentDetail,
+    );
+    setItems((currentItems) =>
+      currentItems.map((item) =>
+        selectedThemeDetail && item.themeId === selectedThemeDetail.themeId
+          ? {
+              ...item,
+              favoriteCount: input.favoriteCount,
+              isFavorite: input.isFavorite,
+            }
+          : item,
+      ),
+    );
   }
 
   if (isLoading) {
     return (
-      <main>
-        <h1>찜한 테마</h1>
-        <p>찜한 테마 목록을 불러오는 중입니다.</p>
-      </main>
+      <>
+        <ProfileTopHeader />
+        <main className={styles.pageShell}>
+          <section className={styles.introSection} aria-labelledby="favorite-themes-title">
+            <h1 id="favorite-themes-title">찜한 테마</h1>
+            <p>흥미로운 테마를 모아보세요.</p>
+          </section>
+          <p className={styles.stateText}>찜한 테마 목록을 불러오는 중입니다.</p>
+        </main>
+      </>
     );
   }
 
   const showEmptyState = !errorMessage && items.length === 0;
 
   return (
-    <main style={{ display: "grid", gap: 16 }}>
-      <h1>찜한 테마</h1>
-      <p>최근에 저장한 테마를 최신순으로 다시 확인하고, 기존 테마 상세로 바로 이어서 볼 수 있어요.</p>
-
-      {errorMessage ? <p>{errorMessage}</p> : null}
-
-      {showEmptyState ? (
-        <section style={{ display: "grid", gap: 12 }}>
-          <p>아직 찜한 테마가 없어요</p>
-          <div>
-            <Link href="/explore">테마 둘러보기</Link>
-          </div>
+    <>
+      <ProfileTopHeader />
+      <main className={styles.pageShell}>
+        <section className={styles.introSection} aria-labelledby="favorite-themes-title">
+          <h1 id="favorite-themes-title">찜한 테마</h1>
+          <p>흥미로운 테마를 모아보세요.</p>
         </section>
-      ) : null}
 
-      {items.length > 0 ? (
-        <>
-          <ul
-            aria-label="찜한 테마 목록"
-            style={{
-              listStyle: "none",
-              margin: 0,
-              padding: 0,
-              display: "grid",
-              gap: 12,
-            }}
-          >
-            {items.map((item) => {
-              const shouldShowImage = item.thumbnailUrl && !failedImageIds.includes(item.themeId);
-              const detailPath = `/explore/themes/${item.themeId}`;
+        {errorMessage ? <p className={styles.errorMessage}>{errorMessage}</p> : null}
+        {themeDetailErrorMessage ? <p className={styles.errorMessage}>{themeDetailErrorMessage}</p> : null}
+        {isThemeDetailLoading ? <p className={styles.stateText}>테마 상세 정보를 불러오는 중입니다.</p> : null}
 
-              return (
-                <li
+        {showEmptyState ? (
+          <section className={styles.emptyState}>
+            <p>아직 찜한 테마가 없어요</p>
+            <Link href="/explore">테마 둘러보기</Link>
+          </section>
+        ) : null}
+
+        {items.length > 0 ? (
+          <>
+            <p className={styles.totalCount}>총 {items.length.toLocaleString()}개</p>
+            <ul className={styles.favoriteList} aria-label="찜한 테마 목록">
+              {items.map((item) => (
+                <ProfileFavoriteThemeListItem
                   key={item.themeId}
-                  style={{
-                    display: "grid",
-                    gap: 12,
-                    padding: 16,
-                    border: "1px solid #d9d9d9",
-                    borderRadius: 16,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      justifyContent: "space-between",
-                      gap: 12,
-                    }}
-                  >
-                    <Link
-                      href={detailPath}
-                      style={{
-                        flex: 1,
-                        display: "grid",
-                        gap: 12,
-                        textDecoration: "none",
-                        color: "inherit",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: "100%",
-                          aspectRatio: "16 / 9",
-                          borderRadius: 12,
-                          overflow: "hidden",
-                          background: "#f5f5f5",
-                          display: "grid",
-                          placeItems: "center",
-                        }}
-                      >
-                        {shouldShowImage ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={item.thumbnailUrl ?? ""}
-                            alt={`${item.themeName} 썸네일`}
-                            onError={() => handleImageError(item.themeId)}
-                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                          />
-                        ) : (
-                          <span>테마 이미지 준비 중</span>
-                        )}
-                      </div>
+                  item={item}
+                  imageFailed={failedImageIds.includes(item.themeId)}
+                  onImageError={handleImageError}
+                  onOpenTheme={handleOpenThemeDetail}
+                />
+              ))}
+            </ul>
 
-                      <div style={{ display: "grid", gap: 6 }}>
-                        <strong>{item.themeName}</strong>
-                        <span>{item.storeName}</span>
-                        <span>{item.regionName}</span>
-                      </div>
-                    </Link>
+            {hasNext ? (
+              <div className={styles.moreAction}>
+                <button type="button" onClick={handleLoadMore} disabled={isLoadingMore}>
+                  {isLoadingMore ? "더 불러오는 중..." : "더 보기"}
+                </button>
+              </div>
+            ) : (
+              <p className={styles.endMessage}>여기까지 모두 확인했어요.</p>
+            )}
+          </>
+        ) : null}
 
-                    <ThemeFavoriteButton
-                      themeId={item.themeId}
-                      initialIsFavorite={item.isFavorite}
-                      initialFavoriteCount={item.favoriteCount}
-                      redirectPath={PROFILE_FAVORITES_PATH}
-                      variant="compact"
-                      onChange={(nextState) =>
-                        handleFavoriteChange({
-                          themeId: item.themeId,
-                          isFavorite: nextState.isFavorite,
-                        })
-                      }
-                    />
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-
-          {hasNext ? (
-            <button type="button" onClick={handleLoadMore} disabled={isLoadingMore}>
-              {isLoadingMore ? "더 불러오는 중..." : "더 보기"}
+        {!items.length && errorMessage ? (
+          <div>
+            <button
+              className={styles.retryButton}
+              type="button"
+              onClick={() => {
+                void loadFirstPage();
+              }}
+            >
+              다시 시도
             </button>
-          ) : (
-            <p>여기까지 모두 확인했어요.</p>
-          )}
-        </>
+          </div>
+        ) : null}
+      </main>
+      {selectedThemeDetail ? (
+        <ExploreThemeDetailDialog
+          detail={selectedThemeDetail}
+          redirectPath={PROFILE_FAVORITES_PATH}
+          onClose={() => setSelectedThemeDetail(null)}
+          onFavoriteChange={handleDialogFavoriteChange}
+          onOpenRelatedTheme={handleOpenThemeDetail}
+        />
       ) : null}
-
-      {!items.length && errorMessage ? (
-        <button type="button" onClick={handleRetry}>
-          다시 시도
-        </button>
-      ) : null}
-    </main>
+    </>
   );
 }

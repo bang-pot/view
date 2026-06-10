@@ -104,7 +104,7 @@ function PreviewImage({ src, alt, fallbackLabel, className }: PreviewImageProps)
   );
 }
 
-function HomeHeader({ loginHref }: { loginHref: string }) {
+function HomeHeader({ accountHref }: { accountHref: string }) {
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
@@ -125,7 +125,7 @@ function HomeHeader({ loginHref }: { loginHref: string }) {
               <path d="M10 19a2 2 0 0 0 4 0" />
             </svg>
           </span>
-          <a href={loginHref} aria-label="로그인" className={styles.avatarLink}>
+          <a href={accountHref} aria-label="마이페이지" className={styles.avatarLink}>
             A
           </a>
         </div>
@@ -610,6 +610,7 @@ export function HomePageClient({ notice = null }: HomePageClientProps) {
 
   const createCrewHref = useMemo(() => toCreateCrewHref(home), [home]);
   const loginHref = useMemo(() => toLoginHref("/"), []);
+  const accountHref = home?.isLoggedIn ? "/profile" : loginHref;
 
   async function loadHome() {
     setIsLoading(true);
@@ -668,7 +669,7 @@ export function HomePageClient({ notice = null }: HomePageClientProps) {
 
   return (
     <div className={styles.page}>
-      <HomeHeader loginHref={loginHref} />
+      <HomeHeader accountHref={accountHref} />
       <main className={styles.main}>
         <HeroSection
           home={home}

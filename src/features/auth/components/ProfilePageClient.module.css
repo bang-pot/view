@@ -1,0 +1,713 @@
+.pageShell {
+  display: grid;
+  gap: 28px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 20px 56px;
+  color: #111827;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.profileCard,
+.panelCard,
+.calendarCard,
+.upcomingCard {
+  border: 1px solid #e2e5ea;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.profileCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 32px;
+}
+
+.avatarLarge {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e8f2ff;
+  color: #3b8df4;
+  font-weight: 800;
+}
+
+.avatarLarge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profileCopy {
+  display: grid;
+  gap: 6px;
+}
+
+.nickname {
+  font-size: 15px;
+}
+
+.profileMeta,
+.profileCopy p,
+.stateText,
+.activityCard span,
+.upcomingCard small,
+.logMeta,
+.emptyState {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.profileCopy p {
+  margin: 0;
+}
+
+.profileActions,
+.formActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.primaryButton,
+.secondaryButton,
+.textButton {
+  min-height: 38px;
+  border-radius: 8px;
+  padding: 0 18px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.primaryButton {
+  border: 1px solid #4094ff;
+  background: #4094ff;
+  color: #ffffff;
+}
+
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d9dee7;
+  background: #ffffff;
+  color: #111827;
+}
+
+.textButton,
+.viewAllLink {
+  border: 0;
+  background: transparent;
+  color: #111827;
+  text-decoration: underline;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.panelCard {
+  display: grid;
+  gap: 18px;
+  padding: 24px 32px;
+}
+
+.panelCard h2,
+.calendarHeader h2,
+.upcomingCard h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.sectionHeader,
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.activityGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.activityCard {
+  display: grid;
+  gap: 5px;
+  min-height: 112px;
+  padding: 18px 20px;
+  border-radius: 8px;
+  background: #f8f8f8;
+  color: inherit;
+  text-decoration: none;
+}
+
+.activityLabel {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.activityCard strong {
+  font-size: 17px;
+}
+
+.underlined {
+  color: #111827;
+  text-decoration: underline;
+}
+
+.editForm {
+  display: grid;
+  gap: 10px;
+  max-width: 520px;
+}
+
+.editForm input {
+  min-height: 42px;
+  border: 1px solid #d9dee7;
+  border-radius: 8px;
+  padding: 0 14px;
+}
+
+.errorText {
+  margin: 0;
+  color: #ef4444;
+  font-size: 13px;
+}
+
+.profileEditOverlay {
+  position: fixed;
+  inset: 52px 0 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: 28px 16px;
+  background: rgba(15, 23, 42, 0.36);
+}
+
+.profileEditDialog {
+  position: relative;
+  width: min(448px, 100%);
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 22px 58px rgba(15, 23, 42, 0.2);
+}
+
+.profileEditCloseButton {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: #111111;
+  color: #ffffff;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.profileEditForm {
+  display: grid;
+  gap: 26px;
+  padding: 56px 28px 36px;
+}
+
+.profileImageEditor {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  padding-bottom: 8px;
+}
+
+.profileEditAvatar {
+  display: grid;
+  place-items: center;
+  width: 156px;
+  height: 156px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e9e9e9;
+  color: #111827;
+  font-size: 30px;
+}
+
+.profileEditAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profileImageSelectButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid #d9dee7;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #111827;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.profileImageFileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.profileEditField {
+  display: grid;
+  gap: 8px;
+}
+
+.profileEditField label {
+  color: #111827;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.profileEditField input,
+.profileEditField select,
+.profileTextareaShell {
+  width: 100%;
+  border: 1px solid #dfe3ea;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.profileEditField input,
+.profileEditField select {
+  min-height: 42px;
+  padding: 0 14px;
+  color: #111827;
+  font-size: 14px;
+}
+
+.profileEditField input::placeholder,
+.profileEditField textarea::placeholder,
+.profileEditField select:invalid {
+  color: #9aa3b2;
+}
+
+.profileTextareaShell {
+  display: grid;
+  padding: 14px;
+}
+
+.profileTextareaShell textarea {
+  min-height: 86px;
+  resize: none;
+  border: 0;
+  outline: 0;
+  color: #111827;
+  font: inherit;
+  font-size: 14px;
+}
+
+.profileTextareaShell span,
+.profileEditHint {
+  color: #8b95a7;
+  font-size: 12px;
+}
+
+.profileTextareaShell span {
+  justify-self: end;
+}
+
+.profileEditTwoColumn {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.profileEditHint {
+  margin: -2px 0 0;
+}
+
+.profileEditSubmitButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  border: 0;
+  border-radius: 8px;
+  background: #111111;
+  color: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.profileEditSubmitButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.scheduleGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(260px, 0.9fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.calendarCard {
+  display: grid;
+  gap: 20px;
+  min-height: 520px;
+  padding: 28px 34px;
+}
+
+.calendarHeader button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e1e5ec;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.weekdayGrid,
+.dayGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.weekdayGrid {
+  padding-bottom: 18px;
+  border-bottom: 1px solid #eef1f5;
+  color: #64748b;
+  font-size: 12px;
+  text-align: center;
+}
+
+.weekdayGrid span:first-child {
+  color: #ef4444;
+}
+
+.weekdayGrid span:last-child {
+  color: #4094ff;
+}
+
+.dayGrid {
+  gap: 16px 10px;
+}
+
+.dayButton {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 6px;
+  min-height: 58px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #111827;
+  cursor: pointer;
+}
+
+.dayButtonMuted {
+  color: #c0c6d0;
+}
+
+.dayButtonSelected {
+  background: #dcedff;
+  color: #4094ff;
+  font-weight: 800;
+}
+
+.dayButtonSelected > span:first-child {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #4094ff;
+  color: #ffffff;
+}
+
+.dotGroup {
+  display: flex;
+  gap: 3px;
+  min-height: 6px;
+}
+
+.dotHost,
+.dotParticipant,
+.dotCanceled {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+}
+
+.dotHost {
+  background: #4094ff;
+}
+
+.dotParticipant {
+  background: #ef5777;
+}
+
+.dotCanceled {
+  background: #8b95a7;
+}
+
+.upcomingCard {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+}
+
+.upcomingList,
+.logList {
+  display: grid;
+  gap: 14px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.upcomingList a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #edf0f4;
+  color: inherit;
+  text-decoration: none;
+}
+
+.dDayBadge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #111111;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.upcomingList a > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+}
+
+.logList {
+  gap: 12px;
+}
+
+.logItem {
+  display: grid;
+  min-height: 116px;
+  overflow: hidden;
+  border: 1px solid #4094ff;
+  border-radius: 8px;
+  background: #f7fbff;
+  color: inherit;
+  text-decoration: none;
+}
+
+.logItemWithMedia {
+  grid-template-columns: 180px minmax(0, 1fr);
+}
+
+.logItemTextOnly {
+  grid-template-columns: 1fr;
+}
+
+.logThumb {
+  position: relative;
+  min-height: 116px;
+  background: #ad5b73;
+}
+
+.logThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.logThumbPlaceholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #5c75ab;
+}
+
+.logPhotoBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  min-width: 38px;
+  height: 20px;
+  border-radius: 999px;
+  background: #111111;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 20px;
+  text-align: center;
+}
+
+.logBody {
+  display: grid;
+  align-content: space-between;
+  gap: 18px;
+  min-width: 0;
+  padding: 20px 24px 18px;
+}
+
+.logContent {
+  margin: 0;
+  line-height: 1.6;
+  color: #374151;
+  font-size: 14px;
+}
+
+.logContent span,
+.logMeta {
+  color: #9aa3b2;
+}
+
+.logFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.logAuthor {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 110px;
+  color: #111827;
+  font-size: 13px;
+}
+
+.logAuthorAvatar {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #56d9c6;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.logAuthor strong {
+  color: #111827;
+}
+
+.logMeta {
+  margin-left: auto;
+  font-size: 12px;
+}
+
+.favoriteScroller {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 160px;
+  gap: 18px;
+  justify-content: start;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.favoriteCard {
+  display: grid;
+  place-items: center;
+  width: 160px;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #526ea9;
+  color: #ffffff;
+  text-align: center;
+  text-decoration: none;
+}
+
+.favoriteCard img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.emptyState {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+
+@media (max-width: 860px) {
+  .profileCard,
+  .scheduleGrid,
+  .activityGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .profileActions {
+    justify-self: start;
+  }
+
+  .profileEditTwoColumn {
+    grid-template-columns: 1fr;
+  }
+
+  .calendarCard {
+    min-height: auto;
+    padding: 22px;
+  }
+
+  .logItem {
+    grid-template-columns: 1fr;
+  }
+
+  .logThumb {
+    min-height: 120px;
+  }
+}

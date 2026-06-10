@@ -604,6 +604,13 @@
   font-weight: 800;
 }
 
+.modalActionError {
+  color: var(--color-status-danger);
+  font-size: var(--font-size-caption-2);
+  line-height: var(--line-height-caption-2);
+  white-space: nowrap;
+}
+
 .themeMetaGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

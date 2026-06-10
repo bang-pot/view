@@ -1,0 +1,131 @@
+.card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 16px;
+  min-height: 112px;
+  padding: 14px 18px 14px 14px;
+  border: 1px solid #dde2e8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  text-decoration: none;
+  box-shadow: 0 6px 18px rgb(15 23 42 / 0.05);
+}
+
+.card:hover {
+  border-color: #c8d0da;
+  box-shadow: 0 8px 22px rgb(15 23 42 / 0.08);
+}
+
+.cover {
+  width: 96px;
+  height: 96px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #d9d9d9;
+}
+
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.content {
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  padding-right: 74px;
+}
+
+.name {
+  overflow: hidden;
+  margin: 0 0 8px;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: 20px;
+  padding: 0 8px;
+  border: 1px solid #d8dee7;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.dot::before {
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-radius: 2px;
+  background: #111111;
+  content: "";
+}
+
+.description {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: #5f6875;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.status {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  min-height: 22px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #a3f56f;
+  color: #178a2f;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 22px;
+}
+
+@media (max-width: 620px) {
+  .card {
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .cover {
+    width: 76px;
+    height: 76px;
+  }
+
+  .content {
+    padding-right: 0;
+  }
+
+  .status {
+    position: static;
+    width: fit-content;
+    margin-bottom: 8px;
+  }
+}

@@ -1,0 +1,95 @@
+.card {
+  position: relative;
+  min-width: 0;
+}
+
+.cardLink {
+  display: grid;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.posterFrame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 1px solid #e3e6eb;
+  border-radius: 8px;
+  background: #eef2f6;
+  color: #8b95a1;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.posterFrame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardCopy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.titleLine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.titleLine strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.favoritePill {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border: 1px solid #ffb6b6;
+  border-radius: 999px;
+  background: #fff2f2;
+  color: #ef4444;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.metaLine {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metaDot {
+  flex: 0 0 auto;
+  width: 4px;
+  height: 4px;
+  margin-right: 6px;
+  border-radius: 999px;
+  background: #111827;
+}
+
+.metaSeparator {
+  margin: 0 4px;
+}

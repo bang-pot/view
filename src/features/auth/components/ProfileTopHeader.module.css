@@ -1,0 +1,122 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid var(--color-border-default);
+  background: color-mix(in srgb, var(--color-background-default) 94%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.headerInner {
+  width: min(100%, 1200px);
+  height: 52px;
+  margin: 0 auto;
+  padding: 0 var(--space-12);
+  display: flex;
+  align-items: center;
+  gap: var(--space-14);
+}
+
+.logoLink {
+  display: inline-flex;
+  align-items: center;
+}
+
+.logo {
+  width: 104px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  font-size: var(--font-size-label-2);
+  line-height: var(--line-height-label-2);
+}
+
+.nav a {
+  position: relative;
+  color: var(--color-text-tertiary);
+  text-decoration: none;
+  transition:
+    color 160ms ease,
+    opacity 160ms ease;
+}
+
+.nav a:hover,
+.nav a[aria-current="page"] {
+  color: var(--color-text-primary);
+}
+
+.nav a[aria-current="page"]::after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -17px;
+  height: 2px;
+  background: var(--color-black);
+  content: "";
+}
+
+.actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.notificationIcon {
+  width: 20px;
+  height: 20px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  position: relative;
+}
+
+.notificationIcon svg {
+  width: 17px;
+  height: 17px;
+  overflow: visible;
+  fill: none;
+  stroke: var(--color-black);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.notificationIcon::after {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background: var(--color-red-500);
+  content: "";
+}
+
+.avatarLink {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  background: var(--color-blue-100);
+  color: var(--color-blue-500);
+  font-size: var(--font-size-caption-1);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+@media (max-width: 860px) {
+  .headerInner {
+    gap: 16px;
+    padding: 0 16px;
+  }
+
+  .nav {
+    gap: 14px;
+    font-size: 12px;
+  }
+}

@@ -102,16 +102,21 @@ describe("JoinedMeetingsProfilePage", () => {
 
     render(<JoinedMeetingsProfilePage />);
 
-    expect(await screen.findByRole("heading", { name: "참여 모임" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "내가 참여한 모임" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "진행 중 모임" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "지난 모임" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /금요일 방탈출/ })).toHaveAttribute(
       "href",
       "/crews/7/meetings/41",
     );
     expect(screen.getByText("더 킹덤")).toBeInTheDocument();
-    expect(screen.getByText("방로그 크루")).toBeInTheDocument();
-    expect(screen.getByText("2026-04-25 19:00")).toBeInTheDocument();
-    expect(screen.getAllByText("완료")).toHaveLength(2);
-    expect(screen.getByText("모집 중")).toBeInTheDocument();
+    expect(screen.getAllByText("방로그 크루")).toHaveLength(2);
+    expect(screen.getByText("2026. 04. 25 (토) 19:00")).toBeInTheDocument();
+    expect(screen.getAllByText("마감")).toHaveLength(2);
+    expect(
+      screen.getAllByText((_, element) => element?.textContent === "탈출 진행도 : 완료"),
+    ).toHaveLength(2);
+    expect(screen.getByText("모집중")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "리뷰 작성하기" })).toHaveAttribute(
       "href",
       "/crews/7/meetings/41",
